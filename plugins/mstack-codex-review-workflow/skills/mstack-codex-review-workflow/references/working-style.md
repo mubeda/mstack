@@ -22,7 +22,7 @@ This file sets the working style for a run. The coordinator reads it at the star
 12. A second opinion is the same question put to a model family other than the author's. Agreement is a strong signal.
 13. Send back work that drifts from scope, and park non-blocking fixes as follow-ups.
 14. Close out every lane as done, replaced or absorbed. Judge a stuck lane by its commits, not its status text. Never message a lane just to ask how it is going, since a message restarts an idle agent.
-15. Match the retry to the failure. Narrow the scope after a context limit, resend the brief after a dropped connection, and switch models after a tool error. After two failed retries, replan the unit. When two fixes built on one assumption fail the same check, state the assumption in one sentence and test it with an observation that would differ if it were wrong, before any further fix.
+15. Match the retry to the failure. Narrow the scope after a context limit, resend the brief after a dropped connection, and switch models after a tool error. When the work itself was wrong or incomplete although the brief was clear and the tools worked, the model was too small for it: run the next round one tier up the model table in `SKILL.md`, never again on the same model. After two failed retries, replan the unit. When two fixes built on one assumption fail the same check, state the assumption in one sentence and test it with an observation that would differ if it were wrong, before any further fix.
 16. Rebases, retries, flaky CI, review sorting and whether to continue are your calls. Bring the user only real decisions and blockers.
 17. Find out why CI failed before you rerun it. A suspected flake gets one rerun, and the same failure twice is real. When the failing code is outside the diff, check for a stale base with `git merge-base --is-ancestor`. Put all known fixes in one push, handling conflicts first, then review threads, then CI.
 18. Before you act on a measurement, note the noise floor and which result would change your decision, and ask why the gain is not twice as large. Exclude errors, cached or skipped work and noise. Give at least 5 alternating runs with median and range.
@@ -65,9 +65,9 @@ The short names let a finding or a report point at a rule.
 
 ## Overrides
 
-1. The model and effort table in `SKILL.md` overrides any other default, and no lane runs above the effort cap that table sets.
+1. The model and effort table in `SKILL.md` overrides any other default, and no lane runs above the effort cap that table sets, except the one escalation that section allows.
 2. The run ships at most one pull request, never a stack or a set of narrow ones.
-3. Send fix rounds to the same lane by message. In Single mode you are the lane, so you fix the findings yourself. Use a fresh agent with a consolidated brief only when the lane is gone or after two failed rounds.
+3. Send fix rounds to the same lane by message. In Single mode you are the lane, so you fix the findings yourself. Use a fresh agent with a consolidated brief only when the lane is gone, after two failed rounds, or when the lane moves up a model tier and the host cannot change a running lane's model.
 4. Open the pull request ready for review, not as a draft.
 5. Reversible means local and unpublished. The sensitive-data gate always runs before anything is pushed or posted.
 6. Pre-existing comments outside the change stay. The comment rule covers only comments a lane adds.

@@ -12,7 +12,7 @@ You read a tracker's open issues, decide for each one what it is and when it sho
 | Role | Claude Code | Codex |
 |---|---|---|
 | Your question tool | `AskUserQuestion` | A numbered round in chat, then wait for the reply |
-| Your subagent tool | `Agent` | The session's agent tool if it has one, otherwise do the step yourself |
+| Your subagent tool | `Agent`, with `model: "sonnet"` and `effort: "medium"` | The session's agent tool if it has one, with the account's standard coding model set, otherwise do the step yourself |
 | The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md |
 | `gh` commands | Run directly | Run as approved (escalated) commands, because the sandbox turns the network off |
 | `<scratch>` | The session's scratch folder, outside the repository | `${TMPDIR:-/tmp}/mstack-triage-<repository name>` |
@@ -52,7 +52,7 @@ In one message, restate the goal and ask with your question tool. Skip any quest
 
    It creates the output folder when it is missing, saves bodies and comments, and fails when the saved count differs from the repository's open-issue count, because `gh issue list` stops at 30 by default without saying so. For a filtered scope, filter the saved list rather than relisting. Then read each issue in full with `gh issue view <n> --repo <owner/repo> --json number,title,body,labels,comments,author,createdAt,updatedAt,url`.
 3. For another tracker, use its CLI or connected tool if the session has one. Otherwise ask the user to export or paste the issues, and say that the triage covers only what was provided.
-4. For a large backlog, send groups of issues to fresh subagents with this skill's references, one group each, and ask each for its rows with evidence. You merge the rows, run the cross-issue duplicate comparison yourself, and own the final table.
+4. For a large backlog, send groups of issues to fresh subagents with this skill's references, one group each, on the model the host tools table names (a subagent started without a model runs on the session's model, the most expensive choice), and ask each for its rows with evidence. You merge the rows, run the cross-issue duplicate comparison yourself, and own the final table.
 
 ## 3. Evidence
 

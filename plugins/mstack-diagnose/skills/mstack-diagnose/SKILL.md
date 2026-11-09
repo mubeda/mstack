@@ -9,13 +9,17 @@ Find out why something is broken, prove it, and fix it only when the user wants 
 
 ## Using this skill in Claude Code and Codex
 
-This file is the same for both hosts. It never names a host tool. Where it says "your subagent tool" or "your question tool", use the host's equivalent.
+This file is the same for both hosts. It never names a host tool outside the table below. Where it says "your subagent tool" or "your question tool", use the host's equivalent.
 
 | This file says | Claude Code | Codex |
 |---|---|---|
 | your question tool | `AskUserQuestion` | Ask in chat with numbered options, then wait |
 | your subagent tool | `Agent`, with `isolation: "worktree"` when it edits code | A separate `codex exec` run in its own `git worktree`, or the session's agent tool if it has one |
+| a cheap subagent | `model: "haiku"`, `effort: "low"` | `-m` with the cheapest model the account offers, and `model_reasoning_effort` low |
+| a standard subagent | `model: "sonnet"`, `effort: "medium"` | `-m` with the account's standard coding model, and `model_reasoning_effort` medium |
 | the skill folder | The base directory the host showed when it loaded this skill | The folder of the SKILL.md you loaded |
+
+A subagent started without a model runs on the session's model, the most expensive choice, so set it every time. A subagent that only reads (a log search, a history lookup) is a cheap subagent. A subagent that tests a hypothesis or edits code is a standard subagent. Use the session's own model for a subagent only when its hypothesis is about concurrency, memory corruption or a cause that spans components, and say why in the report.
 
 Without a subagent tool, do the delegated steps yourself, one after another. Refer to the files below by their path inside the skill folder.
 
@@ -79,7 +83,7 @@ Test one prediction per probe and change one variable at a time.
 4. Keep asking why until the answer is a wrong decision in the code, not a consequence of an earlier one. That first wrong decision is the root cause. If the state that triggered the symptom is legitimate, the code that broke on it is the root cause. If the state should never exist, a guard where it crashes only hides the bug, and the real fix is in whatever produced that state.
 5. When a probe refutes a hypothesis, revert everything that hypothesis motivated.
 6. When two fixes that rest on one premise have failed the same check, write that premise as one sentence and test it directly before trying anything else. After three failed fixes in total, stop. The design itself may be wrong, so take that question to the user with your question tool, with the evidence from each attempt, before a fourth fix.
-7. Independent hypotheses can be tested in parallel with your subagent tool, one subagent per hypothesis, each in its own worktree with a brief that names the commit and the loop command. Rerun the deciding command yourself before you accept any subagent's verdict. A missing result is a gap, not a pass.
+7. Independent hypotheses can be tested in parallel with your subagent tool, one subagent per hypothesis, each a standard subagent (see the table at the top, and its one exception) in its own worktree, with a brief that names the commit and the loop command. Rerun the deciding command yourself before you accept any subagent's verdict. A missing result is a gap, not a pass.
 
 Gate: one prediction is confirmed by a probe that flipped the outcome, at least one independent check agrees with it (or one record is decisive on its own, such as a symbolized stack trace that ends at the faulting line), the others are refuted or marked untested, and the mechanism is mapped to `file:symbol:line` at the first wrong decision. A diagnosis-only run goes to Phase 6 from here.
 

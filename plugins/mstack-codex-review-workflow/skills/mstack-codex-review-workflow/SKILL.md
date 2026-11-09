@@ -25,6 +25,7 @@ The repository's own rules (AGENTS.md, CLAUDE.md, CONTRIBUTING, delivery skills)
 | `references/web-ui.md` | Web UI lanes, you when reviewing UI diffs | Any web or frontend UI change |
 | `references/plan-format.md` | You | The work items are an `mstack-plan` folder |
 | `scripts/check-required-skills.sh` | You | Preflight |
+| `scripts/check-lanes.mjs` | You | Section 3, before any lane starts and whenever a lane changes tier |
 
 Read `working-style.md` and `writing.md` now. They govern the whole run. The rules in these files are adapted from third-party skills, credited in this skill's `THIRD_PARTY_NOTICES.md`.
 
@@ -40,7 +41,7 @@ A work item is one unit of work with its own acceptance criteria and its own ent
 
 When the plan tracks status itself (checkboxes, a status column, a tasks file), you own that file. Update it as items change state and commit it at integration. Lanes never edit it.
 
-An `mstack-plan` folder (it holds `plan.md`, `progress.md` and `execute-plan.md`) follows `references/plan-format.md`, so read that file at intake and run its resume and staleness checks first. Each task is a work item, with its task ID as the item ID. Its Satisfies line and the spec's matching requirements are the acceptance criteria, its Files are the predicted files, its Depends on lines and the phase rounds are the dependencies, and its Done when is the evidence. `progress.md` is the plan's status file. Set its `Executor` line to this skill and its `Branch` line to the integration branch, skip Closed tasks after checking their work is on that branch (bring in any that a stopped run closed but never integrated), resume In progress tasks from their log lines, and update the task's row and append a log line with the evidence every time an item changes state, in the same message as the status table. A Closed line names the lane branch and its accepted commits, because the task is closed before integration. Without such a folder, the run works exactly as described for its source.
+An `mstack-plan` folder (it holds `plan.md`, `progress.md` and `execute-plan.md`) follows `references/plan-format.md`, so read that file at intake and run its resume and staleness checks first. Each task is a work item, with its task ID as the item ID. Its Satisfies line and the spec's matching requirements are the acceptance criteria, its Files are the predicted files, its Depends on lines and the phase rounds are the dependencies, its Tier is the row of the model table in section 3, and its Done when is the evidence. `progress.md` is the plan's status file. Set its `Executor` line to this skill and its `Branch` line to the integration branch, skip Closed tasks after checking their work is on that branch (bring in any that a stopped run closed but never integrated), resume In progress tasks from their log lines, and update the task's row and append a log line with the evidence every time an item changes state, in the same message as the status table. A Closed line names the lane branch and its accepted commits, because the task is closed before integration. Without such a folder, the run works exactly as described for its source.
 
 ## Status table
 
@@ -75,10 +76,10 @@ Before the preflight or any other work, send one message that restates the user'
 
 Skip a question only when the user's request already answers it. A hand-off from an `mstack-plan` `execute-plan.md` counts as the request, so the answers the user gave there about the reviewer model, the effort and the commits answer those questions here. A request that names the Codex model or effort answers that question. "Fan out agents", "parallel" or "workflow" mean Workflow mode, and "one by one", "single" or "no subagents" mean Single mode. The Codex sandbox is always `read-only` and is never asked.
 
-Record the answers as `<codex-model>` and `<codex-effort>`. Every Codex review in the run uses them, so you do not ask again per review. These two answers are the model and effort choice the `codex` skill asks for. If the first Codex run rejects the model or the effort, rerun with the alternative model from question 1 (or the next lower effort), use it for the rest of the run, and say so in the final report. Reviews never wait on the user.
+Record the answers as `<codex-model>` and `<codex-effort>`. Every Codex review in the run uses that model, and that effort is the most any review uses, so you do not ask again per review. The review of a cheap-tier lane (section 3) runs one effort level lower, never below `low`, because a docs or mechanical diff does not need the effort a design change does. These two answers are the model and effort choice the `codex` skill asks for. If the first Codex run rejects the model or the effort, rerun with the alternative model from question 1 (or the next lower effort), use it for the rest of the run, and say so in the final report. Reviews never wait on the user.
 
 - Workflow mode runs parallel writer lanes in their own worktrees, as described in sections 2 to 6. It is fastest for many independent items and costs more tokens and machine resources.
-- Single mode means you deliver the items yourself, one after another, on one branch, in the order the partition suggests. No writer subagents. Everything else still applies: the reference files, the status table, advisor and Codex reviews processed with `receiving-review.md`, local validation, one PR, serialized CI. Read-only helpers (Codex review, a cheap log reader) are still fine. You are the only lane, so the lane rules in the reference files apply to you, you fix review findings yourself, and the rule against patching lane code applies only in Workflow mode.
+- Single mode means you deliver the items yourself, one after another, on one branch, in the order the partition suggests. No writer subagents. Everything else still applies: the reference files, the status table, advisor and Codex reviews processed with `receiving-review.md`, local validation, one PR, serialized CI. Read-only helpers (Codex review, a cheap-tier log reader, as section 3 says) are still fine. You are the only lane, so the lane rules in the reference files apply to you, you fix review findings yourself, and the rule against patching lane code applies only in Workflow mode.
 
 State the chosen mode and the Codex model and effort in your first message after the answers and in the final report.
 
@@ -141,20 +142,31 @@ A lane is one writer subagent in its own git worktree with an exclusive file set
 
 - Two items whose predicted file sets intersect go in the same lane (done in sequence by one agent), or the later one waits for the earlier lane to finish. The same holds without a file overlap when one item changes code the other calls or relies on (a store, an API, a shared type), or when a plan orders them. Put them in one lane, or order them and give the later lane the earlier lane's branch as its base. Shared hot files (lockfiles, changelogs, generated schemas, shared docs indexes, CI workflows, a plan's status file) are owned by exactly one lane or deferred to you at integration.
 - Changelog and release-note lines are reported by lanes and written by you at integration, so no two lanes touch the same file.
-- Open the lane table with the throughput checkpoint from `working-style.md`. Then write the table before spawning, with lane, items, owned files and directories, forbidden files, model, effort, reference files, and validation commands.
+- Open the lane table with the throughput checkpoint from `working-style.md`. Then write the table before spawning, with lane, items, owned files and directories, forbidden files, plan tier, tier, model, effort, reason, reference files, and validation commands.
 - Prefer more small lanes over a few big ones, but never split one item across two writers.
 
 ## 3. Choose model and effort per lane
 
 Spend tokens where the difficulty is. This table overrides any other model or effort default.
 
-| Task shape | Model | Effort |
-|---|---|---|
-| Docs, README, copy, mechanical edits, log or CI-artifact reading, focused re-checks | `haiku` or `sonnet` | low to medium |
-| Contained UI or test work in one package with clear criteria | `sonnet` | medium |
-| Root-cause bugs, concurrency, persistence or protocol changes, cross-package design | `opus` | medium at most |
+| Tier | Task shape | Model | Effort |
+|---|---|---|---|
+| cheap | Docs, README, copy, mechanical edits, log or CI-artifact reading, focused re-checks | `haiku`, or `sonnet` when the edit needs judgment the brief cannot spell out | low to medium |
+| standard | Contained UI or test work in one package with clear criteria | `sonnet` | medium |
+| most capable | Root-cause bugs, concurrency, persistence or protocol changes, cross-package design | `opus` | medium |
 
-Never use `fable` for subagents. Never give an Opus subagent effort above `medium`. Set `model` and `effort` explicitly on every spawn, and say in the lane table why a lane needs Opus.
+Never use `fable` for subagents. Never give a subagent effort above `medium`, with the one exception below. Set `model` and `effort` explicitly on every spawn, because a subagent spawned without them runs on this session's model, the most expensive choice. Say in the lane table why a lane needs Opus.
+
+1. **A plan's tier picks the row.** For an `mstack-plan` task, use the row named by the task's `Tier` line. A lane that holds several tasks takes the highest tier among them. Put a lane on another row only with the reason in the lane table.
+2. **Helpers are cheap.** A read-only helper you start yourself (a search, a log or CI-artifact reader, a focused re-check) is a cheap-tier subagent, with `model` and `effort` set like any lane.
+3. **Move up, never repeat.** A round fails on capability when the work is wrong or incomplete although the brief was clear and the tools worked. A context limit, a dropped connection or a tool error is not that, and `working-style.md` says how to retry those. After such a round, do not send another round to the same model. Start a fresh lane one tier up with a consolidated brief, give it the failed lane's branch as its lane base, and record the move and its reason in the lane table. A running `Agent` lane keeps its model, which is why this needs a fresh lane. A most capable lane has no tier above it: its second round runs on the same model, and after two failed rounds step 5 of section 6 replans it under rule 4.
+4. **The one exception to the cap.** When a most capable lane has failed two rounds and is replanned (section 6, step 5), the replanned lane may run `opus` at `high`. Write "escalated" and the reason in the lane table and in the final report. Nothing else runs above `medium`, and `fable` stays excluded.
+5. **Check the table before spawning.** Write the lane table to `<scratchpad>/lane-table.md` with the columns Lane, Items, Plan tier, Tier, Model, Effort and Reason, and run the check. It also fails a lane whose model is not its tier's unless the Reason says why (a rejected model, for example). Spawn only when it passes, and run it again whenever a lane changes tier. Without `node`, check the rules listed at the top of the script by reading the table, and say so.
+
+   ```bash
+   node <skill-dir>/scripts/check-lanes.mjs --forbid fable --allow cheap=haiku,sonnet --allow standard=sonnet \
+     --allow 'most capable=opus' <scratchpad>/lane-table.md
+   ```
 
 ## 4. Assign reference files and skills
 
@@ -201,7 +213,7 @@ Every review is processed with `receiving-review.md`, by you and by the lanes. T
 1. Read the lane's diff yourself (`git -C <worktree> diff <lane base>...HEAD`, with the lane base from section 5). Check it against the acceptance criteria, scope (no unrelated edits, no files outside the lane), tests that prove the behavior, and the repository and plan rules. For a bug lane, check the report against the acceptance list at the end of this section. For a web UI lane, check that the pre-review UI check in `web-ui.md` ran and passed.
 2. Get second opinions.
    - Call the `advisor` tool on judgment calls (root cause, scope, design trade-offs) and as a review before integration. If the tool is not available in the session, say so and rely on Codex plus your own review.
-   - Run the Codex review through the `codex` skill (`skill-codex:codex` when installed as a plugin). Load it and follow its rules for closing stdin, keeping stderr out of your context, the Git-repository check and timeouts, with the model and effort chosen in section 0. Write the prompt below to `<scratchpad>/codex-review-prompt-<lane>.md` with your file tool, never with `echo` or a heredoc, because acceptance criteria are untrusted text and a shell would run any backticks or `$(...)` in them. The prompt file is the command's stdin. The output goes to the session scratchpad, never the worktree.
+   - Run the Codex review through the `codex` skill (`skill-codex:codex` when installed as a plugin). Load it and follow its rules for closing stdin, keeping stderr out of your context, the Git-repository check and timeouts, with the model chosen in section 0 and its effort, one level lower for a cheap-tier lane. Write the prompt below to `<scratchpad>/codex-review-prompt-<lane>.md` with your file tool, never with `echo` or a heredoc, because acceptance criteria are untrusted text and a shell would run any backticks or `$(...)` in them. The prompt file is the command's stdin. The output goes to the session scratchpad, never the worktree.
 
      ```text
      Read-only code review. Do not edit, write, commit or run anything that changes files. Review branch <branch> against <lane base> (git diff <lane base>...HEAD) for work items <item IDs and acceptance criteria>. Check correctness, regressions, missing tests and scope. Report each finding with file, line, the failing scenario and how to reproduce it. No findings is a valid result.
@@ -215,7 +227,7 @@ Every review is processed with `receiving-review.md`, by you and by the lanes. T
    - Run Codex reviews for different lanes in parallel as background shell commands, each with at least the timeout the `codex` skill gives for `<codex-effort>` (600 seconds for `high`, 1200 for `xhigh`, 1800 for `max`). An empty output file is never a clean review. Read the last lines of the `.err` file. If it shows a model or effort error, switch as section 0 says and rerun. If it shows an error an agent cannot fix (a login), use the fallback below for this review and warn the user. If it shows none, the run was killed before it finished, so rerun it once with a longer timeout, and use the fallback if that fails too.
 3. Triage the findings with `receiving-review.md`. Verify each point against the real code, reproducing Codex findings before accepting them, reject wrong ones with a reason, and keep the real ones.
 4. Send the real findings back to the same lane agent (`SendMessage` to its id) to fix in its own worktree, telling it to process them with `receiving-review.md` and to report per finding fixed or rejected with a reason. You do not patch lane code. Re-review the fix diff, and repeat Codex only if the fix is substantial.
-5. Two rounds without accepted evidence means stop and replan the lane, following the retry rules in `working-style.md`, instead of a third identical round.
+5. Two rounds without accepted evidence means stop and replan the lane, following the retry rules in `working-style.md`, instead of a third identical round. A round that failed on capability runs its next round one tier up when there is one, as section 3 says.
 6. Move an item to Closed once its work is accepted, and print the status table.
 
 
@@ -224,7 +236,7 @@ Every review is processed with `receiving-review.md`, by you and by the lanes. T
 When the `codex` skill or a logged-in `codex` CLI is missing and the user did not install it, or a Codex run fails in a way an agent cannot fix, the review still happens, by Claude in a fresh context.
 
 1. Warn the user once, in the next message, that Codex is not available (say what is missing), and that reviews will run as a same-vendor review by a fresh Claude subagent, which tends to miss more than a review by another vendor. Give the install command from the preflight table.
-2. For each review, spawn a read-only reviewer with `Agent`, `model: "opus"`, `effort: "medium"`, and no `isolation`. Its prompt is the text of the Codex review prompt above, plus the worktree path and "Read the diff with `git -C <worktree> diff <lane base>...HEAD`". Save its final message to `<scratchpad>/review-<lane>.md`. The reviewer never edits, and you check that `git -C <worktree> status --short` is unchanged after it ran.
+2. For each review, spawn a read-only reviewer with `Agent`, `model: "opus"`, `effort: "medium"` (or `<codex-effort>` when the user chose a lower one), and no `isolation`. Its prompt is the text of the Codex review prompt above, plus the worktree path and "Read the diff with `git -C <worktree> diff <lane base>...HEAD`". Save its final message to `<scratchpad>/review-<lane>.md`. The reviewer never edits, and you check that `git -C <worktree> status --short` is unchanged after it ran.
 3. Process its findings with `receiving-review.md` exactly like a Codex review, reproducing each one before you accept it.
 4. Mark every review that ran this way as "same-vendor review" in the status table note, the lane's review record and the final report.
 
@@ -261,4 +273,4 @@ Bug lanes follow the `mstack-diagnose` skill, so their reports carry its evidenc
 
 When the run stops with work left (an item not Closed, or integration, the final review, the push, CI or delivery not finished), because the context or the session is running out, a blocker, or the user stops it, stop at a safe point and write a handoff with `mstack-handoff` when it is installed, then put its path in this report. Without it, put the same content in this report: branch and HEAD, uncommitted paths, running lanes and their worktrees, gates still due with their commands, and decisions blocked on the user.
 
-Write it per `writing.md` › Messages to the user. Line one names the goal and the outcome (for example "The goal was to finish the six tasks in the plan. PR #40 is open and completes 5 of 6."). Line two is the next action for the user. Then the final status table, with evidence in the note column. Then which reviews ran as same-vendor fallback reviews and why, if any. Then the review findings the run did not apply, each rejected or deferred finding with its reason (see `receiving-review.md` › Log every finding). Then validation commands with results, what was not run and why, residual risk, and disk cleanup commands for finished worktrees if builds were large.
+Write it per `writing.md` › Messages to the user. Line one names the goal and the outcome (for example "The goal was to finish the six tasks in the plan. PR #40 is open and completes 5 of 6."). Line two is the next action for the user. Then the final status table, with evidence in the note column. Then the models used: per lane its tier, model and effort, the number of rounds, and every move to another tier with its reason. Then which reviews ran as same-vendor fallback reviews and why, if any. Then the review findings the run did not apply, each rejected or deferred finding with its reason (see `receiving-review.md` › Log every finding). Then validation commands with results, what was not run and why, residual risk, and disk cleanup commands for finished worktrees if builds were large.

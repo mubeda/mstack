@@ -24,6 +24,8 @@ This skill runs in Claude Code and in Codex. It names roles, not tools.
 
 Without a subagent tool, do the delegated step yourself and say so.
 
+Set the model on every subagent, because one started without it runs on this session's model, the most expensive choice. A read-only search or lookup runs on the cheapest model the host offers (in Claude Code `model: "haiku"` with `effort: "low"`; in Codex `-m` with the account's cheapest model). The plan review is the exception and uses the model `references/plan-review.md` names.
+
 ## Files in this skill
 
 | File | When |

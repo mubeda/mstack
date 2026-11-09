@@ -9,13 +9,17 @@ Turn a request into a written specification the user has approved, with testable
 
 ## Using this skill in Claude Code and Codex
 
-This file is the same for both hosts. It never names a host tool. Where it says "your question tool" or "your subagent tool", use the host's equivalent.
+This file is the same for both hosts. It never names a host tool outside the table below. Where it says "your question tool" or "your subagent tool", use the host's equivalent.
 
 | This file says | Claude Code | Codex |
 |---|---|---|
 | your question tool | `AskUserQuestion` for short choices; a numbered round in chat for longer ones | A numbered round in chat, then wait for the answer |
 | your subagent tool | `Agent` with a fresh context | A separate read-only `codex exec` run with the brief, or the session's agent tool if it has one |
+| a cheap subagent | `model: "haiku"`, `effort: "low"` | `-m` with the cheapest model the account offers, and `model_reasoning_effort` low |
+| a standard subagent | `model: "sonnet"`, `effort: "medium"` | `-m` with the account's standard coding model, and `model_reasoning_effort` medium |
 | the skill folder | The base directory the host showed when it loaded this skill | The folder of the SKILL.md you loaded |
+
+A subagent started without a model runs on the session's model, the most expensive choice, so set it every time. A lookup (what the code does today, which version is installed) is a cheap subagent. The independent read of Phase 6 is a standard subagent, or the session's own model for a full spec that touches security, stored data or money, because that reader is the last check before approval.
 
 Without a subagent tool, do the delegated step yourself and say that you did. Refer to the files below by their path inside the skill folder.
 

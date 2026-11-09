@@ -145,7 +145,7 @@ Steps
 3. **Files.** Exact paths. A path that exists today was checked. A new path follows the repository's conventions.
 4. **Interfaces.** Exact names, parameters and return types. An executor sees only its own task, so this is how it learns its neighbors' names.
 5. **Skills.** Each skill by its bare name, the name in its SKILL.md without a plugin prefix (`test-driven-development`, not `superpowers:test-driven-development`), with a reason in six to twelve words that says what the skill does for this task. "none" is allowed. A skill that is not installed is marked "(not installed)". Never list a cross-vendor review skill here, because the reviewer depends on the host that executes the plan. The executor resolves each name on its own host (see Resume and staleness, rule 7).
-6. **Tier.** A model tier, never a model name. The executor maps tiers to the models its host offers.
+6. **Tier.** A model tier, never a model name. The executor maps tiers to the models its host offers: a workflow puts the task's lane on that row of its model table, and an inline executor, which runs every task on its own session's model, uses the tier for the helpers it starts.
 7. **TDD.** Code tasks are red-green. "exempt" is only for work with no behavior to test (documentation, configuration with no logic, research, a pure command run), and the reason says which.
 8. **Done when.** A command and its expected result, or an observable result with how to observe it. A task without one is not scoped yet.
 9. **Steps.** Each step is one action with a checkable result. Every command step has an `Expected:` line. Steps name signatures and exact values, not full code bodies, except where the exact text is the deliverable.
