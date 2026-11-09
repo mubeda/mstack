@@ -57,7 +57,7 @@ Before any other work, ask the user these questions in one message, using the ho
 
 1. Work on the branch from question 3. Never work directly on the default branch without the user's consent.
 2. Set `Executor: inline` and `Branch: <branch>` in `progress.md`.
-3. Keep going without status check-ins. Stop and ask only for: an irreversible or destructive operation, a security-sensitive action, a side effect outside this repository (a push, a publish, a merge), or a plan so broken that every way forward is a guess.
+3. Keep going without status check-ins. Stop and ask only for: an irreversible or destructive operation, a security-sensitive action, a side effect outside this repository (a push, a publish, a merge), or a plan so broken that every way forward is a guess. When the context or the session is running out, stop at a safe point, make sure `progress.md` is current, write a handoff with `mstack-handoff` when it is installed, and give its path; the next session continues from `progress.md` and the handoff.
 4. When the plan is wrong in a small way (a renamed function, a moved file), make the smallest change that still satisfies the spec, and log it in `progress.md` as `Ruling: <what>, because <why>. Cost if wrong: <impact>.`
 5. Never claim a task is done without fresh evidence: run its Done when command in this session, read the whole output and the exit code, and copy the evidence into the log.
 

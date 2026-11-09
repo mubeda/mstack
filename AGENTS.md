@@ -51,7 +51,9 @@ Every skill installs as a plugin (Claude Code and Codex marketplaces) or with th
    plugins have none). A plugin already bumped on this branch
    (not yet on `main`) needs no second bump for later fixes in the same pull request. After
    merging `main`, a plugin bumped on both sides needs a version above both parents.
-   `check-version-bumps.mjs` fails when a changed plugin's version is not higher than `main`'s;
+   Also raise the marketplace's own `metadata.version` in `.claude-plugin/marketplace.json`, the minor
+   number when a plugin is added or removed and the patch number otherwise.
+   `check-version-bumps.mjs` fails when a changed plugin's version, or the marketplace version, is not higher than `main`'s;
    `check-marketplace.mjs` fails when the copies of a version disagree.
 3. **Run the outside-the-diff sweep** (below).
 4. **Get a second-opinion review before any commit the user asks for**, from a reviewer in another

@@ -51,6 +51,30 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Planning"
+    },
+    {
+      "name": "mstack-handoff",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-handoff"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "mstack-backlog-triage",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-backlog-triage"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Planning"
     }
   ]
 }

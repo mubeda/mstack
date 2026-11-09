@@ -5,13 +5,13 @@
   },
   "metadata": {
     "description": "Daily-driver agent skills for Claude Code and Codex CLI, packaged as independently installable plugins.",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "mstack-codex-review-workflow",
       "description": "Claude-led coordinator workflow for any task in a repository, from a list of issues (GitHub or another tracker), an execution plan, or one larger task. It splits the work into conflict-free lanes (parallel worktree agents or one agent in sequence), tracks each item as open, in progress or closed, reviews every lane with the advisor and a read-only Codex pass, integrates, and delivers one pull request with CI run one at a time. Claude Code only.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "author": {
         "name": "mubeda"
       },
@@ -21,7 +21,7 @@
     {
       "name": "mstack-diagnose",
       "description": "Diagnose crashes, bugs, regressions, flaky failures, performance problems, hangs and leaks with evidence: intake, a signal from a live loop or a saved crash record, ranked falsifiable hypotheses, one-variable probes, a regression test before the fix, graded root-cause tiers and fix verdicts. One skill for Claude Code and Codex.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "mubeda"
       },
@@ -31,7 +31,7 @@
     {
       "name": "mstack-write-specs",
       "description": "Turn an idea, feature, bug class or refactor into an approved, testable specification: grilling interview rounds that settle every decision, approaches before drafting, EARS requirements with SHALL and a scenario each, a quality checklist, an independent read, and explicit approval before any build. One skill for Claude Code and Codex.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "mubeda"
       },
@@ -41,11 +41,31 @@
     {
       "name": "mstack-plan",
       "description": "Turn an approved spec into a reviewed implementation plan: phases and tasks sized for one agent session each, red-green test steps, dependencies and parallel rounds, the best installed skills named per task (with vetted online suggestions for gaps), a review of every plan (cross-vendor, or a same-vendor fallback when that reviewer is missing), a shared progress file, and an execute-plan.md that starts inline or multi-agent execution. One skill for Claude Code and Codex.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "author": {
         "name": "mubeda"
       },
       "source": "./plugins/mstack-plan",
+      "category": "planning"
+    },
+    {
+      "name": "mstack-handoff",
+      "description": "Write one resumable handoff file so a fresh agent session, in Claude Code or Codex, continues long work exactly where it stopped: branch, HEAD, uncommitted paths, pull request, issue status, gates green and due with exact commands, approved and blocked decisions, next commands first. Never commits, stashes or leaks secrets, checks the file mechanically, and resumes from it with staleness rules. One skill for Claude Code and Codex.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-handoff",
+      "category": "productivity"
+    },
+    {
+      "name": "mstack-backlog-triage",
+      "description": "Triage a tracker's open issues into now, next and defer with evidence: read every issue in full, classify each (bug with or without a reproduction, feature, chore, duplicate, not actionable), require a duplicate search before anything goes in the current batch, route items to mstack-write-specs or mstack-diagnose, and output a table the mstack review workflows accept. Drafts comments and label changes, and posts only text the user approved word for word. One skill for Claude Code and Codex.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-backlog-triage",
       "category": "planning"
     }
   ]

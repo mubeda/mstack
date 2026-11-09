@@ -84,10 +84,23 @@ for (const plugin of plugins) {
   }
 }
 
+// The marketplace's own version moves with any plugin change, so a catalog refresh is visible too.
+if (plugins.length) {
+  const catalog = '.claude-plugin/marketplace.json';
+  let baseCatalog = null;
+  try { baseCatalog = JSON.parse(gitQuiet('show', `${base}:${catalog}`)).metadata?.version; } catch { /* new catalog */ }
+  const currentCatalog = JSON.parse(readFileSync(resolve(root, catalog), 'utf8')).metadata?.version;
+  if (baseCatalog) {
+    const [now, before] = [parse(currentCatalog), parse(baseCatalog)];
+    if (!now || !before) problems.push(`marketplace: cannot compare versions ${currentCatalog} and ${baseCatalog} (expected x.y.z)`);
+    else if (!isHigher(now, before)) problems.push(`marketplace: plugins changed but ${catalog} metadata.version ${currentCatalog} is not higher than ${base}'s ${baseCatalog}`);
+  }
+}
+
 if (problems.length) {
   console.error('Version bump check failed — bump each plugin everywhere its version appears '
     + '(see AGENTS.md › Before every commit):');
   for (const problem of problems) console.error(`  - ${problem}`);
   process.exit(1);
 }
-console.log(`Version bump checks passed: ${checked} changed plugin(s) bumped past ${base}`);
+console.log(`Version bump checks passed: ${checked} changed plugin(s) and the marketplace version bumped past ${base}`);
