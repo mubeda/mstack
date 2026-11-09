@@ -83,10 +83,15 @@ After a phase's last task, run its Checkpoint and log the result. A failing chec
 2. Get one cross-vendor review of the whole branch, read-only, with the model and effort from question 2. Write its output outside the repository.
    - Claude Code (Codex reviews, through the `codex` skill of the skill-codex plugin; timeout at least 600 seconds for `high`, 1200 for `xhigh`, 1800 for `max`):
 
+     Write this prompt to `<tmp>/review-prompt.md` with your file tool, never with `echo` or a heredoc, so no shell expands anything in it:
+
+     ```text
+     Read-only code review. Do not edit or run anything that changes files. Review branch <branch> against <base> (git diff <base>...HEAD). The plan is in <plan-folder> and the spec it implements is <plan-folder>/spec.md. Check that every requirement in the spec is met, and check correctness, regressions, missing tests and scope. Report each finding with file, line, the failing scenario and how to reproduce it. No findings is a valid result.
+     ```
+
      ```bash
-     codex exec -m <model> --config model_reasoning_effort="<effort>" --sandbox read-only -C <repository root> \
-       "Read-only code review. Do not edit or run anything that changes files. Review branch <branch> against <base> (git diff <base>...HEAD). The plan is in <plan-folder> and the spec it implements is <plan-folder>/spec.md. Check that every requirement in the spec is met, and check correctness, regressions, missing tests and scope. Report each finding with file, line, the failing scenario and how to reproduce it. No findings is a valid result." \
-       </dev/null 2> <tmp>/codex-review.err > <tmp>/codex-review.md
+     codex exec -m <model> --config model_reasoning_effort="<effort>" --sandbox read-only -C <repository root> - \
+       < <tmp>/review-prompt.md 2> <tmp>/codex-review.err > <tmp>/codex-review.md
      ```
    - Codex (Claude reviews, through the `claude-review` skill of the agent-bridges `claude` plugin; it needs network and writes under the home folder, so run it as an approved command):
 
@@ -96,7 +101,7 @@ After a phase's last task, run its Checkpoint and log the result. A failing chec
        --model <model> --effort <effort> </dev/null > <tmp>/claude-review.md 2> <tmp>/claude-review.err
      ```
      This review reads the diff, not the spec, so check every requirement against the spec yourself.
-   - An empty output or a non-zero exit is never a clean review. Read the end of the `.err` file, fix the cause (a rejected model: use the other model offered in question 2), and rerun once. If it still fails, log the review as not run with the reason, and say so in the final report. Never wait on the user for it.
+   - An empty output or a non-zero exit is never a clean review. Read the end of the `.err` file, fix the cause (a rejected model: use the other model offered in question 2), and rerun once. If it still fails, or this host's reviewer is not installed, warn the user that the review will be same-vendor, and run the same review prompt through a fresh, read-only subagent of this host (in Claude Code the `Agent` tool with `model: "opus"`; in Codex a separate `codex exec --sandbox read-only -C <repository root> - < <tmp>/review-prompt.md` run, with the prompt above written to that file, as an approved command because it needs network). Log it as a same-vendor review, and say so in the final report. Never wait on the user for it.
 3. Process the review with `receiving-review.md` in this plan folder, without asking the user anything. Verify every finding against the code and reproduce it before accepting it. Fix each real finding with a test you saw fail and then pass. Send an unclear finding back to the reviewer once. Reject a finding that is wrong, cannot be verified, or contradicts a decision the user already made, with the reason. Log every finding and its outcome in `progress.md`.
 4. Report to the user: the goal and the outcome in the first line, then the final `progress.md` table, the end-to-end results, every Ruling, every review finding with what happened to it (fixed, rejected and why, deferred), and what was not run and why. Offer to open a pull request. Do not push without the user's request.
 ````

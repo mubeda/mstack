@@ -48,6 +48,9 @@ has_claude_review() {
 }
 
 missing=0
+reviewer() { # $1 = label, $2 = command; a missing reviewer is a warning, because reviews fall back to a same-vendor subagent
+  if eval "$2"; then echo "ok       $1"; else echo "WARN     $1 is missing; reviews will run as a same-vendor fallback"; fi
+}
 check() { # $1 = label, $2 = command that succeeds when present
   if eval "$2"; then echo "ok       $1"; else echo "MISSING  $1"; missing=1; fi
 }
@@ -58,12 +61,12 @@ recommend() { # $1 = label, $2 = command that succeeds when present
 check "node on PATH (runs check-plan.mjs)" "command -v node >/dev/null"
 check "git on PATH"                        "command -v git >/dev/null"
 if [ "$host" = claude ]; then
-  check "codex skill (skill-codex plugin)" "has_codex_skill"
-  check "codex CLI logged in"              "command -v codex >/dev/null && codex login status >/dev/null 2>&1"
+  reviewer "codex skill (skill-codex plugin)" "has_codex_skill"
+  reviewer "codex CLI logged in"              "command -v codex >/dev/null && codex login status >/dev/null 2>&1"
   recommend "mstack-codex-review-workflow (workflow execution)" "has_skill mstack-codex-review-workflow"
 else
-  check "claude-review (agent-bridges claude plugin)" "has_claude_review"
-  check "claude CLI logged in"             "command -v claude >/dev/null && claude auth status >/dev/null 2>&1"
+  reviewer "claude-review (agent-bridges claude plugin)" "has_claude_review"
+  reviewer "claude CLI logged in"             "command -v claude >/dev/null && claude auth status >/dev/null 2>&1"
   recommend "mstack-claude-review-workflow (workflow execution)" "has_skill mstack-claude-review-workflow"
 fi
 recommend "mstack-write-specs (writes the spec when there is none)" "has_skill mstack-write-specs"

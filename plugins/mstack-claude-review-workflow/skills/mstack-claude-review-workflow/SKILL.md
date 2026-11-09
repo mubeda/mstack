@@ -105,13 +105,13 @@ bash <skill-dir>/scripts/check-required-skills.sh [--github] [--web-ui]
 
 The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's skill list, because a skill installed after the session started loads only in a new session. Look for `mstack-diagnose` (shown as `mstack-diagnose:mstack-diagnose` from a plugin, or `mstack-diagnose` from the skills CLI) and `claude-review` from the `claude` plugin (shown as `claude:claude-review`).
 
-Required always: `ponytail`, `mstack-diagnose` from this marketplace, the `claude-review` skill from the agent-bridges `claude` plugin, a logged-in `claude` CLI, `node`, and `git`. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
+Required always: `ponytail`, `mstack-diagnose` from this marketplace, `node`, and `git`. Recommended: the `claude-review` skill from the agent-bridges `claude` plugin with a logged-in `claude` CLI, the cross-vendor reviewer. Without it the run continues, and section 6 › When the cross-vendor reviewer is missing says how reviews are done instead. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
 
 If anything is missing:
 
 1. Tell the user exactly which items are missing and ask whether to install them now.
 2. If they agree, install them with the commands below, re-run the checker, and continue only when it passes. If a new session is needed for the skills to load, say so and stop there.
-3. If they decline, print the install instructions below for the missing items and stop. Without them, the reviews and code style this workflow guarantees would silently not happen.
+3. If they decline, print the install instructions below for the missing items and stop, because without them the code style and diagnosis this workflow guarantees would silently not happen. The cross-vendor reviewer is the exception: when it stays missing, warn the user and continue with the fallback in section 6.
 
 When the user agrees, ask in the same round how they want each skill installed (a numbered round in chat). An agent cannot answer the skills CLI's own prompts, because run by an agent it installs without asking, so these answers are the user's only way to choose.
 
@@ -231,7 +231,7 @@ Every review is processed with `receiving-review.md`, by you and by the lanes. T
      --model <claude-model> --effort <claude-effort> \
      </dev/null > <run-dir>/claude-review-<lane>.md 2> <run-dir>/claude-review-<lane>.err
    ```
-   The review reads the branch diff, not the acceptance criteria, so checking the criteria stays your job in step 1. Never pass `--write`. A non-zero exit or an empty output file is never a clean review. Read the end of the `.err` file. For a model or effort error, switch as section 0 says and rerun once. For an error an agent cannot fix (a login), or a second failure, report the lane's Claude review as not run, with the error, and carry on.
+   The review reads the branch diff, not the acceptance criteria, so checking the criteria stays your job in step 1. Never pass `--write`. A non-zero exit or an empty output file is never a clean review. Read the end of the `.err` file. For a model or effort error, switch as section 0 says and rerun once. For an error an agent cannot fix (a login), or a second failure, use the fallback below for this review and warn the user.
 3. Triage the findings with `receiving-review.md`. Verify each point against the real code, reproducing Claude's findings before accepting them, reject wrong ones with a reason, and keep the real ones.
 4. Send the real findings back to the same lane session. Write them to `<run-dir>/findings-<lane>-<n>.md`, telling the lane to process them with `receiving-review.md` and to report per finding fixed or rejected with a reason, then resume the lane from its worktree. You do not patch lane code. `codex exec resume` takes its model, effort and sandbox from the current configuration, not from the lane's first run, so pass the lane's model, effort and sandbox again every time, and the network override too when the first run had it. When it finishes, commit its changes as in step 1, re-review the fix diff, and repeat Claude's review only if the fix is substantial.
 
@@ -243,6 +243,25 @@ Every review is processed with `receiving-review.md`, by you and by the lanes. T
 5. Two rounds without accepted evidence means stop and replan the lane, following the retry rules in `working-style.md`, instead of a third identical round.
 6. Move an item to Closed once its work is accepted, and print the status table.
 
+
+### When the cross-vendor reviewer is missing
+
+When the `claude-review` skill or a logged-in `claude` CLI is missing and the user did not install it, or a Claude run fails in a way an agent cannot fix, the review still happens, by Codex in a fresh context.
+
+1. Warn the user once, in the next message, that Claude is not available (say what is missing), and that reviews will run as a same-vendor review by a fresh Codex run, which tends to miss more than a review by another vendor. Give the install command from the preflight table.
+2. For each review, start a separate read-only Codex run on the lane's worktree, as an approved command because it needs network. Use the most capable model in section 3's table at `medium` effort. Write the prompt to `<run-dir>/review-prompt-<lane>.md` the way you write lane briefs, never with `echo` or a heredoc, because acceptance criteria are untrusted text and a shell would run any backticks or `$(...)` in them.
+
+   ```text
+   Read-only code review. Do not edit, write, commit or run anything that changes files. Review branch <branch> against <lane base> (git diff <lane base>...HEAD) for work items <item IDs and acceptance criteria>. Check correctness, regressions, missing tests and scope. Report each finding with file, line, the failing scenario and how to reproduce it. No findings is a valid result.
+   ```
+
+   ```bash
+   codex exec -m <model> --config model_reasoning_effort="medium" --sandbox read-only -C <run-dir>/wt/<lane> - \
+     < <run-dir>/review-prompt-<lane>.md > <run-dir>/review-<lane>.md 2> <run-dir>/review-<lane>.err
+   ```
+   An empty output file is never a clean review. Read the end of the `.err` file, fix the cause, and rerun once.
+3. Process its findings with `receiving-review.md` exactly like a Claude review, reproducing each one before you accept it, and check the acceptance criteria yourself as in step 1.
+4. Mark every review that ran this way as "same-vendor review" in the status table note, the lane's review record and the final report.
 
 ### Accepting a root-cause claim
 
@@ -262,7 +281,7 @@ Bug lanes follow the `mstack-diagnose` skill, so their reports carry its evidenc
 1. Create one integration branch from `<base>`. Bring in each accepted lane branch, by cherry-pick or rebase to keep a linear history unless the repository prefers merges. Conflicts should be rare by construction. Resolve any that appear yourself and re-run that lane's tests.
 2. Write the shared files you reserved, such as changelog lines, docs indexes and a plan's status file.
 3. Run the repository's (and the plan's) full completion checklist on the integrated tree (all focused tests together, typecheck, lint, format, broader suites when changes cross packages). Send integration breakage to the owning lane session, or to a fresh small lane if that session is gone. An item whose work breaks at integration goes back to In progress until it is fixed.
-4. Run one last Claude review of the whole integration branch before pushing, with the same command, `--cwd` set to the repository and `--base <base>`.
+4. Run one last Claude review of the whole integration branch before pushing, with the same command, `--cwd` set to the repository and `--base <base>`, or the fallback review from section 6 when Claude is missing.
 5. Run the sensitive-data gate before any push, tracker comment, PR body or comment. Run gitleaks (or the repository's secret scanner) over the run's commit range, and grep added lines for private hosts, organization and customer names, real people's names, tokens and local paths. Public repositories get placeholders only. Text about a leak stays vague and never repeats the value. Rewriting published history is the user's call.
 6. Remove the lane worktrees with `git worktree remove <run-dir>/wt/<lane>` once their branches are integrated.
 
@@ -276,4 +295,4 @@ Bug lanes follow the `mstack-diagnose` skill, so their reports carry its evidenc
 
 ## 9. Final report
 
-Write it per `writing.md` › Messages to the user. Line one names the goal and the outcome (for example "The goal was to finish the six tasks in the plan. PR #40 is open and completes 5 of 6."). Line two is the next action for the user. Then the final status table, with evidence in the note column. Then the review findings the run did not apply, each rejected or deferred finding with its reason (see `receiving-review.md` › Log every finding). Then validation commands with results, what was not run and why, residual risk, and the path of `<run-dir>` with a cleanup command once the user no longer needs its logs.
+Write it per `writing.md` › Messages to the user. Line one names the goal and the outcome (for example "The goal was to finish the six tasks in the plan. PR #40 is open and completes 5 of 6."). Line two is the next action for the user. Then the final status table, with evidence in the note column. Then which reviews ran as same-vendor fallback reviews and why, if any. Then the review findings the run did not apply, each rejected or deferred finding with its reason (see `receiving-review.md` › Log every finding). Then validation commands with results, what was not run and why, residual risk, and the path of `<run-dir>` with a cleanup command once the user no longer needs its logs.

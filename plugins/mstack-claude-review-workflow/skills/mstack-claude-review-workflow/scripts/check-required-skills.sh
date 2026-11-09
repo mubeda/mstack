@@ -36,15 +36,18 @@ has_claude_review() {
 }
 
 missing=0
+reviewer() { # $1 = label, $2 = command; a missing reviewer is a warning, because reviews fall back to a same-vendor subagent
+  if eval "$2"; then echo "ok       $1"; else echo "WARN     $1 is missing; reviews will run as a same-vendor fallback"; fi
+}
 check() { # $1 = label, $2 = command that succeeds when present
   if eval "$2"; then echo "ok       $1"; else echo "MISSING  $1"; missing=1; fi
 }
 
 check "ponytail"                          "has_skill ponytail"
 check "mstack-diagnose (this marketplace)"  "has_skill mstack-diagnose"
-check "claude-review (agent-bridges claude plugin)" "has_claude_review"
+reviewer "claude-review (agent-bridges claude plugin)" "has_claude_review"
 check "node on PATH"                      "command -v node >/dev/null"
-check "claude CLI logged in"              "command -v claude >/dev/null && claude auth status >/dev/null 2>&1"
+reviewer "claude CLI logged in"              "command -v claude >/dev/null && claude auth status >/dev/null 2>&1"
 check "git on PATH"                       "command -v git >/dev/null"
 
 if [ "$github" = 1 ]; then

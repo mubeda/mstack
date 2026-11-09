@@ -72,6 +72,7 @@ A review of a plan (not of code) follows the same pattern, with two outcomes for
 
 1. The cross-vendor review is strictly read-only, so it cannot prove its own findings.
 2. Before you accept a cross-vendor finding, reproduce it against the real code with a failing test, a run, or a traced code path. The coordinator does this during triage, and the lane does it again before fixing. Reject a finding nobody could reproduce with that reason, or send the reviewer a narrower question (rule 2).
+3. When the cross-vendor reviewer is missing and a fresh same-vendor subagent reviews instead, its findings get exactly the same treatment, and every record of that review calls it a same-vendor review.
 
 ## Coordinator duties
 
