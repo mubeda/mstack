@@ -1,0 +1,19 @@
+{
+  "name": "mstack-write-specs",
+  "version": "0.1.0",
+  "description": "Turn an idea, feature, bug class or refactor into an approved, testable specification: grilling interview rounds that settle every decision, approaches before drafting, EARS requirements with SHALL and a scenario each, a quality checklist, an independent read, and explicit approval before any build. One skill for Claude Code and Codex.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": ["spec", "requirements", "prd", "design-doc", "ears", "acceptance-criteria", "interview"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Write Specs",
+    "shortDescription": "Interview, then write an approved, testable spec.",
+    "longDescription": "Settles every decision in numbered interview rounds with recommended answers, looks up facts instead of asking, compares approaches, and writes a spec whose requirements use EARS and SHALL with a GIVEN/WHEN/THEN scenario each. A quality checklist and an independent reader catch gaps, and nothing is built before the user approves the written file.",
+    "developerName": "mubeda",
+    "category": "Planning",
+    "capabilities": ["Read", "Write"]
+  }
+}

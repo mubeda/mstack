@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: spec-from-settled-answers
+expected_outcome: |
+  The run writes one spec file under shop/docs/specs/ (or another existing spec folder) with Status Draft, every
+  requirement using SHALL with at least one GIVEN/WHEN/THEN scenario, negative scenarios for input-handling
+  requirements (unknown email, used or expired link, rate limit), admin resets listed as a non-goal with a reason,
+  an interview record, no vague words, no code changes, and it asks the user to approve the file instead of building.
+context:
+  scaffold_script: place-files.sh

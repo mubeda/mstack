@@ -1,0 +1,10 @@
+---
+name: shop-mail-testing
+description: Test shop code that sends email without a real SMTP server. Patch mailer.smtplib.SMTP with unittest.mock, then assert recipients, subjects, bodies and how many messages were sent. Use for any task that sends email or asserts that no email was sent.
+---
+
+# Shop mail testing
+
+1. Patch `mailer.smtplib.SMTP` with `unittest.mock.patch` in every test that may send mail.
+2. Read sent messages from `smtp.return_value.__enter__.return_value.send_message.call_args_list`.
+3. Assert the exact count, including zero when no mail may be sent.

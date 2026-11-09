@@ -1,0 +1,7 @@
+# Playwright MCP scratch output
+.playwright-mcp/
+
+# Local agent tool state
+.remember/
+.serena/
+.claude/settings.local.json

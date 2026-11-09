@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: first-message
+expected_outcome: |
+  The run restates the goal and, before writing anything, asks in one message where the plan should go, whether
+  there are external information sources to include, and which model and effort the cross-vendor reviewer should
+  use. It never asks whether the plan should be reviewed, and it writes no plan files and changes no code.
+context:
+  scaffold_script: place-files.sh

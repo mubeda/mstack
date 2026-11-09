@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: crash-diagnose-only
+expected_outcome: |
+  The run reproduces or reads the crash from a core or debugger, identifies that handle_line in parsecfg.c
+  dereferences the NULL pointer strchr returns for the line "cache_enabled" (a line with no "="), names the
+  file and line, leaves parsecfg.c and settings.conf unchanged, leaves no extracted core file behind, and
+  writes report.md separating what the evidence proves from what is inferred.
+context:
+  scaffold_script: place-files.sh

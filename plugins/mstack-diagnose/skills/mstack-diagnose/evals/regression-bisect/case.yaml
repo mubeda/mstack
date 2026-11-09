@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: regression-bisect
+expected_outcome: |
+  The run identifies the commit "refactor: simplify slugify" as the first bad commit, preferably with git bisect,
+  explains that removing the apostrophe stripping turns "Don't" into "don-t", restores the behavior in slug.py,
+  leaves the repository with the test passing and no bisect in progress, and writes report.md with the root cause
+  and how the fix was verified.
+context:
+  scaffold_script: place-files.sh

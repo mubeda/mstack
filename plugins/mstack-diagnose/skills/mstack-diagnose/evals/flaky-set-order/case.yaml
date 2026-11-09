@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: flaky-set-order
+expected_outcome: |
+  The run measures the failure rate over repeated separate runs before changing anything, explains that
+  set iteration order of strings changes between Python processes because string hashing is randomized,
+  fixes normalize_tags to keep first-seen order (for example with dict.fromkeys), and proves the fix with
+  a number of repeated passing runs chosen with the measured failure rate in mind, reported in report.md.
+context:
+  scaffold_script: place-files.sh

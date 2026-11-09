@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: full-plan
+expected_outcome: |
+  With every start-up question pre-answered, the run writes a complete plan folder at shop/docs/plans/password-reset/
+  that passes scripts/check-plan.mjs: spec.md copied in, plan.md, phase files, progress.md with every task Open, and
+  execute-plan.md offering inline execution or the mstack review workflows with a recommendation. Every requirement
+  maps to a task, code tasks are red-green with Expected FAIL then PASS steps, the repository docs (architecture
+  note, ADR, AGENTS.md) appear as sources and Read first entries, the project skill shop-mail-testing is named on
+  the tasks that send email, a plan review runs or the same-vendor fallback is recorded, the plan stays Draft until
+  the user approves it, and no application code changes.
+context:
+  scaffold_script: place-files.sh
