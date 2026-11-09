@@ -4,7 +4,7 @@ Read this file in Phase 0 for every problem, and again whenever you cannot get a
 
 ## The intake record
 
-Write these fields down before you build any loop. Fill each one from what you can find yourself (the repository, the logs, the lockfile, the machine) before you ask anyone.
+Write these fields down before you build any loop. Fill each one from what you can find yourself (the repository, the logs, the lockfile, the machine) before you ask anyone. A bug routed here by `mstack-backlog-triage` arrives with the facts its report was missing; start from that list, and read the issue in full anyway.
 
 1. The symptom, verbatim. Copy the error text, exit code, signal, stack or wrong number exactly. Write what was observed and what was expected, side by side.
 2. The frequency. Record whether it happens always, sometimes (with a rough rate), or once.

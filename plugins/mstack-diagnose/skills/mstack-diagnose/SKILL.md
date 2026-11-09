@@ -142,6 +142,8 @@ When something passes too easily, suspect the way you observed it before you tru
 
 ## Report
 
+When the work must stop before it is done (the cause is not proven yet, or the fix is not finished and verified) because the context or the session is running out, stop at a safe point and write a handoff with `mstack-handoff` when it is installed, listing the hypotheses with their status and the probes already run, so the next session does not repeat them.
+
 Write the report in this shape. Leave out a line only when it does not apply, and say why.
 
 ```

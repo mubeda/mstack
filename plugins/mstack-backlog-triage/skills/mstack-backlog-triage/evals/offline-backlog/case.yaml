@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: offline-backlog
+expected_outcome: |
+  The run reads all seven exported issues and the code, and produces one triage table with every issue, each with a
+  class, a recommendation, a route and evidence. It finds that #12 duplicates #11, that #17 is already implemented
+  (export_json exists), that #13 is a bug without a reproduction routed to diagnosis or a question, that #14 has open
+  decisions and goes to mstack-write-specs, that #16 is not actionable, and that #15 is a chore. At most two issues are
+  now, #11 among them. Comment drafts are shown for approval, nothing is posted, and no file under shop/app changes.
+context:
+  scaffold_script: place-files.sh

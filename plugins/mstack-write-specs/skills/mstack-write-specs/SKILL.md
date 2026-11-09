@@ -35,7 +35,7 @@ Each phase ends at a gate. Do not start the next phase before the gate holds.
 | Phase | Work | Gate |
 |---|---|---|
 | 0. Intake and size | Restate the goal, the problem and the smallest change that meets it. Classify the input (feature, bug class, refactor, vague idea). Size it and pick a mode (below) | The restatement, size and mode are stated to the user. If the evidence already rules the request out, show the evidence and stop |
-| 1. Ground | Read the repository's instructions, existing specs and docs, the linked issue, and the code the change touches | You can explain how the relevant parts work today and what the change touches, with citations |
+| 1. Ground | Read the repository's instructions, existing specs and docs, the linked issue (in full, even when it arrives as a row of an `mstack-backlog-triage` table, whose reason and acceptance hint are a starting point, not decisions), and the code the change touches | You can explain how the relevant parts work today and what the change touches, with citations |
 | 2. Interview | Grilling rounds over the design tree (below) | The frontier is empty and the user confirms the shared understanding |
 | 3. Approaches | Two or three structurally different approaches, in a message of their own, with trade-offs and a recommendation | The user picks one, or hands you the choice and you record it as your call |
 | 4. Draft | Write the spec from `references/spec-template.md` at its final path (below) | The file exists |

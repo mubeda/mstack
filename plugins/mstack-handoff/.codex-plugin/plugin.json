@@ -1,0 +1,28 @@
+{
+  "name": "mstack-handoff",
+  "version": "0.1.0",
+  "description": "Write one resumable handoff file so a fresh agent session, in Claude Code or Codex, continues long work exactly where it stopped: branch, HEAD, uncommitted paths, pull request, issue status, gates green and due with exact commands, approved and blocked decisions, next commands first. Never commits, stashes or leaks secrets, checks the file mechanically, and resumes from it with staleness rules. One skill for Claude Code and Codex.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "handoff",
+    "resume",
+    "context",
+    "session",
+    "long-running"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Handoff",
+    "shortDescription": "Write a resumable handoff file and resume from it.",
+    "longDescription": "Stops at a safe point, snapshots the repository read-only, and writes one file a fresh session can follow top to bottom: the next commands first, then the uncommitted work, gates with exact commands, and decisions approved or blocked on the user. A script checks the file for its sections, its identity line and secrets. Resuming re-verifies the first gate and handles a moved HEAD or branch.",
+    "developerName": "mubeda",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ]
+  }
+}

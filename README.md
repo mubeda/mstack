@@ -15,10 +15,12 @@ The repository is [`github.com/mubeda/mstack`](https://github.com/mubeda/mstack)
 | [`mstack-diagnose`](./plugins/mstack-diagnose) | Find and prove the cause of a crash, bug, regression, flaky failure, slowdown, hang or leak, with graded evidence and a regression test before any fix. One skill, shared by both hosts. | Claude Code and Codex CLI |
 | [`mstack-write-specs`](./plugins/mstack-write-specs) | Interview until every decision is settled, then write an approved, testable spec: EARS requirements with a scenario each, a quality checklist and an independent read. One skill, shared by both hosts. | Claude Code and Codex CLI |
 | [`mstack-plan`](./plugins/mstack-plan) | Turn an approved spec into a reviewed, test-first implementation plan: phases and red-green tasks sized for one agent session, the best skills named for every task, a cross-vendor review (with a same-vendor fallback), a shared progress file, and an `execute-plan.md` that starts inline or workflow execution. One skill, shared by both hosts. | Claude Code and Codex CLI |
+| [`mstack-handoff`](./plugins/mstack-handoff) | Write one resumable handoff file (branch, HEAD, uncommitted paths, pull request, gates with exact commands, decisions, next commands first) so a fresh session continues long work, and resume from it. Never commits, stashes or leaks secrets. One skill, shared by both hosts. | Claude Code and Codex CLI |
+| [`mstack-backlog-triage`](./plugins/mstack-backlog-triage) | Read every open issue, classify each with evidence, check for duplicates, and sort them into now, next and defer, as a table the workflows accept. Drafts comments and labels, and posts only approved text. One skill, shared by both hosts. | Claude Code and Codex CLI |
 
 Each plugin can be installed on its own. The two workflows share their reference files, and `scripts/check-marketplace.mjs` fails if the copies drift apart.
 
-The plugins also work together. `mstack-write-specs` writes the spec, `mstack-plan` turns it into a plan folder, and either workflow executes that folder, task by task, writing progress into the plan's `progress.md`, so execution can switch between inline and a workflow and resume where it stopped. All three plugins ship the same `plan-format.md`.
+The plugins also work together. `mstack-backlog-triage` picks what to work on and routes each issue, `mstack-write-specs` writes the spec, `mstack-plan` turns it into a plan folder, and either workflow executes that folder, task by task, writing progress into the plan's `progress.md`, so execution can switch between inline and a workflow and resume where it stopped. When a session runs out before the work does, `mstack-handoff` writes the file the next session starts from. All three plugins ship the same `plan-format.md`.
 
 `mstack-plan` needs `node` and `git`, and recommends the cross-vendor reviewer of its host: in Claude Code the `codex` skill from skill-codex with a logged-in `codex` CLI, and in Codex the agent-bridges `claude` plugin with a logged-in `claude` CLI.
 
@@ -41,6 +43,8 @@ Then install the plugins you want and reload:
 /plugin install mstack-diagnose@mstack
 /plugin install mstack-write-specs@mstack
 /plugin install mstack-plan@mstack
+/plugin install mstack-handoff@mstack
+/plugin install mstack-backlog-triage@mstack
 /reload-plugins
 ```
 
@@ -66,6 +70,8 @@ codex plugin add mstack-claude-review-workflow@mstack
 codex plugin add mstack-diagnose@mstack
 codex plugin add mstack-write-specs@mstack
 codex plugin add mstack-plan@mstack
+codex plugin add mstack-handoff@mstack
+codex plugin add mstack-backlog-triage@mstack
 ```
 
 The Claude reviewer of the workflow and of `mstack-plan` comes from another marketplace:

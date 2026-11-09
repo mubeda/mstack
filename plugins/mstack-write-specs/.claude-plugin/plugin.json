@@ -1,6 +1,6 @@
 {
   "name": "mstack-write-specs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Turn an idea, feature, bug class or refactor into an approved, testable specification: grilling interview rounds that settle every decision, approaches before drafting, EARS requirements with SHALL and a scenario each, a quality checklist, an independent read, and explicit approval before any build. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"
