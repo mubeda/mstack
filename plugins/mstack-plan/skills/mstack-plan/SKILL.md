@@ -7,7 +7,7 @@ description: Use when the user has a spec, requirements or a spec.md and wants a
 
 You turn an approved spec into an implementation plan that an agent in a fresh session can execute task by task. The plan is the deliverable. You never implement it.
 
-A good plan here has five properties. Every requirement in the spec maps to a task. Every task fits one fresh agent session and proves itself with a test that fails first. Every task names the skills that help with exactly that work. A model from another vendor has reviewed the plan. And the plan carries its own progress file and start-up prompt, so inline execution and the mstack review workflows can pick it up, hand it over, and resume it.
+A good plan here has five properties. Every requirement in the spec maps to a task. Every task fits one fresh agent session and proves itself with a test that fails first. Every task names the skills that help with exactly that work. A model from another vendor has reviewed the plan, or, when that reviewer is not available, a fresh subagent of the same vendor, recorded as such. And the plan carries its own progress file and start-up prompt, so inline execution and the mstack review workflows can pick it up, hand it over, and resume it.
 
 ## Host tools
 
@@ -42,7 +42,7 @@ Without a subagent tool, do the delegated step yourself and say so.
 2. **The spec is the binding authority.** The plan argues from it. A requirement that turns out to be undecided goes back to the spec (`mstack-write-specs`), never into the plan as a guess.
 3. **Facts are yours, decisions are the user's.** Settle every fact from the repository, its docs and the sources the user gave, and cite where it came from. Ask the user only for decisions, each with your recommendation.
 4. **Test first.** Every task that changes behavior is written red-green: the failing test, the run that shows it failing, the minimum code, the run that shows it passing, and a check that the test can still fail. Only work with no behavior to test is exempt, with the reason written down.
-5. **The review always runs.** The cross-vendor reviewer reads every plan before approval. Never ask the user whether to review.
+5. **The review always runs.** Every plan is reviewed before approval, by the cross-vendor reviewer when it is available and otherwise by the same-vendor fallback in `references/plan-review.md`. Never ask the user whether to review.
 6. **Approval is an explicit yes to the written plan.** A yes to an outline, an earlier "just write it", silence, or a reviewer's verdict is not approval. Any edit after approval sets the plan back to Draft.
 7. **Keep secrets out.** Cite external sources by link or name. Never copy credentials, tokens or personal data from them into the plan.
 
@@ -63,9 +63,9 @@ When the folder already holds a plan (`plan.md` and `progress.md`), read both an
 bash <skill-folder>/scripts/check-required-skills.sh --host <host>
 ```
 
-It checks `node`, `git` and the cross-vendor reviewer, and notes the recommended mstack skills. Also confirm the reviewer skill appears in this session's skill list, because a skill installed mid-session loads only in a new session.
+It checks `node` and `git`, warns when the cross-vendor reviewer is missing, and notes the recommended mstack skills. Also confirm the reviewer skill appears in this session's skill list, because a skill installed mid-session loads only in a new session.
 
-If a required item is missing, tell the user which, and ask whether to install it now, and how, with the route, scope, method and agents questions in `references/skill-matching.md` › 5. Installing runs third-party code, so the user decides. If they decline, the plan still gets reviewed, by the fallback in `references/plan-review.md` › When the run fails, and the plan says so.
+If `node` or `git` is missing (a `MISSING` line), tell the user and stop until it is installed, because no fallback replaces them. If the checker warns that the cross-vendor reviewer is missing (a `WARN` line), ask whether to install it now, and how, with the route, scope, method and agents questions in `references/skill-matching.md` › 5. Installing runs third-party code, so the user decides. If they decline, or it needs a new session to load, warn the user that the plan review will run as a same-vendor review by a fresh subagent, which tends to miss more than a review by another vendor, and continue with the fallback in `references/plan-review.md` › When the run fails. The plan says so.
 
 | Missing | Install |
 |---|---|
@@ -134,7 +134,7 @@ Keep it proportionate. Steps name exact signatures, values and commands, not who
 
 ## 7. Cross-vendor review
 
-Follow `references/plan-review.md`, and process the review with `references/receiving-review.md`. The other vendor's model reviews the whole plan folder, read-only. Nothing in this phase asks the user: verify every finding, fix the facts, reject what is wrong or contradicts a decision already made, keep design changes for the approval summary, and record how each finding was handled in `reviews/plan-review-<n>.md`. At most two review rounds.
+Follow `references/plan-review.md`, and process the review with `references/receiving-review.md`. The other vendor's model reviews the whole plan folder, read-only, or the same-vendor fallback when that reviewer is not available. Nothing in this phase asks the user: verify every finding, fix the facts, reject what is wrong or contradicts a decision already made, keep design changes for the approval summary, and record how each finding was handled in `reviews/plan-review-<n>.md`. At most two review rounds.
 
 ## 8. Approval
 

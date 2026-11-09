@@ -1,6 +1,6 @@
 # Plan review
 
-Read this in Phase 7. Every plan gets a review from a model of the other vendor before the user approves it: Codex reviews a plan written in Claude Code, and Claude reviews a plan written in Codex. The author of a plan is a poor reviewer of it, and a model from a different family misses different things. The review is never optional, and the user is never asked whether to run it.
+Read this in Phase 7. Every plan gets a review before the user approves it, from a model of the other vendor when it is available: Codex reviews a plan written in Claude Code, and Claude reviews a plan written in Codex. The author of a plan is a poor reviewer of it, and a model from a different family misses different things. When that reviewer is not available, a fresh same-vendor subagent reviews instead (see When the run fails), and the plan records it as a same-vendor review. The review is never optional, and the user is never asked whether to run it.
 
 ## Build the prompt
 
@@ -94,7 +94,7 @@ An empty output file or a non-zero exit is never a clean review. Read the last l
 
 1. A model or effort error: rerun with the alternative model offered in Phase 0 (or the next lower effort), and log the switch. A login or other error an agent cannot fix: use the fallback in item 3. Nothing here waits for the user.
 2. No error but no output: the run was killed. Rerun once with a longer timeout.
-3. The reviewer cannot run at all (the CLI or plugin is missing and the user declined to install it): give a fresh-context subagent of your own vendor the same prompt, and mark the review in `progress.md` and the report as "same-vendor review only, because <reason>". Without a subagent tool, review the plan yourself against the same checklist and say so. Never skip the review silently.
+3. The reviewer cannot run at all (the CLI or plugin is missing and the user declined to install it or it loads only in a new session, or an error an agent cannot fix): warn the user that the review will be same-vendor, then give a fresh-context, read-only subagent of your own vendor the same prompt (in Claude Code `Agent` with `model: "opus"`; in Codex a separate `codex exec --sandbox read-only -C <repository root> - < <scratch>/review-prompt-<n>.md` run, as an approved (escalated) command because it needs network), and mark the review in `progress.md` and the report as "same-vendor review only, because <reason>". Without a subagent tool, review the plan yourself against the same checklist and say so. Never skip the review silently.
 
 ## Handle the findings
 

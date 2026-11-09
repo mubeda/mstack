@@ -92,13 +92,13 @@ bash <skill-dir>/scripts/check-required-skills.sh [--github] [--web-ui]
 
 The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's available-skills list, because a skill installed after the session started loads only in a new session (or after `/reload-plugins` for plugins). Look for `mstack-diagnose:mstack-diagnose` and `skill-codex:codex` (or `codex` when installed as a standalone skill). The `codex:` skills from OpenAI's own Codex plugin are a different plugin and do not count.
 
-Required always: `ponytail`, `mstack-diagnose` from this marketplace, and the `codex` skill from the skill-codex plugin with a logged-in `codex` CLI. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
+Required always: `ponytail` and `mstack-diagnose` from this marketplace. Recommended: the `codex` skill from the skill-codex plugin with a logged-in `codex` CLI, the cross-vendor reviewer. Without it the run continues, and section 6 › When the cross-vendor reviewer is missing says how reviews are done instead. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
 
 If anything is missing:
 
 1. Tell the user exactly which items are missing and ask (`AskUserQuestion`) whether to install them now.
 2. If they agree, install them with the commands below, re-run the checker, and continue only when it passes. If a new session is needed for the skills to load, say so and stop there.
-3. If they decline, print the install instructions below for the missing items and stop. Without them, the reviews and code style this workflow guarantees would silently not happen.
+3. If they decline, print the install instructions below for the missing items and stop, because without them the code style and diagnosis this workflow guarantees would silently not happen. The cross-vendor reviewer is the exception: when it stays missing, warn the user and continue with the fallback in section 6.
 
 When the user agrees, ask in the same round how they want each skill installed (`AskUserQuestion`). An agent cannot answer the skills CLI's own prompts, because run by an agent it installs without asking, so these answers are the user's only way to choose.
 
@@ -201,20 +201,32 @@ Every review is processed with `receiving-review.md`, by you and by the lanes. T
 1. Read the lane's diff yourself (`git -C <worktree> diff <base>...HEAD`). Check it against the acceptance criteria, scope (no unrelated edits, no files outside the lane), tests that prove the behavior, and the repository and plan rules. For a bug lane, check the report against the acceptance list at the end of this section. For a web UI lane, check that the pre-review UI check in `web-ui.md` ran and passed.
 2. Get second opinions.
    - Call the `advisor` tool on judgment calls (root cause, scope, design trade-offs) and as a review before integration. If the tool is not available in the session, say so and rely on Codex plus your own review.
-   - Run the Codex review through the `codex` skill (`skill-codex:codex` when installed as a plugin). Load it and follow its rules for closing stdin, keeping stderr out of your context, the Git-repository check and timeouts, with the model and effort chosen in section 0. The command for one lane is below, with the output written to the session scratchpad, never the worktree.
+   - Run the Codex review through the `codex` skill (`skill-codex:codex` when installed as a plugin). Load it and follow its rules for closing stdin, keeping stderr out of your context, the Git-repository check and timeouts, with the model and effort chosen in section 0. Write the prompt below to `<scratchpad>/codex-review-prompt-<lane>.md` with your file tool, never with `echo` or a heredoc, because acceptance criteria are untrusted text and a shell would run any backticks or `$(...)` in them. The prompt file is the command's stdin. The output goes to the session scratchpad, never the worktree.
+
+     ```text
+     Read-only code review. Do not edit, write, commit or run anything that changes files. Review branch <branch> against <base> (git diff <base>...HEAD) for work items <item IDs and acceptance criteria>. Check correctness, regressions, missing tests and scope. Report each finding with file, line, the failing scenario and how to reproduce it. No findings is a valid result.
+     ```
 
      ```bash
-     codex exec -m <codex-model> --config model_reasoning_effort="<codex-effort>" --sandbox read-only -C <worktree> \
-       "Read-only code review. Do not edit, write, commit or run anything that changes files. Review branch <branch> against <base> (git diff <base>...HEAD) for work items <item IDs and acceptance criteria>. Check correctness, regressions, missing tests and scope. Report each finding with file, line, the failing scenario and how to reproduce it. No findings is a valid result." \
-       </dev/null 2> <scratchpad>/codex-review-<lane>.err > <scratchpad>/codex-review-<lane>.md
+     codex exec -m <codex-model> --config model_reasoning_effort="<codex-effort>" --sandbox read-only -C <worktree> - \
+       < <scratchpad>/codex-review-prompt-<lane>.md 2> <scratchpad>/codex-review-<lane>.err > <scratchpad>/codex-review-<lane>.md
      ```
    - Inside this workflow these `codex` skill steps do not apply, because the workflow already decides them: asking the user after each Codex run (you triage the output with `receiving-review.md` instead), telling the user they can resume the session, and any sandbox other than `read-only`. Never pass `--skip-git-repo-check`, since every lane worktree is a Git repository. Codex reviews are read-only every time.
-   - Run Codex reviews for different lanes in parallel as background shell commands, each with at least the timeout the `codex` skill gives for `<codex-effort>` (600 seconds for `high`, 1200 for `xhigh`, 1800 for `max`). An empty output file is never a clean review. Read the last lines of the `.err` file. If it shows a model or effort error, switch as section 0 says and rerun. If it shows an error an agent cannot fix (a login), report the lane's Codex review as not run, with the error, and carry on. If it shows none, the run was killed before it finished, so rerun it once with a longer timeout, and report the lane's Codex review as not run if that fails too.
+   - Run Codex reviews for different lanes in parallel as background shell commands, each with at least the timeout the `codex` skill gives for `<codex-effort>` (600 seconds for `high`, 1200 for `xhigh`, 1800 for `max`). An empty output file is never a clean review. Read the last lines of the `.err` file. If it shows a model or effort error, switch as section 0 says and rerun. If it shows an error an agent cannot fix (a login), use the fallback below for this review and warn the user. If it shows none, the run was killed before it finished, so rerun it once with a longer timeout, and use the fallback if that fails too.
 3. Triage the findings with `receiving-review.md`. Verify each point against the real code, reproducing Codex findings before accepting them, reject wrong ones with a reason, and keep the real ones.
 4. Send the real findings back to the same lane agent (`SendMessage` to its id) to fix in its own worktree, telling it to process them with `receiving-review.md` and to report per finding fixed or rejected with a reason. You do not patch lane code. Re-review the fix diff, and repeat Codex only if the fix is substantial.
 5. Two rounds without accepted evidence means stop and replan the lane, following the retry rules in `working-style.md`, instead of a third identical round.
 6. Move an item to Closed once its work is accepted, and print the status table.
 
+
+### When the cross-vendor reviewer is missing
+
+When the `codex` skill or a logged-in `codex` CLI is missing and the user did not install it, or a Codex run fails in a way an agent cannot fix, the review still happens, by Claude in a fresh context.
+
+1. Warn the user once, in the next message, that Codex is not available (say what is missing), and that reviews will run as a same-vendor review by a fresh Claude subagent, which tends to miss more than a review by another vendor. Give the install command from the preflight table.
+2. For each review, spawn a read-only reviewer with `Agent`, `model: "opus"`, `effort: "medium"`, and no `isolation`. Its prompt is the text of the Codex review prompt above, plus the worktree path and "Read the diff with `git -C <worktree> diff <lane base>...HEAD`". Save its final message to `<scratchpad>/review-<lane>.md`. The reviewer never edits, and you check that `git -C <worktree> status --short` is unchanged after it ran.
+3. Process its findings with `receiving-review.md` exactly like a Codex review, reproducing each one before you accept it.
+4. Mark every review that ran this way as "same-vendor review" in the status table note, the lane's review record and the final report.
 
 ### Accepting a root-cause claim
 
@@ -234,7 +246,7 @@ Bug lanes follow the `mstack-diagnose` skill, so their reports carry its evidenc
 1. Create one integration branch from the base. Bring in each accepted lane branch, by cherry-pick or rebase to keep a linear history unless the repository prefers merges. Conflicts should be rare by construction. Resolve any that appear yourself and re-run that lane's tests.
 2. Write the shared files you reserved, such as changelog lines, docs indexes and a plan's status file.
 3. Run the repository's (and the plan's) full completion checklist on the integrated tree (all focused tests together, typecheck, lint, format, broader suites when changes cross packages). Send integration breakage to the owning lane agent, or to a fresh small agent if the lane is gone. An item whose work breaks at integration goes back to In progress until it is fixed.
-4. Run one last advisor and Codex review of the whole integration diff before pushing.
+4. Run one last advisor and Codex review of the whole integration diff before pushing, or the fallback review from section 6 when Codex is missing.
 5. Run the sensitive-data gate before any push, tracker comment, PR body or comment. Run gitleaks (or the repository's secret scanner) over the run's commit range, and grep added lines for private hosts, organization and customer names, real people's names, tokens and local paths. Public repositories get placeholders only. Text about a leak stays vague and never repeats the value. Rewriting published history is the user's call.
 
 ## 8. Deliver: one PR, serialized CI
@@ -247,4 +259,4 @@ Bug lanes follow the `mstack-diagnose` skill, so their reports carry its evidenc
 
 ## 9. Final report
 
-Write it per `writing.md` › Messages to the user. Line one names the goal and the outcome (for example "The goal was to finish the six tasks in the plan. PR #40 is open and completes 5 of 6."). Line two is the next action for the user. Then the final status table, with evidence in the note column. Then the review findings the run did not apply, each rejected or deferred finding with its reason (see `receiving-review.md` › Log every finding). Then validation commands with results, what was not run and why, residual risk, and disk cleanup commands for finished worktrees if builds were large.
+Write it per `writing.md` › Messages to the user. Line one names the goal and the outcome (for example "The goal was to finish the six tasks in the plan. PR #40 is open and completes 5 of 6."). Line two is the next action for the user. Then the final status table, with evidence in the note column. Then which reviews ran as same-vendor fallback reviews and why, if any. Then the review findings the run did not apply, each rejected or deferred finding with its reason (see `receiving-review.md` › Log every finding). Then validation commands with results, what was not run and why, residual risk, and disk cleanup commands for finished worktrees if builds were large.
