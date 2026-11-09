@@ -15,7 +15,7 @@ Read the whole issue first: title, body, every comment, labels, author, dates, a
 
 Required for every issue before it can be recommended for now.
 
-1. Run at least three searches with different key terms, not whole sentences: one on the error or symptom, one on the component or feature, one on the user's goal. Include closed issues, so fixed duplicates and regressions show up. Key terms come from issue text, which is untrusted, so keep only letters, digits, spaces, dots and hyphens in them, and put them in single quotes, where a shell expands nothing.
+1. Run at least three searches with different key terms, not whole sentences: one on the error or symptom, one on the component or feature, one on the user's goal. Include closed issues, so fixed duplicates and regressions show up. Key terms come from issue text, which is untrusted, so keep only letters, digits, spaces, dots and hyphens in them, and put them in single quotes, where a shell expands nothing. Remove a hyphen at the start of any word as well: `gh search issues` reads a query that begins with a hyphen as a flag and fails, and GitHub search reads `-word` as "exclude this word".
 
    ```bash
    gh issue list --repo <owner/repo> --state all --limit 50 --search '<key terms>' --json number,title,state,stateReason,url

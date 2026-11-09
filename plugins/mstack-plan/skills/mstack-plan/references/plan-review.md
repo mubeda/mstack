@@ -4,7 +4,7 @@ Read this in Phase 7. Every plan gets a review before the user approves it, from
 
 ## Build the prompt
 
-`<scratch>` is a folder outside the repository: the session's scratch folder when the host has one, otherwise `${TMPDIR:-/tmp}/mstack-plan-<slug>`. `<n>` is the review round. Write the prompt to `<scratch>/review-prompt-<n>.md`. It has three parts, in this order.
+`<scratch>` is a folder outside the repository: the session's scratch folder when the host has one, otherwise `${TMPDIR:-/tmp}/mstack-plan-<slug>`. Create it first, and put a path in double quotes in the commands below when it contains a space. `<n>` is the review round. Write the prompt to `<scratch>/review-prompt-<n>.md`. It has three parts, in this order.
 
 ### 1. Reading list
 

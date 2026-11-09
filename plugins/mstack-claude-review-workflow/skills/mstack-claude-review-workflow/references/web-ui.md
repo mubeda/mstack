@@ -10,11 +10,11 @@ This file sets how web UI lanes use the `ui-ux-pro-max` skill and defines the UI
 
 Install it only when the work touches web UI, by a route its upstream README documents.
 
-1. For Claude Code, use the plugin marketplace. Type these in a session, then reload plugins or start a new session. This route also installs six sibling design skills.
+1. For Claude Code, use the plugin marketplace. Run these in a shell, then start a new session. This route also installs six sibling design skills.
 
-   ```
-   /plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill
-   /plugin install ui-ux-pro-max@ui-ux-pro-max-skill
+   ```bash
+   claude plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill
+   claude plugin install ui-ux-pro-max@ui-ux-pro-max-skill
    ```
 
 2. For Codex, use the `uipro` CLI, run from the root of the target project. It writes the skill into the project's `.agents/skills/` folder, which a lane never commits.

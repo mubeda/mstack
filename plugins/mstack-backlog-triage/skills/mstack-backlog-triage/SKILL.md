@@ -50,7 +50,7 @@ In one message, restate the goal and ask with your question tool. Skip any quest
    bash <skill-folder>/scripts/list-open-issues.sh <owner/repo> <scratch>/open-issues.json
    ```
 
-   It saves bodies and comments, and fails when the saved count differs from the repository's open-issue count, because `gh issue list` stops at 30 by default without saying so. For a filtered scope, filter the saved list rather than relisting. Then read each issue in full with `gh issue view <n> --repo <owner/repo> --json number,title,body,labels,comments,author,createdAt,updatedAt,url`.
+   It creates the output folder when it is missing, saves bodies and comments, and fails when the saved count differs from the repository's open-issue count, because `gh issue list` stops at 30 by default without saying so. For a filtered scope, filter the saved list rather than relisting. Then read each issue in full with `gh issue view <n> --repo <owner/repo> --json number,title,body,labels,comments,author,createdAt,updatedAt,url`.
 3. For another tracker, use its CLI or connected tool if the session has one. Otherwise ask the user to export or paste the issues, and say that the triage covers only what was provided.
 4. For a large backlog, send groups of issues to fresh subagents with this skill's references, one group each, and ask each for its rows with evidence. You merge the rows, run the cross-issue duplicate comparison yourself, and own the final table.
 

@@ -24,8 +24,11 @@ for (const [name, text] of [['spec.md', spec], ['plan.md', plan], ['progress.md'
   if (text === null) fail(`missing ${name}`);
 }
 const phaseDir = join(dir, 'phases');
-const phaseFiles = existsSync(phaseDir) ? readdirSync(phaseDir).filter((f) => /^PHASE-\d{2}-[a-z0-9-]+\.md$/.test(f)).sort() : [];
+const phaseNames = existsSync(phaseDir) ? readdirSync(phaseDir).filter((f) => f.endsWith('.md')).sort() : [];
+const phaseFiles = phaseNames.filter((f) => /^PHASE-\d{2}-[a-z0-9-]+\.md$/.test(f));
 if (!phaseFiles.length) fail('no phase files named phases/PHASE-NN-<slug>.md');
+// A misnamed phase file would be skipped, and its tasks with it, so it is an error, never ignored.
+for (const f of phaseNames) if (!phaseFiles.includes(f)) fail(`phases/${f}: name must be PHASE-NN-<slug>.md (two digits, then lowercase letters, digits and hyphens)`);
 if (problems.length) finish();
 
 // plan.md
@@ -33,7 +36,9 @@ for (const h of ['Goal', 'Global constraints', 'Review focus', 'Out of scope', '
   'Phases', 'File map', 'Traceability', 'End-to-end verification', 'Decisions']) {
   if (!new RegExp(`^## ${h}\\s*$`, 'm').test(plan)) fail(`plan.md: missing section "## ${h}"`);
 }
-if (!/^Status: (Draft|Approved \d{4}-\d{2}-\d{2})/m.test(plan)) fail('plan.md: Status line must be "Draft" or "Approved <yyyy-mm-dd>"');
+const STATUS = '(Draft|Approved \\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01]))(?![\\w-])';
+const planStatus = plan.match(new RegExp(`^Status: ${STATUS}`, 'm'))?.[1];
+if (!planStatus) fail('plan.md: Status line must be "Draft" or "Approved <yyyy-mm-dd>"');
 
 // Requirements from the spec, and their traceability rows in the plan.
 const reqs = [...spec.matchAll(/^#{2,4}\s*(R\d+)\b/gm)].map((m) => m[1]);
@@ -64,12 +69,22 @@ for (const file of phaseFiles) {
     if (done && !/`[^`]+`/.test(done) && !/observ/i.test(done)) fail(`${at}: Done when needs a command in backticks or an observable result`);
     const tdd = field(block, 'TDD') ?? '';
     if (tdd && !/^(red-green|exempt \(.+\))$/.test(tdd)) fail(`${at}: TDD must be "red-green" or "exempt (<reason>)"`);
-    if (tdd === 'red-green' && !(/Expected:\s*FAIL/i.test(block) && /Expected:\s*PASS/i.test(block))) {
+    const firstFail = block.search(/Expected:\s*FAIL/i);
+    const lastPass = [...block.matchAll(/Expected:\s*PASS/gi)].at(-1)?.index ?? -1;
+    if (tdd === 'red-green' && !(firstFail >= 0 && lastPass > firstFail)) {
       fail(`${at}: red-green task needs a step with "Expected: FAIL" before one with "Expected: PASS"`);
     }
     if (/^-?\s*\d+\.\s*\[[ x]\]/m.test(block) === false) fail(`${at}: no checkbox steps ("1. [ ] ...")`);
-    for (const line of block.split('\n').filter((l) => /^\d+\.\s*\[[ x]\]/.test(l.trim()))) {
-      if (/\brun\b/i.test(prose(line).replace(/\s+/g, ' ')) && /`[^`]+`/.test(line) && !/Expected:/.test(line)) fail(`${at}: command step without an "Expected:" line: ${line.trim().slice(0, 70)}`);
+    // A step is its checkbox line plus the indented lines under it, so "Expected:" may sit on the next line.
+    // It is a command step when the word "run" (outside code) is followed by a code span: "Run `npm test`".
+    const lines = block.split('\n');
+    const isStep = (l) => /^\d+\.\s*\[[ x]\]/.test(l.trim());
+    for (let i = 0; i < lines.length; i++) {
+      if (!isStep(lines[i])) continue;
+      let step = lines[i];
+      for (let j = i + 1; j < lines.length && /^\s+\S/.test(lines[j]) && !isStep(lines[j]); j++) step += `\n${lines[j]}`;
+      const runsCommand = /\brun\b[^\u0001]*\u0001/i.test(step.replace(/`[^`\n]+`/g, '\u0001'));
+      if (runsCommand && !/Expected:/.test(step)) fail(`${at}: command step without an "Expected:" line: ${lines[i].trim().slice(0, 70)}`);
     }
     const tier = field(block, 'Tier') ?? '';
     if (tier && !/^(cheap|standard|most capable)$/.test(tier)) fail(`${at}: Tier must be cheap, standard or most capable`);
@@ -105,12 +120,28 @@ for (const [, t] of tasks) {
   if (!t.reqs.length && !t.support) fail(`${t.at}: Satisfies names no requirement and is not marked "support"`);
 }
 
-// progress.md matches the tasks and the spec.
-const sha = createHash('sha256').update(spec).digest('hex').slice(0, 12);
+// Traceability rows name only tasks that exist.
+for (const [r, row] of traceRows) {
+  if (/not planned/i.test(row)) continue;
+  for (const id of row.match(/\b\d+\.\d+\b/g) ?? []) if (!tasks.has(id)) fail(`plan.md: Traceability row ${r} names task ${id}, which no phase file defines`);
+}
+
+// progress.md matches the tasks and the spec. The hash is over the file's bytes, like sha256sum.
+const sha = createHash('sha256').update(readFileSync(join(dir, 'spec.md'))).digest('hex').slice(0, 12);
 const specLine = progress.match(/^Spec: .*sha256 ([0-9a-f]{12})/m)?.[1];
 if (specLine !== sha) fail(`progress.md: Spec line sha256 ${specLine ?? '(none)'} does not match spec.md (${sha})`);
 const rows = [...progress.matchAll(/^\|\s*(\d+\.\d+)\s*\|[^|]*\|[^|]*\|\s*([^|]*?)\s*\|([^\n]*)$/gm)].map((m) => [m[1], m[2], m[3]]);
+const progressStatus = progress.match(new RegExp(`^Plan status: ${STATUS}`, 'm'))?.[1];
+if (!progressStatus) fail('progress.md: Plan status line must be "Draft" or "Approved <yyyy-mm-dd>"');
+else if (planStatus && progressStatus !== planStatus) fail(`progress.md: Plan status "${progressStatus}" differs from plan.md Status "${planStatus}"; the executor reads progress.md`);
+const executor = progress.match(/^Executor:[ \t]*(.*)$/m)?.[1].trim();
+if (executor !== undefined && !['none', 'inline', 'mstack-codex-review-workflow', 'mstack-claude-review-workflow'].includes(executor)) {
+  fail(`progress.md: Executor "${executor}" must be none, inline, mstack-codex-review-workflow or mstack-claude-review-workflow`);
+}
+const seenRows = new Set();
 for (const [id, st, rest] of rows) {
+  if (seenRows.has(id)) fail(`progress.md: more than one row for task ${id}`);
+  seenRows.add(id);
   // A removed task keeps its row, marked "removed", so its ID is never reused.
   if (!tasks.has(id) && !/\bremoved\b/i.test(rest)) fail(`progress.md: row ${id} has no task in the phase files and is not marked removed`);
   if (!['Open', 'In progress', 'Closed'].includes(st)) fail(`progress.md: task ${id} has state "${st}", not Open, In progress or Closed`);
@@ -123,10 +154,10 @@ for (const word of ['Recommended mode', 'Inline', 'mstack-codex-review-workflow'
 }
 
 // Template placeholders left behind.
-for (const [name, text] of [['plan.md', plan], ['execute-plan.md', execute], ...phaseFiles.map((f) => [`phases/${f}`, readFileSync(join(phaseDir, f), 'utf8')])]) {
+for (const [name, text] of [['plan.md', plan], ['progress.md', progress], ['execute-plan.md', execute], ...phaseFiles.map((f) => [`phases/${f}`, readFileSync(join(phaseDir, f), 'utf8')])]) {
   // <model>, <effort>, <branch> and similar are filled by the executing session, so only planning-time placeholders count.
-  const left = prose(text).match(/<(title|path|command|reason|plan title|slug|yyyy-mm-dd|placeholder|base)>/);
-  if (left) fail(`${name}: unfilled placeholder ${left[0]}`);
+  const left = [...new Set(prose(text).match(/<(title|path|command|reason|plan title|slug|yyyy-mm-dd|placeholder|base|review model|review effort|reviewer and model|Claude Code \| Codex|Codex \| Claude|Inline \| Workflow|one sentence from the plan|path of the plan folder[^>]*)>/g) ?? [])];
+  if (left.length) fail(`${name}: unfilled placeholder${left.length > 1 ? 's' : ''} ${left.join(', ')}`);
 }
 
 finish();

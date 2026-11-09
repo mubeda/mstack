@@ -9,7 +9,7 @@ A crash of an interpreted program is filed under the interpreter's binary, so th
 1. Run with `PYTHONFAULTHANDLER=1` or `python -X faulthandler`. On SIGSEGV, SIGFPE, SIGABRT, SIGBUS or SIGILL, Python prints "Fatal Python error" and a traceback for each thread.
 2. The traceback goes to stderr. It lists file, function and line for up to 100 frames per thread and 100 threads. A free-threaded build dumps only the current thread, and Python 3.14 adds the C stack.
 3. It holds paths and names but no variable values. There is no reduced form, so redact paths that name the user.
-4. For a hang, `py-spy dump --pid <pid>` prints every thread's stack. Leave out `--locals`, because local variables can hold secrets. Inside the code, `faulthandler.dump_traceback_later(timeout)` dumps all threads after a timeout, and `faulthandler.register(signum)` dumps them on a signal (not on Windows).
+4. For a hang, `py-spy dump --pid <pid>` prints every thread's stack. Leave out `--locals` unless the user agrees, because local variables can hold secrets. Inside the code, `faulthandler.dump_traceback_later(timeout)` dumps all threads after a timeout, and `faulthandler.register(signum)` dumps them on a signal (not on Windows).
 
 ## Node.js
 

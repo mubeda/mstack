@@ -1,6 +1,6 @@
 # Spec template
 
-Read this in Phase 4, before you write the spec. Copy the template, fill every required section, and delete the optional sections that do not apply. A required section with nothing to say reads "None", followed by the reason. Never leave "N/A".
+Read this in Phase 4, before you write the spec. Copy the template, fill every required section, and delete the optional sections that do not apply. A required section with nothing to say reads "None", followed by the reason. Never leave "N/A". The notes in parentheses after the headings, `(required)` and the like, are for you: leave them out of the spec.
 
 ## Length
 
@@ -19,7 +19,7 @@ The interview record at the end does not count toward the length.
 
 Status: Draft | Approved <yyyy-mm-dd> (approved in chat by the user)
 Size: small | full    Mode: gated | quick    Type: feature | bug class | refactor
-Source: <issue link, request quote, or "conversation <yyyy-mm-dd>">
+Source: <issue link, a one-line restatement of the request, or "conversation <yyyy-mm-dd>">
 
 ## Problem                                        (required)
 Who has the problem, what it costs them, and the evidence, in 2 to 3 sentences.

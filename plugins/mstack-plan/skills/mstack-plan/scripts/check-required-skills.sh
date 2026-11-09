@@ -4,6 +4,7 @@
 #   bash check-required-skills.sh --host codex    (running in Codex; Claude reviews the plan)
 # Exit 0 when every required item is present, 1 otherwise. Recommended items only print a note.
 set -u
+[ -n "${HOME:-}" ] || { echo "HOME is not set, so the skill folders cannot be found" >&2; exit 2; }
 
 host=""
 for arg in "$@"; do
@@ -28,7 +29,7 @@ fi
 has_skill() { # $1 = skill folder name
   local r
   for r in "${roots[@]}"; do [ -f "$r/$1/SKILL.md" ] && return 0; done
-  [ -d "$plugin_cache" ] && find "$plugin_cache" -path "*/skills/$1/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
+  [ -d "$plugin_cache" ] && find "$plugin_cache/" -path "*/skills/$1/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
   return 1
 }
 
@@ -36,14 +37,14 @@ has_skill() { # $1 = skill folder name
 # or, for a standalone copy, its `codex exec` instructions.
 has_codex_skill() {
   local r
-  [ -d "$plugin_cache" ] && find "$plugin_cache" -path "*skill-codex*/skills/codex/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
+  [ -d "$plugin_cache" ] && find "$plugin_cache/" -path "*skill-codex*/skills/codex/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
   for r in "${roots[@]}"; do [ -f "$r/codex/SKILL.md" ] && grep -q "codex exec" "$r/codex/SKILL.md" && return 0; done
   return 1
 }
 
 # The agent-bridges `claude` plugin ships `claude-review` next to the companion script it runs.
 has_claude_review() {
-  [ -d "$plugin_cache" ] && find "$plugin_cache" -path "*/skills/claude-review/SKILL.md" 2>/dev/null \
+  [ -d "$plugin_cache" ] && find "$plugin_cache/" -path "*/skills/claude-review/SKILL.md" 2>/dev/null \
     | while read -r f; do [ -f "$(dirname "$f")/../../scripts/claude-companion.mjs" ] && echo y; done | grep -q y
 }
 

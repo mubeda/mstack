@@ -75,6 +75,7 @@ Codex's `workspace-write` sandbox keeps `.git` read-only and turns the network o
 | `codex exec` and `codex exec resume` for lanes | Network | The lane talks to the model API |
 | The `claude-review` companion command | Network, and writes under the home folder | Claude talks to Anthropic's API, and the companion keeps job state in the home folder |
 | `gh`, `git push` | Network | They talk to the host |
+| `scripts/check-required-skills.sh --github` | Network | Its `gh auth status` check asks the host, and without network it reports a logged-in `gh` as missing |
 
 Lanes run in `workspace-write` with the network off, so a lane can never commit. Each lane leaves its changes in its worktree, and you commit them (section 6). Give a lane network access with `-c sandbox_workspace_write.network_access=true` only when its brief needs it, such as a dependency install or an external-facts lookup.
 
@@ -146,7 +147,7 @@ This skill is project-agnostic. Discover each repository's own rules, tools and 
 5. Prefer agent-runnable verification (scripts, end-to-end drivers, local Docker labs). If an item can only be done by a person at a GUI or device and the repository is agent-managed, propose dropping it (closing it as not planned, for a tracker issue) instead of handing the user manual steps.
 6. Flag items that cannot be completed on this machine (another OS, hardware, a human measurement, a secret). Plan the part that can be done and say up front what will remain.
 7. Check disk space (`df -h`) before any wave of lanes that build heavy targets (Rust, C++, Xcode, Android). Keep a healthy margin and cap concurrent heavy builders.
-8. Record `<base>`, the branch the work starts from. It is the branch the user names, otherwise the current branch. Create `<run-dir>`, a folder outside the repository for briefs, lane logs, worktrees and review output, for example `${TMPDIR:-/tmp}/mstack-<repo>-<yyyymmdd-hhmm>`. Nothing in it is ever committed.
+8. Record `<base>`, the branch the work starts from. It is the branch the user names, otherwise the current branch. For an `mstack-plan` folder it is the `Base` line of `plan.md`. Create `<run-dir>`, a folder outside the repository for briefs, lane logs, worktrees and review output, for example `${TMPDIR:-/tmp}/mstack-<repo>-<run-id>`, where `<run-id>` is the start time as `<yyyymmdd-hhmm>`. Keep only letters, digits, dots and hyphens in `<repo>`, and put the path in double quotes in every command when the temp folder's own path has a space, because the commands below write it unquoted. Nothing in it is ever committed. The reference files call this folder the session scratchpad. It holds the lanes' uncommitted work, so name it in any handoff.
 9. Print the status table, with every item Open.
 
 ## 2. Partition into lanes
@@ -194,14 +195,14 @@ When a reference file collides with a repository rule or a plan rule (for exampl
 For each lane, create its worktree from its base (an approved command, because it writes `.git`), write its brief to a file, and start it in the background.
 
 ```bash
-git worktree add -b mstack/<lane> <run-dir>/wt/<lane> <lane base>
+git worktree add -b mstack/<run-id>/<lane> <run-dir>/wt/<lane> <lane base>
 nohup codex exec -m <model> --config model_reasoning_effort="<effort>" --sandbox workspace-write -C <run-dir>/wt/<lane> \
   --json -o <run-dir>/lane-<lane>.md - < <run-dir>/brief-<lane>.md \
   > <run-dir>/lane-<lane>.jsonl 2> <run-dir>/lane-<lane>.err &
 echo $! > <run-dir>/lane-<lane>.pid
 ```
 
-The lane base is `<base>`, or the earlier lane's accepted branch when this lane depends on it. Start all independent lanes before you wait on any of them. Move each item to In progress as its lane starts, and print the status table. The first line of `lane-<lane>.jsonl` is a `thread.started` event, and its `thread_id` is the lane's session id. Record it, because fix rounds resume that session. A lane is finished when its process has exited (`kill -0 $(cat <run-dir>/lane-<lane>.pid)` fails). Its report is `lane-<lane>.md`. An empty report means the lane failed, so read the end of `lane-<lane>.err` and handle it as `working-style.md` says for retries.
+The lane branch carries `<run-id>`, because a branch left by an earlier run with the same lane name would make `git worktree add -b` fail. The lane base is `<base>`, or the earlier lane's accepted branch when this lane depends on it. Start all independent lanes before you wait on any of them. Move each item to In progress as its lane starts, and print the status table. The first line of `lane-<lane>.jsonl` is a `thread.started` event, and its `thread_id` is the lane's session id. Record it in `<run-dir>/lanes.md`, with the lane's branch and worktree, because fix rounds resume that session. A lane is finished when its process has exited (`kill -0 $(cat <run-dir>/lane-<lane>.pid)` fails). Its report is `lane-<lane>.md`. An empty report means the lane failed, so read the end of `lane-<lane>.err` and handle it as `working-style.md` says for retries.
 
 Every brief is self-contained, follows `writing.md` › Prose rules, and contains these parts, in order:
 
@@ -239,7 +240,9 @@ Every review is processed with `receiving-review.md`, by you and by the lanes. T
    cd <run-dir>/wt/<lane> && nohup codex exec --sandbox workspace-write resume <thread-id> -m <model> \
      -c model_reasoning_effort="<effort>" --json -o <run-dir>/lane-<lane>-fix<n>.md - \
      < <run-dir>/findings-<lane>-<n>.md > <run-dir>/lane-<lane>-fix<n>.jsonl 2> <run-dir>/lane-<lane>-fix<n>.err &
+   echo $! > <run-dir>/lane-<lane>.pid
    ```
+   The resumed lane is finished when that new process has exited, as in section 5, and its report is `lane-<lane>-fix<n>.md`.
 5. Two rounds without accepted evidence means stop and replan the lane, following the retry rules in `working-style.md`, instead of a third identical round.
 6. Move an item to Closed once its work is accepted, and print the status table.
 
@@ -274,11 +277,11 @@ Bug lanes follow the `mstack-diagnose` skill, so their reports carry its evidenc
 5. Which probe tested which prediction, one variable at a time, and for performance the baseline, the run counts and the spread.
 6. The root-cause tier from `mstack-diagnose`, and Confirmed unless the item is a diagnosis of a past event that cannot be reproduced (then Supported, said plainly).
 7. For a fix, the regression test seen failing before and passing after (with the pristine `diff` if the failure was forced), the original loop rerun, the fix verdict, and for a flaky failure the passing runs chosen in advance. Or a recorded "no correct seam" finding with both outputs.
-8. An empty debug-prefix search (`git grep -n '\[DEBUG-'`) on the lane's diff, and the hypothesis that proved correct named in the commit message, to carry into the PR body.
+8. An empty debug-prefix search (`git grep -n --untracked '\[DEBUG-'`) on the lane's diff, and the hypothesis that proved correct named in the commit message, to carry into the PR body.
 
 ## 7. Integrate and validate locally
 
-1. Create one integration branch from `<base>`. Bring in each accepted lane branch, by cherry-pick or rebase to keep a linear history unless the repository prefers merges. Conflicts should be rare by construction. Resolve any that appear yourself and re-run that lane's tests.
+1. Create one integration branch from `<base>`. For an `mstack-plan` run, the integration branch is the one in the `Branch` line of `progress.md` when it has one: continue on it, as `plan-format.md` › Resume and staleness says, and create no other. Otherwise create `plan/<slug>`, the branch the user approved in the plan's `execute-plan.md`, and write it to the `Branch` line. Bring in each accepted lane branch, by cherry-pick or rebase to keep a linear history unless the repository prefers merges. Conflicts should be rare by construction. Resolve any that appear yourself and re-run that lane's tests.
 2. Write the shared files you reserved, such as changelog lines, docs indexes and a plan's status file.
 3. Run the repository's (and the plan's) full completion checklist on the integrated tree (all focused tests together, typecheck, lint, format, broader suites when changes cross packages). Send integration breakage to the owning lane session, or to a fresh small lane if that session is gone. An item whose work breaks at integration goes back to In progress until it is fixed.
 4. Run one last Claude review of the whole integration branch before pushing, with the same command, `--cwd` set to the repository and `--base <base>`, or the fallback review from section 6 when Claude is missing.
@@ -295,6 +298,6 @@ Bug lanes follow the `mstack-diagnose` skill, so their reports carry its evidenc
 
 ## 9. Final report
 
-When the run stops with work left (an item not Closed, or integration, the final review, the push, CI or delivery not finished), because the context or the session is running out, a blocker, or the user stops it, stop at a safe point and write a handoff with `mstack-handoff` when it is installed, then put its path in this report. Without it, put the same content in this report: branch and HEAD, uncommitted paths, running lanes and their worktrees, gates still due with their commands, and decisions blocked on the user.
+When the run stops with work left (an item not Closed, or integration, the final review, the push, CI or delivery not finished), because the context or the session is running out, a blocker, or the user stops it, stop at a safe point and write a handoff with `mstack-handoff` when it is installed, then put its path in this report. Without it, put the same content in this report: branch and HEAD, uncommitted paths, running lanes and their worktrees, `<run-dir>`, gates still due with their commands, and decisions blocked on the user.
 
 Write it per `writing.md` › Messages to the user. Line one names the goal and the outcome (for example "The goal was to finish the six tasks in the plan. PR #40 is open and completes 5 of 6."). Line two is the next action for the user. Then the final status table, with evidence in the note column. Then which reviews ran as same-vendor fallback reviews and why, if any. Then the review findings the run did not apply, each rejected or deferred finding with its reason (see `receiving-review.md` › Log every finding). Then validation commands with results, what was not run and why, residual risk, and the path of `<run-dir>` with a cleanup command once the user no longer needs its logs.

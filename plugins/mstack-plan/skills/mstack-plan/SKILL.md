@@ -29,7 +29,7 @@ Without a subagent tool, do the delegated step yourself and say so.
 | File | When |
 |---|---|
 | `references/plan-format.md` | Phases 3 and 5. The plan's file layout, fields, states and resume rules. The mstack review workflows ship the same file |
-| `references/skill-matching.md` | Phase 4 |
+| `references/skill-matching.md` | Phase 4, and where Preflight and Phase 1 point at it |
 | `references/plan-review.md` | Phase 7 |
 | `references/receiving-review.md` | Phase 7, and copied into every plan folder for the executor. The mstack review workflows ship the same file |
 | `references/execute-plan-template.md` | Phase 5 |

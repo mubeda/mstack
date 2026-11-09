@@ -1,21 +1,23 @@
 # Handoff template
 
-Read this in step 4. Copy the template, fill every section, and keep the section order: the next session reads top to bottom and starts working after the first section. A section with nothing to say reads "None", followed by the reason. `scripts/check-handoff.mjs` checks the headings, the identity line, the gate lines and the absence of secrets.
+Read this in step 4. Copy the template, fill every section, and keep the section order: the next session reads top to bottom and starts working after the first section. A section with nothing to say reads "None", followed by the reason. `scripts/check-handoff.mjs` checks the headings, the identity line, the gate lines, leftover placeholders and the absence of secrets.
 
 ## Rules for every section
 
 1. **Point, do not copy.** Specs, plans, `progress.md`, issues, pull requests, commits and diffs go in as paths or links. The handoff holds only what no other file holds: uncommitted work, live decisions, gates still due, and the next commands.
 2. **Mark what you verified.** A claim you checked this session says how (the command and its result). A claim you only assumed says "assumed". The next session trusts the file, so an unmarked guess becomes a false premise.
-3. **A gate is green only with evidence.** Write it as green only when its exact command ran in this session, passed, and ran after the last edit to the working tree, so it tested exactly the state the Tree fingerprint records. Record the command, the HEAD it ran against, and the last line of its output. Everything else is due.
-4. **No secrets.** Refer to a secret by its name (`the GITHUB_TOKEN environment variable`), never by its value. Never paste environment values, tokens, passwords, private keys, connection strings or command output that contains them. Leave personal data out.
+3. **A gate is green only with evidence.** Write it as green only when its exact command ran in this session, passed, and ran after the last edit to the working tree and at the HEAD in the identity line, so it tested exactly the state the Tree fingerprint records. Record the command, the HEAD it ran against, and the last line of its output. Everything else is due, including a gate that passed before the last commit: the script rejects a green gate whose SHA is not the identity HEAD.
+4. **No secrets.** Refer to a secret by its name (`the GITHUB_TOKEN environment variable`), never by its value. The script reports the line of anything shaped like a token or a credential assignment (`NAME_TOKEN=value`, `password: value`); reword that line so it names the secret without a value. A reference such as `--token=$STAGING_API_TOKEN` passes. Never paste environment values, tokens, passwords, private keys, connection strings or command output that contains them. Leave personal data out.
 5. **Exact commands.** Every command is copy-paste ready, from the repository root unless it says otherwise.
+6. **No placeholder left.** Replace every `<...>` placeholder of the template, or delete the line that holds it. The script lists each one still in the file. When real content looks like one (an HTML tag, a usage string such as `<path>`), reword it. When the next session runs on another host, whose skill folder you cannot know, write the words "the mstack-handoff skill folder on your host" in step 2 of "Start here".
+7. **Detached HEAD.** When `git branch --show-current` prints nothing, write `Branch: (detached)` in the identity line and say in "State" what HEAD is (a bisect step, a tag, a detached worktree).
 
 ## Template
 
 ````markdown
 # Handoff: <one-line description of the work>
 
-Repository: <absolute path of the repository root> | Branch: <branch> | HEAD: <full SHA> | Tree: <16-hex fingerprint> | Written: <yyyy-mm-dd hh:mm timezone>
+Repository: <absolute path of the repository root> | Branch: <branch, or "(detached)"> | HEAD: <full SHA> | Tree: <16-hex fingerprint> | Written: <yyyy-mm-dd hh:mm timezone>
 
 ## Start here
 

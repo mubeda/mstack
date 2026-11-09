@@ -1,6 +1,6 @@
 # Skill matching
 
-Read this in Phase 5. Every phase and every task names the skills that help with exactly that work, so the executor loads the right ones without guessing. Matching runs on what is installed first. Online search fills only the gaps, and the user decides every install.
+Read this in Phase 4 (section 1 already in Phase 1, and section 5 from Preflight too). Every phase and every task names the skills that help with exactly that work, so the executor loads the right ones without guessing. Matching runs on what is installed first. Online search fills only the gaps, and the user decides every install.
 
 ## 1. Inventory the installed skills
 

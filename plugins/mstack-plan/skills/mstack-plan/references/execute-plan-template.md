@@ -1,6 +1,6 @@
 # execute-plan.md template
 
-Read this in Phase 5. Copy the template into `<plan-folder>/execute-plan.md` and fill every placeholder that is known at planning time: the title, the plan folder, the dates, the base branch, the slug, the planning host and reviewer, and the recommended mode. Leave the runtime placeholders exactly as written (`<model>`, `<effort>`, `<branch>`, `<repository root>`, `<claude-plugin-root>`, `<tmp>`), because the session that executes the plan chooses or resolves them, possibly on the other host. The file must work on its own: the session that executes it may not have `mstack-plan` installed, so everything the executor needs is in the file, and nothing points back into this skill's folder.
+Read this in Phase 5. Copy the template into `<plan-folder>/execute-plan.md` and fill every placeholder that is known at planning time: the title, the plan folder, the dates, the base branch, the slug, the planning host, the plan reviewer with its model and effort (`<review model>`, `<review effort>`), and the recommended mode. Leave the runtime placeholders exactly as written (`<model>`, `<effort>`, `<branch>`, `<repository root>`, `<claude-plugin-root>`, `<tmp>`), because the session that executes the plan chooses or resolves them, possibly on the other host. The file must work on its own: the session that executes it may not have `mstack-plan` installed, so everything the executor needs is in the file, and nothing points back into this skill's folder.
 
 Pick the recommended mode from the plan itself.
 
@@ -19,7 +19,7 @@ You are about to execute an approved implementation plan. Read this whole file b
 - Plan folder: <path of the plan folder, relative to the repository root>
 - Spec: <plan-folder>/spec.md (binding authority; the plan argues from it)
 - Planned on: <Claude Code | Codex>, <yyyy-mm-dd>
-- Plan reviewed by: <Codex | Claude> <model>, effort <effort>
+- Plan reviewed by: <Codex | Claude> <review model>, effort <review effort>
 - Base branch: <base>
 - Recommended mode: <Inline | Workflow>, because <one sentence from the plan>
 
@@ -80,7 +80,7 @@ After a phase's last task, run its Checkpoint and log the result. A failing chec
 ### After the last task
 
 1. Run every check in `plan.md` › End-to-end verification and log each result.
-2. Get one cross-vendor review of the whole branch, read-only, with the model and effort from question 2. Write its output outside the repository.
+2. Get one cross-vendor review of the whole branch, read-only, with the model and effort from question 2. Write its output outside the repository: `<tmp>` below is the session's scratch folder when the host has one, otherwise `${TMPDIR:-/tmp}/mstack-plan-<slug>`, created first. Put a path in double quotes in these commands when it contains a space.
    - Claude Code (Codex reviews, through the `codex` skill of the skill-codex plugin; timeout at least 600 seconds for `high`, 1200 for `xhigh`, 1800 for `max`):
 
      Write this prompt to `<tmp>/review-prompt.md` with your file tool, never with `echo` or a heredoc, so no shell expands anything in it:

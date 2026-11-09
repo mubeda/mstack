@@ -53,12 +53,12 @@ Read the help before running a command marked "check `--help` first". A step mar
 
 13. Before the first symbol lookup, tell the user that debuginfod sends the build ID and their IP address to a public server. Skip it for a proprietary binary unless they agree.
 14. Run `echo "$DEBUGINFOD_URLS"`. When it prints nothing, put `DEBUGINFOD_URLS="<server>"` in front of the gdb command, with the server from the table.
-15. Extract the core to a private file deleted on exit, and print every thread. Batch mode turns debuginfod off, so the `set` line is required.
+15. Extract the core to a private file deleted on exit, and print every thread. Batch mode turns debuginfod off, so the `set` line is required, and it must be `-iex`, which runs before gdb loads the files. With `-ex` it runs after the symbols were already looked up.
     ```bash
     core=$(mktemp -t crash-XXXXXX.core)
     trap 'rm -f "$core"' EXIT
     coredumpctl dump <pid> --output="$core"
-    gdb -q '<exe>' "$core" -batch -ex 'set debuginfod enabled on' -ex 'thread apply all bt'
+    gdb -q '<exe>' "$core" -batch -iex 'set debuginfod enabled on' -ex 'thread apply all bt'
     ```
 16. Read the other threads for work in flight. Note third-party code in the process (plugins, extensions, drivers), but blame it only with evidence.
 17. Some frames stay `??` even with debuginfod. Report them as unresolved and never guess a name. You can still name the library of each frame and the kind of thread it ran on.

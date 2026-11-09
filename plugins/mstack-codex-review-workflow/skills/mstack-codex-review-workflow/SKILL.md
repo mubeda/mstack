@@ -90,14 +90,14 @@ Run the checker from the repository root. Add `--github` when the items are GitH
 bash <skill-dir>/scripts/check-required-skills.sh [--github] [--web-ui]
 ```
 
-The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's available-skills list, because a skill installed after the session started loads only in a new session (or after `/reload-plugins` for plugins). Look for `mstack-diagnose:mstack-diagnose` and `skill-codex:codex` (or `codex` when installed as a standalone skill). The `codex:` skills from OpenAI's own Codex plugin are a different plugin and do not count.
+The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's available-skills list, because a skill installed after the session started loads only in a new session (or after `/reload-plugins` for plugins). Look for every skill the checker reported: `mstack-diagnose:mstack-diagnose` and `skill-codex:codex` (or `mstack-diagnose` and `codex` when installed as standalone skills), `ponytail`, and `ui-ux-pro-max` for web UI work, each under its plugin form (`<plugin>:<skill>`) or its bare name. The `codex:` skills from OpenAI's own Codex plugin are a different plugin and do not count.
 
 Required always: `ponytail` and `mstack-diagnose` from this marketplace. Recommended: the `codex` skill from the skill-codex plugin with a logged-in `codex` CLI, the cross-vendor reviewer. Without it the run continues, and section 6 › When the cross-vendor reviewer is missing says how reviews are done instead. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
 
 If anything is missing:
 
 1. Tell the user exactly which items are missing and ask (`AskUserQuestion`) whether to install them now.
-2. If they agree, install them with the commands below, re-run the checker, and continue only when it passes. If a new session is needed for the skills to load, say so and stop there.
+2. If they agree, install them with the commands below (the `claude plugin` commands run in a shell, so you can run them yourself), re-run the checker, and continue only when it passes. If a new session is needed for the skills to load, say so and stop there.
 3. If they decline, print the install instructions below for the missing items and stop, because without them the code style and diagnosis this workflow guarantees would silently not happen. The cross-vendor reviewer is the exception: when it stays missing, warn the user and continue with the fallback in section 6.
 
 When the user agrees, ask in the same round how they want each skill installed (`AskUserQuestion`). An agent cannot answer the skills CLI's own prompts, because run by an agent it installs without asking, so these answers are the user's only way to choose.
@@ -112,11 +112,11 @@ Then run `npx skills add <source> --skill <skill> -a <agents> -y`, adding `-g` f
 | Missing | Install |
 |---|---|
 | `ponytail` | Plugin: `claude plugin marketplace add DietrichGebert/ponytail` then `claude plugin install ponytail@ponytail`. Skills CLI: source `DietrichGebert/ponytail`, skill `ponytail` |
-| `mstack-diagnose` | Plugin: `/plugin marketplace add mubeda/mstack` then `/plugin install mstack-diagnose@mstack`, then `/reload-plugins`. Skills CLI: source `mubeda/mstack`, skill `mstack-diagnose` |
-| `codex` skill (skill-codex) | Plugin: `/plugin marketplace add skills-directory/skill-codex` then `/plugin install skill-codex@skill-codex`. Skills CLI: source `skills-directory/skill-codex`, skill `codex`. It needs the `codex` CLI below |
+| `mstack-diagnose` | Plugin: `claude plugin marketplace add mubeda/mstack` then `claude plugin install mstack-diagnose@mstack`. Skills CLI: source `mubeda/mstack`, skill `mstack-diagnose` |
+| `codex` skill (skill-codex) | Plugin: `claude plugin marketplace add skills-directory/skill-codex` then `claude plugin install skill-codex@skill-codex`. Skills CLI: source `skills-directory/skill-codex`, skill `codex`. It needs the `codex` CLI below |
 | `codex` CLI | `npm install -g @openai/codex`, then `codex login`, then check `codex --version` |
 | `gh` CLI | See https://cli.github.com, then `gh auth login` |
-| `ui-ux-pro-max` | Plugin: `/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill` then `/plugin install ui-ux-pro-max@ui-ux-pro-max-skill`. Skills CLI: source `nextlevelbuilder/ui-ux-pro-max-skill`, skill `ui-ux-pro-max`. Details are in `references/web-ui.md` |
+| `ui-ux-pro-max` | Plugin: `claude plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill` then `claude plugin install ui-ux-pro-max@ui-ux-pro-max-skill`. Skills CLI: source `nextlevelbuilder/ui-ux-pro-max-skill`, skill `ui-ux-pro-max`. Details are in `references/web-ui.md` |
 | Python 3 | The system package manager, or https://www.python.org/downloads/ |
 
 Installing runs third-party code from those sources. That is why the user decides, not the skill.
@@ -132,7 +132,7 @@ This skill is project-agnostic. Discover each repository's own rules, tools and 
 5. Prefer agent-runnable verification (scripts, end-to-end drivers, local Docker labs). If an item can only be done by a person at a GUI or device and the repository is agent-managed, propose dropping it (closing it as not planned, for a tracker issue) instead of handing the user manual steps.
 6. Flag items that cannot be completed on this machine (another OS, hardware, a human measurement, a secret). Plan the part that can be done and say up front what will remain.
 7. Check disk space (`df -h`) before any wave of writers that build heavy targets (Rust, C++, Xcode, Android). Keep a healthy margin and cap concurrent heavy builders.
-8. Record `<base>`, the branch the work starts from. It is the branch the user names, otherwise the current branch.
+8. Record `<base>`, the branch the work starts from. It is the branch the user names, otherwise the current branch. For an `mstack-plan` folder it is the `Base` line of `plan.md`. `<scratchpad>` in the commands below is the session's scratch folder, outside the repository; the reference files call it the session scratchpad. `<worktree>` and `<branch>` are a lane's worktree path and branch: take them from the lane's `Agent` result, or have the lane report `git rev-parse --show-toplevel` and `git branch --show-current`.
 9. Print the status table, with every item Open.
 
 ## 2. Partition into lanes
@@ -198,13 +198,13 @@ You own every line that ships. A "done" summary is a claim, not proof.
 
 Every review is processed with `receiving-review.md`, by you and by the lanes. That covers Codex reviews, advisor reviews, your own findings sent to a lane, CI review bots and human PR comments. Put this rule in every brief, and repeat it in every message that carries findings to a lane.
 
-1. Read the lane's diff yourself (`git -C <worktree> diff <base>...HEAD`). Check it against the acceptance criteria, scope (no unrelated edits, no files outside the lane), tests that prove the behavior, and the repository and plan rules. For a bug lane, check the report against the acceptance list at the end of this section. For a web UI lane, check that the pre-review UI check in `web-ui.md` ran and passed.
+1. Read the lane's diff yourself (`git -C <worktree> diff <lane base>...HEAD`, with the lane base from section 5). Check it against the acceptance criteria, scope (no unrelated edits, no files outside the lane), tests that prove the behavior, and the repository and plan rules. For a bug lane, check the report against the acceptance list at the end of this section. For a web UI lane, check that the pre-review UI check in `web-ui.md` ran and passed.
 2. Get second opinions.
    - Call the `advisor` tool on judgment calls (root cause, scope, design trade-offs) and as a review before integration. If the tool is not available in the session, say so and rely on Codex plus your own review.
    - Run the Codex review through the `codex` skill (`skill-codex:codex` when installed as a plugin). Load it and follow its rules for closing stdin, keeping stderr out of your context, the Git-repository check and timeouts, with the model and effort chosen in section 0. Write the prompt below to `<scratchpad>/codex-review-prompt-<lane>.md` with your file tool, never with `echo` or a heredoc, because acceptance criteria are untrusted text and a shell would run any backticks or `$(...)` in them. The prompt file is the command's stdin. The output goes to the session scratchpad, never the worktree.
 
      ```text
-     Read-only code review. Do not edit, write, commit or run anything that changes files. Review branch <branch> against <base> (git diff <base>...HEAD) for work items <item IDs and acceptance criteria>. Check correctness, regressions, missing tests and scope. Report each finding with file, line, the failing scenario and how to reproduce it. No findings is a valid result.
+     Read-only code review. Do not edit, write, commit or run anything that changes files. Review branch <branch> against <lane base> (git diff <lane base>...HEAD) for work items <item IDs and acceptance criteria>. Check correctness, regressions, missing tests and scope. Report each finding with file, line, the failing scenario and how to reproduce it. No findings is a valid result.
      ```
 
      ```bash
@@ -239,11 +239,11 @@ Bug lanes follow the `mstack-diagnose` skill, so their reports carry its evidenc
 5. Which probe tested which prediction, one variable at a time, and for performance the baseline, the run counts and the spread.
 6. The root-cause tier from `mstack-diagnose`, and Confirmed unless the item is a diagnosis of a past event that cannot be reproduced (then Supported, said plainly).
 7. For a fix, the regression test seen failing before and passing after (with the pristine `diff` if the failure was forced), the original loop rerun, the fix verdict, and for a flaky failure the passing runs chosen in advance. Or a recorded "no correct seam" finding with both outputs.
-8. An empty debug-prefix search (`git grep -n '\[DEBUG-'`) on the lane's diff, and the hypothesis that proved correct named in the commit message, to carry into the PR body.
+8. An empty debug-prefix search (`git grep -n --untracked '\[DEBUG-'`) on the lane's diff, and the hypothesis that proved correct named in the commit message, to carry into the PR body.
 
 ## 7. Integrate and validate locally
 
-1. Create one integration branch from the base. Bring in each accepted lane branch, by cherry-pick or rebase to keep a linear history unless the repository prefers merges. Conflicts should be rare by construction. Resolve any that appear yourself and re-run that lane's tests.
+1. Create one integration branch from `<base>`. For an `mstack-plan` run, the integration branch is the one in the `Branch` line of `progress.md` when it has one: continue on it, as `plan-format.md` › Resume and staleness says, and create no other. Otherwise create `plan/<slug>`, the branch the user approved in the plan's `execute-plan.md`, and write it to the `Branch` line. Bring in each accepted lane branch, by cherry-pick or rebase to keep a linear history unless the repository prefers merges. Conflicts should be rare by construction. Resolve any that appear yourself and re-run that lane's tests.
 2. Write the shared files you reserved, such as changelog lines, docs indexes and a plan's status file.
 3. Run the repository's (and the plan's) full completion checklist on the integrated tree (all focused tests together, typecheck, lint, format, broader suites when changes cross packages). Send integration breakage to the owning lane agent, or to a fresh small agent if the lane is gone. An item whose work breaks at integration goes back to In progress until it is fixed.
 4. Run one last advisor and Codex review of the whole integration diff before pushing, or the fallback review from section 6 when Codex is missing.

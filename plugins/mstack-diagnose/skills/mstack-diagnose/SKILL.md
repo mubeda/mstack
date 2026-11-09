@@ -95,7 +95,7 @@ Gate: failing before and passing after on the same surface as the symptom (or th
 
 ## Phase 6. Clean up and report
 
-1. Remove every tagged debug line (`git grep -n '\[DEBUG-'` prints nothing), throwaway harnesses, and the cores or dumps you extracted.
+1. Remove every tagged debug line (`git grep -n --untracked '\[DEBUG-'` prints nothing; `--untracked` matters because new harnesses and test files are not tracked yet, and outside a Git repository use `grep -rn '\[DEBUG-' .`), throwaway harnesses, and the cores or dumps you extracted.
 2. End any bisect with `git bisect reset`.
 3. Undo any system change the user approved, or list it with its undo command.
 4. Write the report below.

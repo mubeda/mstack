@@ -6,6 +6,7 @@
 #     --web-ui    also the web UI requirements
 # Exit 0 when every checked item is present, 1 otherwise. Prints one line per item.
 set -u
+[ -n "${HOME:-}" ] || { echo "HOME is not set, so the skill folders cannot be found" >&2; exit 2; }
 
 github=0; webui=0
 for arg in "$@"; do
@@ -18,15 +19,15 @@ done
 
 
 roots=(
-  "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" "$HOME/.agents/skills" "${CODEX_HOME:-$HOME/.codex}/skills"
-  "./.claude/skills" "./.agents/skills" "./.codex/skills"
+  "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" "$HOME/.agents/skills"
+  "./.claude/skills" "./.agents/skills"
 )
 plugin_cache="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/cache"
 
 has_skill() { # $1 = skill folder name
   local r
   for r in "${roots[@]}"; do [ -f "$r/$1/SKILL.md" ] && return 0; done
-  [ -d "$plugin_cache" ] && find "$plugin_cache" -path "*/skills/$1/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
+  [ -d "$plugin_cache" ] && find "$plugin_cache/" -path "*/skills/$1/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
   return 1
 }
 
@@ -34,7 +35,7 @@ has_skill() { # $1 = skill folder name
 # or, for a standalone copy, its `codex exec` instructions.
 has_codex_skill() {
   local r
-  [ -d "$plugin_cache" ] && find "$plugin_cache" -path "*skill-codex*/skills/codex/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
+  [ -d "$plugin_cache" ] && find "$plugin_cache/" -path "*skill-codex*/skills/codex/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
   for r in "${roots[@]}"; do [ -f "$r/codex/SKILL.md" ] && grep -q "codex exec" "$r/codex/SKILL.md" && return 0; done
   return 1
 }

@@ -17,7 +17,7 @@ A hang is diagnosed from stack dumps, not from reading code.
 
 ## Dump commands by runtime
 
-1. For Python, run `py-spy dump --pid <pid>`, adding `--locals` for local variables. It needs the same ptrace permission as a debugger. Inside a test, `faulthandler.dump_traceback_later(<seconds>)` dumps every thread after a timeout, and `python -X faulthandler` dumps tracebacks on fatal signals.
+1. For Python, run `py-spy dump --pid <pid>`. Add `--locals` only when the user agrees, because local variables can hold secrets. It needs the same ptrace permission as a debugger. Inside a test, `faulthandler.dump_traceback_later(<seconds>)` dumps every thread after a timeout, and `python -X faulthandler` dumps tracebacks on fatal signals.
 2. For the JVM, `kill -QUIT <pid>` prints a thread dump with deadlock detection to the program's standard output, and the process keeps running. `jcmd` has a `Thread.print` command, but check `jcmd -h` first for the invocation on the installed JDK.
 3. For Go, SIGQUIT prints every goroutine's stack and then ends the process, so ask the user first. `GOTRACEBACK=all` includes all user goroutines. Inside tests, `go test -timeout <d>` makes a stuck test binary panic.
 4. For Node, start the program with `--report-on-signal`, then send the signal (SIGUSR2 by default, not on Windows) to get a diagnostic report.

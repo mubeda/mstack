@@ -1,6 +1,6 @@
 {
   "name": "mstack-handoff",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Write one resumable handoff file so a fresh agent session, in Claude Code or Codex, continues long work exactly where it stopped: branch, HEAD, uncommitted paths, pull request, issue status, gates green and due with exact commands, approved and blocked decisions, next commands first. Never commits, stashes or leaks secrets, checks the file mechanically, and resumes from it with staleness rules. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"

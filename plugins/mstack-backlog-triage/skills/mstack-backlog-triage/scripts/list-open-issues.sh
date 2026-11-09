@@ -13,6 +13,7 @@ fi
 owner="${repo%%/*}"; name="${repo##*/}"
 
 command -v node >/dev/null || { echo "node is required to validate the saved list" >&2; exit 1; }
+mkdir -p "$(dirname "$out")"   # the scratch folder may not exist yet
 
 # -f keeps owner and name as strings; -F would turn a name like 123 or true into a number or a Boolean.
 total=$(gh api graphql -f owner="$owner" -f name="$name" \

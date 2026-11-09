@@ -102,4 +102,8 @@ const planSkill = resolve(root, 'plugins/mstack-plan/skills/mstack-plan');
 const lint = spawnSync(process.execPath, [resolve(planSkill, 'scripts/check-plan.mjs'), resolve(planSkill, 'evals/_fixture/sample-plan')], { encoding: 'utf8' });
 assert.equal(lint.status, 0, `check-plan.mjs rejects evals/_fixture/sample-plan:\n${lint.stdout}${lint.stderr}`);
 
+// plan-format.md says a plan folder's receiving-review.md is copied unchanged from the skill.
+assert.equal(readFileSync(resolve(planSkill, 'evals/_fixture/sample-plan/receiving-review.md'), 'utf8'), readFileSync(resolve(planSkill, 'references/receiving-review.md'), 'utf8'),
+  'mstack-plan: evals/_fixture/sample-plan/receiving-review.md differs from references/receiving-review.md; copy it again');
+
 console.log(`Marketplace checks passed: ${claude.length} Claude plugins, ${codex.length} Codex plugins`);
