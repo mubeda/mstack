@@ -1,0 +1,28 @@
+{
+  "name": "mstack-find-skills",
+  "version": "0.1.0",
+  "description": "Find the skills that fit a job: the installed skills scored per task, then vetted public candidates from skills.sh for the gaps only (audits, installs, license and the skill's own text), installed only after the user's yes. Called by the other mstack skills for their tasks. One skill for Claude Code and Codex.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "skills",
+    "skills.sh",
+    "search",
+    "install",
+    "agent-skills"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Find Skills",
+    "shortDescription": "Find installed and vetted public skills for a job.",
+    "longDescription": "Lists the skills installed for this host, scores them against each task or work item, and only for the gaps searches the skills.sh directory, vetting each candidate on its audit verdicts, install count, age, license and SKILL.md. In user mode it installs a chosen candidate after asking the route, scope, method and agents; called by another skill it asks nothing and returns one block per item.",
+    "developerName": "mubeda",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ]
+  }
+}

@@ -87,6 +87,42 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity"
+    },
+    {
+      "name": "mstack-best-model-for",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-best-model-for"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "mstack-find-skills",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-find-skills"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "mstack-setup",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-setup"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
     }
   ]
 }

@@ -1,0 +1,4 @@
+# Quillink service definition (an in-house binary RPC protocol)
+service Orders {
+  call Get(id: text) -> Order
+}

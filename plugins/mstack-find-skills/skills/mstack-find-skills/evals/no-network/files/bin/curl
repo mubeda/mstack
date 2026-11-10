@@ -1,0 +1,5 @@
+#!/bin/sh
+# Stub: this test machine has no network.
+echo "curl: (7) Failed to connect" >&2
+echo "network unreachable" >&2
+exit 1

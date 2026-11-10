@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: missing-required-skill
+expected_outcome: |
+  The run stops before any other work because mstack-best-model-for is not installed: it names the missing skill,
+  gives both install routes and mstack-setup, starts no lane and asks no reviewer question.
+context:
+  scaffold_script: place-files.sh

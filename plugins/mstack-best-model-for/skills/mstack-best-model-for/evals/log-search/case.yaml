@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: log-search
+expected_outcome: |
+  The answer recommends haiku (or sonnet with a reason) at a stated effort, with the subagent model and effort settings, the table date and a next step, and does not pick the session's own model.
+context:
+  scaffold_script: place-files.sh

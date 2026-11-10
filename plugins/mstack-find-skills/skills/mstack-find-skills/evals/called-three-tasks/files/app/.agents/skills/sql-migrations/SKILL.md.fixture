@@ -1,0 +1,8 @@
+---
+name: sql-migrations
+description: Use when writing or reviewing SQL schema migrations and their rollback steps.
+---
+
+# sql-migrations
+
+Test fixture skill. Use when writing or reviewing SQL schema migrations and their rollback steps.

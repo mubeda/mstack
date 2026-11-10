@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: missing-required-skill
+expected_outcome: |
+  The run stops before any planning work because mstack-find-skills is not installed: it names the missing skill,
+  gives the plugin commands for both hosts and the skills CLI command, names mstack-setup, asks no planning question
+  and writes no file.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,28 @@
+{
+  "name": "mstack-setup",
+  "version": "0.1.0",
+  "description": "Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: a status script for the host, then one list of install commands (codegraph, ponytail, the cross-vendor reviewer, the mstack skills) that runs only after one yes, and a final check. One skill for Claude Code and Codex.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "setup",
+    "install",
+    "dependencies",
+    "codegraph",
+    "plugins"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Setup",
+    "shortDescription": "Install what the mstack skills need, after one yes.",
+    "longDescription": "Runs a status script that reports each dependency of the mstack skills for this host (installed, missing, not logged in, or loading in a new session), then shows one list of install commands grouped as mandatory and optional, runs only the ones the user accepts, continues past a failure, and checks again. Covers Linux, macOS and Windows and writes nothing into the current repository.",
+    "developerName": "mubeda",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ]
+  }
+}

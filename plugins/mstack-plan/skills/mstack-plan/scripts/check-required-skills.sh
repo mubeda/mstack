@@ -61,6 +61,8 @@ recommend() { # $1 = label, $2 = command that succeeds when present
 
 check "node on PATH (runs check-plan.mjs)" "command -v node >/dev/null"
 check "git on PATH"                        "command -v git >/dev/null"
+check "mstack-find-skills (names the skills per task)"   "has_skill mstack-find-skills"
+check "mstack-best-model-for (models for helpers and reviews)" "has_skill mstack-best-model-for"
 if [ "$host" = claude ]; then
   reviewer "codex skill (skill-codex plugin)" "has_codex_skill"
   reviewer "codex CLI logged in"              "command -v codex >/dev/null && codex login status >/dev/null 2>&1"
@@ -72,6 +74,5 @@ else
 fi
 recommend "mstack-write-specs (writes the spec when there is none)" "has_skill mstack-write-specs"
 recommend "mstack-diagnose (bug and performance tasks)"            "has_skill mstack-diagnose"
-recommend "npx (searches skills.sh for missing skills)"            "command -v npx >/dev/null"
 
 exit $missing

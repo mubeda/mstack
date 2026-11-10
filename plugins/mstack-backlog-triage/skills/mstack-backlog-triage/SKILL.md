@@ -12,8 +12,9 @@ You read a tracker's open issues, decide for each one what it is and when it sho
 | Role | Claude Code | Codex |
 |---|---|---|
 | Your question tool | `AskUserQuestion` | A numbered round in chat, then wait for the reply |
-| Your subagent tool | `Agent`, with `model: "sonnet"` and `effort: "medium"` | The session's agent tool if it has one, with the account's standard coding model set, otherwise do the step yourself |
+| Your subagent tool | `Agent`, with `model` and `effort` set to `mstack-best-model-for`'s answer for the tier `standard` | The session's agent tool if it has one, with that answer's model and effort set, otherwise do the step yourself |
 | The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md |
+| The user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/` (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/` (`CODEX_HOME` replaces `~/.codex`) |
 | `gh` commands | Run directly | Run as approved (escalated) commands, because the sandbox turns the network off |
 | `<scratch>` | The session's scratch folder, outside the repository | `${TMPDIR:-/tmp}/mstack-triage-<repository name>` |
 
@@ -23,6 +24,7 @@ You read a tracker's open issues, decide for each one what it is and when it sho
 |---|---|
 | `references/triage-rules.md` | Steps 3 to 6: evidence, duplicate search, classes, recommendation, routes, the table |
 | `references/drafting.md` | Steps 7 and 8: comments, labels, approval, posting |
+| `references/codegraph.md` | Step 2, before you or any subagent reads code |
 | `scripts/list-open-issues.sh` | Step 2, on GitHub |
 
 ## Ground rules
@@ -35,6 +37,23 @@ You read a tracker's open issues, decide for each one what it is and when it sho
 
 ## 1. Start
 
+**Required skill, first.** Before any other step, check `mstack-best-model-for`, which this skill calls for its subagents' models.
+
+1. It is in this session's skill list (as `mstack-best-model-for` or `<plugin>:mstack-best-model-for`): continue.
+2. Its folder exists on disk (in the user skill folders the host table names) but the session has not loaded it: say that a new session is needed, and stop.
+3. Otherwise print this and stop, with no other step and no subagent started:
+
+   ```text
+   mstack-backlog-triage needs mstack-best-model-for, which is not installed.
+   Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-best-model-for@mstack
+   Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-best-model-for@mstack
+   Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex> -y
+   Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
+   Then start a new session.
+   ```
+
+There is no built-in fallback.
+
 In one message, restate the goal and ask with your question tool. Skip any question the request already answers.
 
 1. **Which issues?** The tracker and the filter: all open issues (recommended), or a label, milestone or search the user names.
@@ -43,7 +62,7 @@ In one message, restate the goal and ask with your question tool. Skip any quest
 
 ## 2. Collect
 
-1. Read the repository's own rules first (CONTRIBUTING, AGENTS.md, CLAUDE.md, issue templates under `.github/ISSUE_TEMPLATE/`), because they may define what a valid report is and which labels mean what.
+1. Read the repository's own rules first (CONTRIBUTING, AGENTS.md, CLAUDE.md, issue templates under `.github/ISSUE_TEMPLATE/`), because they may define what a valid report is and which labels mean what. Then follow `references/codegraph.md` once, yourself, before you or any subagent reads code.
 2. On GitHub, list every open issue in scope and prove the list is complete:
 
    ```bash
@@ -52,7 +71,7 @@ In one message, restate the goal and ask with your question tool. Skip any quest
 
    It creates the output folder when it is missing, saves bodies and comments, and fails when the saved count differs from the repository's open-issue count, because `gh issue list` stops at 30 by default without saying so. For a filtered scope, filter the saved list rather than relisting. Then read each issue in full with `gh issue view <n> --repo <owner/repo> --json number,title,body,labels,comments,author,createdAt,updatedAt,url`.
 3. For another tracker, use its CLI or connected tool if the session has one. Otherwise ask the user to export or paste the issues, and say that the triage covers only what was provided.
-4. For a large backlog, send groups of issues to fresh subagents with this skill's references, one group each, on the model the host tools table names (a subagent started without a model runs on the session's model, the most expensive choice), and ask each for its rows with evidence. You merge the rows, run the cross-issue duplicate comparison yourself, and own the final table.
+4. For a large backlog, send groups of issues to fresh subagents with this skill's references, one group each, on the model the host tools table names, from one called-mode call to `mstack-best-model-for` for the tier `standard` and this host's vendor, made before the first subagent (a subagent started without a model runs on the session's model, the most expensive choice), and ask each for its rows with evidence. You merge the rows, run the cross-issue duplicate comparison yourself, and own the final table.
 
 ## 3. Evidence
 

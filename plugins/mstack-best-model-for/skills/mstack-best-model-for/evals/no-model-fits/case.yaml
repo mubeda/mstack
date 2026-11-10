@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: no-model-fits
+expected_outcome: |
+  A called-mode answer that says no model fits, names the limits and gives no model.
+context:
+  scaffold_script: place-files.sh

@@ -24,14 +24,14 @@ This skill runs in Claude Code and in Codex. It names roles, not tools.
 
 Without a subagent tool, do the delegated step yourself and say so.
 
-Set the model on every subagent, because one started without it runs on this session's model, the most expensive choice. A read-only search or lookup runs on the cheapest model the host offers (in Claude Code `model: "haiku"` with `effort: "low"`; in Codex `-m` with the account's cheapest model). The plan review is the exception and uses the model `references/plan-review.md` names.
+Set the model on every subagent, because one started without it runs on this session's model, the most expensive choice. Before the first subagent, make one called-mode call to `mstack-best-model-for` with vendor `both` and the tiers `cheap`, `standard` and `most capable`. Its `cheap` answer for this host's vendor goes on every read-only search or lookup; the same answers fill `execute-plan.md` in phase 5 and the same-vendor fallback reviewer in phase 7, so no second call is needed. The plan review is the exception and uses the model `references/plan-review.md` names.
 
 ## Files in this skill
 
 | File | When |
 |---|---|
 | `references/plan-format.md` | Phases 3 and 5. The plan's file layout, fields, states and resume rules. The mstack review workflows ship the same file |
-| `references/skill-matching.md` | Phase 4, and where Preflight and Phase 1 point at it |
+| `references/codegraph.md` | Phase 1, before reading the code |
 | `references/plan-review.md` | Phase 7 |
 | `references/receiving-review.md` | Phase 7, and copied into every plan folder for the executor. The mstack review workflows ship the same file |
 | `references/execute-plan-template.md` | Phase 5 |
@@ -50,7 +50,24 @@ Set the model on every subagent, because one started without it runs on this ses
 
 ## 0. Start
 
-Before any other work, send one message that restates the user's goal in a sentence and asks these questions together with your question tool. Skip a question only when the request already answers it.
+**Required skills, first.** Before any question or other work, check the two shared skills this skill calls: `mstack-find-skills` and `mstack-best-model-for`. For each one:
+
+1. It is in this session's skill list (as `<name>` or `<plugin>:<name>`): continue.
+2. It is not in the list, but `scripts/check-required-skills.sh` (Preflight) reports it `ok` on disk: it was installed after this session started. Say that a new session is needed, and stop.
+3. Otherwise it is not installed. Print this and stop, with nothing else done:
+
+   ```text
+   mstack-plan needs <name>, which is not installed.
+   Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install <name>@mstack
+   Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add <name>@mstack
+   Skills CLI:  npx skills add mubeda/mstack --skill <name> -g -a <claude-code|codex> -y
+   Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
+   Then start a new session.
+   ```
+
+There is no built-in fallback for either skill.
+
+Then send one message that restates the user's goal in a sentence and asks these questions together with your question tool. Skip a question only when the request already answers it.
 
 1. **Where should the plan go?** Recommend, in this order: the folder the spec already sits in when it is a plan folder of its own, the repository's existing plans folder if it has one (look for `docs/plans/`, `plans/`, `docs/specs/`), or `docs/plans/<yyyy-mm-dd>-<slug>/`. Accept any path.
 2. **Which spec?** Only when the request names none. Offer the specs you find (`rg -l --glob '*.md' '^### R1\b'`, `docs/specs/`), newest first.
@@ -65,18 +82,11 @@ When the folder already holds a plan (`plan.md` and `progress.md`), read both an
 bash <skill-folder>/scripts/check-required-skills.sh --host <host>
 ```
 
-It checks `node` and `git`, warns when the cross-vendor reviewer is missing, and notes the recommended mstack skills. Also confirm the reviewer skill appears in this session's skill list, because a skill installed mid-session loads only in a new session.
+It checks `node`, `git` and the two shared skills, warns when the cross-vendor reviewer is missing, and notes the recommended mstack skills. Also confirm the reviewer skill appears in this session's skill list, because a skill installed mid-session loads only in a new session.
 
-If `node` or `git` is missing (a `MISSING` line), tell the user and stop until it is installed, because no fallback replaces them. If the checker warns that the cross-vendor reviewer is missing (a `WARN` line), ask whether to install it now, and how, with the route, scope, method and agents questions in `references/skill-matching.md` › 5. Installing runs third-party code, so the user decides. If they decline, or it needs a new session to load, warn the user that the plan review will run as a same-vendor review by a fresh subagent, which tends to miss more than a review by another vendor, and continue with the fallback in `references/plan-review.md` › When the run fails. The plan says so.
+If `node` or `git` is missing (a `MISSING` line), tell the user and stop until it is installed, because no fallback replaces them. A `MISSING` shared skill is handled by the required-skills step of section 0. If the checker warns that the cross-vendor reviewer is missing (a `WARN` line), tell the user that `mstack-setup` installs it (the login stays a step for the user), and continue without waiting. Warn the user that the plan review will run as a same-vendor review by a fresh subagent, which tends to miss more than a review by another vendor, and continue with the fallback in `references/plan-review.md` › When the run fails. The plan says so.
 
-| Missing | Install |
-|---|---|
-| skill-codex `codex` skill (Claude Code) | Plugin: `claude plugin marketplace add skills-directory/skill-codex`, then `claude plugin install skill-codex@skill-codex`. Skills CLI: source `skills-directory/skill-codex`, skill `codex` |
-| `codex` CLI (Claude Code) | `npm install -g @openai/codex`, then `codex login` |
-| agent-bridges `claude` plugin (Codex) | Plugin only: `codex plugin marketplace add https://github.com/mubeda/agent-bridges.git`, then `codex plugin add claude@agent-bridges`. Its skill runs a script at the plugin's root, which the skills CLI does not install |
-| `claude` CLI (Codex) | `npm install -g @anthropic-ai/claude-code`, then `claude auth login` |
-| An mstack skill | Plugin in Claude Code: `claude plugin marketplace add mubeda/mstack`, then `claude plugin install <name>@mstack`. Plugin in Codex: `codex plugin marketplace add mubeda/mstack`, then `codex plugin add <name>@mstack`. Skills CLI: source `mubeda/mstack`, skill `<name>` |
-| `node` | https://nodejs.org or the system package manager |
+For any other missing item, the user runs `mstack-setup`: it installs the missing skills, plugins and command-line tools at user scope after one yes, and lists what it cannot install (`node`, `git`, logins) as steps for the user. This skill installs nothing itself.
 
 ## 1. Ground
 
@@ -90,8 +100,7 @@ Read before you ask. Send broad searches to your subagent tool and ask it for fi
    - Keep each doc that constrains or explains the work, with its path and one line on why it matters. Earlier plans and specs in the repository show its conventions.
    - Each relevant doc goes into `plan.md` › Sources and into the Read first line of every phase and task it affects.
 4. **External sources.** Read each source the user gave, with whatever tool the session has (a web fetch, a connected tool, `gh`). Keep only what bears on the plan and cite it. When a source cannot be reached (a login, no connector), ask the user to paste the part that matters, and record it as "not reachable: <reason>" until they do.
-5. **The code.** Map the entry points, the conventions, the test layout, and every existing file the spec touches. Take the build, test, lint and format commands from CI config, a Makefile, a package manifest or a repository rule, and run the test command once to confirm it works (skip and say so when it needs services or takes very long).
-6. **Installed skills.** Start the inventory from `references/skill-matching.md` › 1 now, because it informs the questions.
+5. **The code.** Follow `references/codegraph.md` before reading code. Then map the entry points, the conventions, the test layout, and every existing file the spec touches. Take the build, test, lint and format commands from CI config, a Makefile, a package manifest or a repository rule, and run the test command once to confirm it works (skip and say so when it needs services or takes very long).
 
 ## 2. Questions
 
@@ -120,11 +129,18 @@ Then show the user the outline before writing the full files: a numbered list of
 
 ## 4. Skills
 
-Follow `references/skill-matching.md`. Name the skills for every phase and task. Prefer the mstack and agent-bridges skills when they fit. Search online only for real gaps, and ask the user in one round whether to install the candidates you vetted. Never install anything yourself.
+Name the skills for every phase and task with one call:
+
+1. Load `mstack-find-skills` in called mode. Say that `mstack-plan` is calling, and give every task of the approved outline as a work item (its ID, goal and files). When the repository holds skill folders of its own that are not installed (for example `plugins/*/skills/`), add the line `Also read: <those folders>`.
+2. Read its result block. Each task's Skills line takes the skills of that task's section, with their reasons. A skill every task in a phase needs goes on the phase instead.
+3. When the block lists candidates for gaps, ask the user in one round which to install. For the ones accepted, load `mstack-find-skills` in user mode with one `Install: <owner/repo>@<skill>` line per accepted candidate; it asks how to install and runs the install, without searching again. A newly installed skill goes into the plan with the note "installed <yyyy-mm-dd>, loads in a new session".
+4. A gap the user skips, or a search that did not run, is recorded in `plan.md` › Decisions, so the executor knows the task runs without a specialist.
+
+Never install anything without the user's yes.
 
 ## 5. Write the plan
 
-Write every file in `references/plan-format.md` › Folder layout, filling every field. Copy `references/execute-plan-template.md` into `execute-plan.md` and fill it, including the recommended mode and its reason. Copy `references/receiving-review.md` into the plan folder unchanged, because the executor processes its reviews with it. Create `progress.md` with every task Open, `Executor: none`, and the first 12 hex digits of `spec.md`'s sha256 (`sha256sum` or `shasum -a 256`).
+Write every file in `references/plan-format.md` › Folder layout, filling every field. Copy `references/execute-plan-template.md` into `execute-plan.md` and fill it, including the recommended mode and its reason. Fill its helper and fallback-reviewer placeholders from the `mstack-best-model-for` answers of the Host tools call, for both vendors, because the executing session may run on the other host and may not have that skill. Copy `references/receiving-review.md` into the plan folder unchanged, because the executor processes its reviews with it. Create `progress.md` with every task Open, `Executor: none`, and the first 12 hex digits of `spec.md`'s sha256 (`sha256sum` or `shasum -a 256`).
 
 Keep it proportionate. Steps name exact signatures, values and commands, not whole code bodies. A plan several times longer than its spec, or longer than the code it describes, has written the code instead of planning it.
 

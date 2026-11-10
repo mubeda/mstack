@@ -46,6 +46,8 @@ check() { # $1 = label, $2 = command that succeeds when present
 
 check "ponytail"                          "has_skill ponytail"
 check "mstack-diagnose (this marketplace)"  "has_skill mstack-diagnose"
+check "mstack-find-skills (this marketplace)"  "has_skill mstack-find-skills"
+check "mstack-best-model-for (this marketplace)" "has_skill mstack-best-model-for"
 reviewer "claude-review (agent-bridges claude plugin)" "has_claude_review"
 check "node on PATH"                      "command -v node >/dev/null"
 reviewer "claude CLI logged in"              "command -v claude >/dev/null && claude auth status >/dev/null 2>&1"

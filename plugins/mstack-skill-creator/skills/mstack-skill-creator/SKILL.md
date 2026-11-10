@@ -14,7 +14,7 @@ This file is the same on every host. It names roles. The table says which tool p
 | Role | Claude Code | Codex | OpenCode | Cursor |
 |---|---|---|---|---|
 | Your question tool | `AskUserQuestion`, or a numbered round in chat | A numbered round in chat, then wait | A numbered round in chat, then wait | A numbered round in chat, then wait |
-| Your subagent tool | `Agent`, with `model` set on every call | The session's agent tool, or a separate `codex exec` run | None: use the fresh-session command | None: use the fresh-session command |
+| Your subagent tool | `Agent`, with `model` and `effort` from `mstack-best-model-for` set on every call | The session's agent tool, or a separate `codex exec` run | None: use the fresh-session command | None: use the fresh-session command |
 | Loading a skill | The Skill tool | Read its SKILL.md and follow it | The `skill` tool | By its description, or `/<name>` |
 | The fresh-session command | `claude -p` | `codex exec` | `opencode run` | `cursor-agent -p` |
 | The cross-vendor reviewer | Codex (skill-codex `codex` skill) | Claude (agent-bridges `claude-review`) | An agent-bridges plugin of another vendor | An agent-bridges plugin of another vendor |
@@ -22,6 +22,8 @@ This file is the same on every host. It names roles. The table says which tool p
 | The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md | The folder of this SKILL.md | The folder of this SKILL.md |
 
 Read your host file once in Phase 0. On a host the table does not list, follow the portable path (no subagents, a numbered round for questions, the comparison test handed to the user) and say which parts were untested there.
+
+In Claude Code and Codex, before the first subagent or fresh-session run, load `mstack-best-model-for` in called mode once, for this host's vendor and the tiers `standard` (the comparison and test runs) and `most capable` (a same-vendor fallback reviewer), and set the returned model and effort on each of them.
 
 ## Files in this skill
 
@@ -73,7 +75,7 @@ Read your host file once in Phase 0. On a host the table does not list, follow t
 
 ### 0. Start
 
-1. Read the host file for this host.
+1. Read the host file for this host. In Claude Code and Codex, then check the two shared skills this skill calls, `mstack-find-skills` and `mstack-best-model-for`, as `references/workflow-steps.md` › Required shared skills says. A missing one stops the run there. In OpenCode and Cursor this check does not apply.
 2. Detect the target as `references/plugin-packaging.md` describes: a plugin target (both registries exist) or a local target.
 3. Ask in one round with your question tool, skipping what the user already said:
    - Create a new skill, or improve an existing one (which)?
@@ -85,7 +87,7 @@ Read your host file once in Phase 0. On a host the table does not list, follow t
 
 ### 1. Existing-skill check
 
-Follow `references/workflow-steps.md` › Existing-skill check. Report where you looked and what you found. On a match, ask whether to use it, improve it or create a new skill, and wait. Run the public search only if the user accepted it.
+In Claude Code and Codex, load `mstack-find-skills` in called mode: say that `mstack-skill-creator` is calling, give the agreed purpose as one work item, and add the line `Also read: <every folder of the target repository that holds a SKILL.md>`, so a skill that sits in the repository and is not installed is still found. Add the line `Online search: off (the user declined the public search)` unless the user accepted it. Report its result block. In OpenCode and Cursor, follow `references/workflow-steps.md` › Existing-skill check, and run its public search only if the user accepted it. On a match, ask whether to use it, improve it or create a new skill, and wait.
 
 ### 2. Understand
 

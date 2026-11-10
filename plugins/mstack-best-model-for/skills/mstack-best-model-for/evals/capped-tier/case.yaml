@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: capped-tier
+expected_outcome: |
+  A called-mode answer with the result block: opus at medium, Capped yes, a Next step, and no question to the user.
+context:
+  scaffold_script: place-files.sh

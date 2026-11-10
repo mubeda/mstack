@@ -44,8 +44,8 @@ Write the prompt to a file with the file tool and pass it on stdin, so no shell 
 
 ## Cross-vendor reviewer
 
-Claude, through the `claude-review` skill of the agent-bridges `claude` plugin, run as an approved command. When it is missing, warn the user and use a separate read-only `codex exec --sandbox read-only` run on the most capable model, recorded as a same-vendor review.
+Claude, through the `claude-review` skill of the agent-bridges `claude` plugin, run as an approved command. When it is missing, warn the user and use a separate read-only `codex exec --sandbox read-only` run on the model and effort `mstack-best-model-for` returns for the tier `most capable`, recorded as a same-vendor review.
 
 ## mstack skills supported here
 
-As of 2026-11-10: `mstack-write-specs`, `mstack-plan`, `mstack-claude-review-workflow`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, and this skill. `mstack-codex-review-workflow` drives Claude Code tools and does not run here.
+Ten of the eleven mstack skills, as of 2026-11-10: `mstack-write-specs`, `mstack-plan`, `mstack-claude-review-workflow`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup`, and this skill. `mstack-codex-review-workflow` drives Claude Code tools and does not run here.

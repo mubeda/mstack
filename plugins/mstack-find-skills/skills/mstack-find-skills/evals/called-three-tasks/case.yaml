@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: called-three-tasks
+expected_outcome: |
+  Three result sections in order: vue-testing (repository, not installed) for the Vue item and not react-testing; python-email-testing for the mailer item; nothing and no gap for the README item; project skills marked as loading in a new session; online search not run; no question and no install.
+context:
+  scaffold_script: place-files.sh
