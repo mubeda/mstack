@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: failing-install
 expected_outcome: |
-  ponytail, codegraph (tool and connection) and ui-ux-pro-max are missing. The list is shown before any call; the user accepts all; the ponytail install fails; the later commands still run; the report shows the failed command with its output and does not say the setup is complete.
+  Two turns: the first shows the list and waits, reply.md is the user's second message. ponytail, codegraph (tool and connection) and ui-ux-pro-max are missing. The list is shown before any call; the user accepts all; the ponytail install fails; the later commands still run; the report shows the failed command with its output and does not say the setup is complete.
 context:
   scaffold_script: place-files.sh

@@ -22,6 +22,7 @@ for s in mstack-best-model-for mstack-setup mstack-plan mstack-write-specs mstac
 skill "$C/mstack/mstack-find-skills/0.1.0/skills/mstack-find-skills"
 printf "{\"mcpServers\":{\"codegraph\":{\"command\":\"codegraph\",\"args\":[\"serve\",\"--mcp\"]}}}\n" > "$H/.claude.json"
 stub claude; stub codex; stub npm; stub npx; stub codegraph; stub gh; stub python3
+mkdir -p "$H/.claude/plugins"; echo '{"version":2,"plugins":{"ponytail@ponytail":[{}],"skill-codex@skill-codex":[{}],"ui-ux-pro-max@ui-ux-pro-max-skill":[{}]}}' > "$H/.claude/plugins/installed_plugins.json"
 chmod +x "$B"/*
 # testenv runs one command on this test machine only: its own home folders and a PATH of stubs and a few basic tools.
 for t in sh cat ls grep head tail chmod; do p="$(command -v "$t")" && ln -sf "$p" "$B/$t"; done

@@ -5,13 +5,13 @@
   },
   "metadata": {
     "description": "Daily-driver agent skills for Claude Code and Codex CLI, packaged as independently installable plugins.",
-    "version": "0.4.0"
+    "version": "0.4.1"
   },
   "plugins": [
     {
       "name": "mstack-codex-review-workflow",
       "description": "Claude-led coordinator workflow for any task in a repository, from a list of issues (GitHub or another tracker), an execution plan, or one larger task. It splits the work into conflict-free lanes (parallel worktree agents or one agent in sequence), tracks each item as open, in progress or closed, reviews every lane with the advisor and a read-only Codex pass, integrates, and delivers one pull request with CI run one at a time. Claude Code only.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "author": {
         "name": "mubeda"
       },
@@ -21,7 +21,7 @@
     {
       "name": "mstack-diagnose",
       "description": "Diagnose crashes, bugs, regressions, flaky failures, performance problems, hangs and leaks with evidence: intake, a signal from a live loop or a saved crash record, ranked falsifiable hypotheses, one-variable probes, a regression test before the fix, graded root-cause tiers and fix verdicts. One skill for Claude Code and Codex.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "author": {
         "name": "mubeda"
       },
@@ -91,7 +91,7 @@
     {
       "name": "mstack-find-skills",
       "description": "Find the skills that fit a job: the installed skills scored per task, then vetted public candidates from skills.sh for the gaps only (audits, installs, license and the skill's own text), installed only after the user's yes. Called by the other mstack skills for their tasks. One skill for Claude Code and Codex.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "mubeda"
       },
@@ -101,7 +101,7 @@
     {
       "name": "mstack-setup",
       "description": "Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: a status script for the host, then one list of install commands (codegraph, ponytail, the cross-vendor reviewer, the mstack skills) that runs only after one yes, and a final check. One skill for Claude Code and Codex.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "mubeda"
       },

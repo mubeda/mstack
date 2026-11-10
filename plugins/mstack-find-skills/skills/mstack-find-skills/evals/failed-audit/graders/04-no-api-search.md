@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-No request was made to a path under /api/search.
+No request was made to any path under /api/ on skills.sh.

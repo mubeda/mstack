@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: not-connected
 expected_outcome: |
-  codegraph is on PATH but not connected to Claude Code: only the connect command is proposed for codegraph, its files are named before the yes, and npm is never called.
+  Two turns: the first shows the list and waits, reply.md is the user's second message. codegraph is on PATH but not connected to Claude Code: only the connect command is proposed for codegraph, its files are named before the yes, and npm is never called.
 context:
   scaffold_script: place-files.sh
