@@ -1,0 +1,8 @@
+---
+name: greet
+description: Use when the user asks to be greeted. Produces one greeting.
+---
+
+# Greet
+
+Greet the user by name.

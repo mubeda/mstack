@@ -17,10 +17,11 @@ The repository is [`github.com/mubeda/mstack`](https://github.com/mubeda/mstack)
 | [`mstack-plan`](./plugins/mstack-plan) | Turn an approved spec into a reviewed, test-first implementation plan: phases and red-green tasks sized for one agent session, the best skills named for every task, a cross-vendor review (with a same-vendor fallback), a shared progress file, and an `execute-plan.md` that starts inline or workflow execution. One skill, shared by both hosts. | Claude Code and Codex CLI |
 | [`mstack-handoff`](./plugins/mstack-handoff) | Write one resumable handoff file (branch, HEAD, uncommitted paths, pull request, gates with exact commands, decisions, next commands first) so a fresh session continues long work, and resume from it. Never commits, stashes or leaks secrets. One skill, shared by both hosts. | Claude Code and Codex CLI |
 | [`mstack-backlog-triage`](./plugins/mstack-backlog-triage) | Read every open issue, classify each with evidence, check for duplicates, and sort them into now, next and defer, as a table the workflows accept. Drafts comments and labels, and posts only approved text. One skill, shared by both hosts. | Claude Code and Codex CLI |
+| [`mstack-skill-creator`](./plugins/mstack-skill-creator) | Create or improve a skill that Claude Code, Codex, OpenCode and Cursor all load: an interview, a check for an existing skill, portable writing rules, a static check and a test with and without the skill. In a repository like this one it also packages the plugin, runs the checks and gets a cross-vendor review. | Claude Code, Codex CLI, OpenCode and Cursor (the last two with the skills CLI) |
 
 Each plugin can be installed on its own. The two workflows share their reference files, and `scripts/check-marketplace.mjs` fails if the copies drift apart.
 
-The plugins also work together. `mstack-backlog-triage` picks what to work on and routes each issue, `mstack-write-specs` writes the spec, `mstack-plan` turns it into a plan folder, and either workflow executes that folder, task by task, writing progress into the plan's `progress.md`, so execution can switch between inline and a workflow and resume where it stopped. When a session runs out before the work does, `mstack-handoff` writes the file the next session starts from. All three plugins ship the same `plan-format.md`.
+The plugins also work together. `mstack-backlog-triage` picks what to work on and routes each issue, `mstack-write-specs` writes the spec, `mstack-plan` turns it into a plan folder, and either workflow executes that folder, task by task, writing progress into the plan's `progress.md`, so execution can switch between inline and a workflow and resume where it stopped. When a session runs out before the work does, `mstack-handoff` writes the file the next session starts from. `mstack-skill-creator` builds new skills with the same chain: it uses each of these skills for its step when it is installed, and a short built-in version when it is not. All three plugins ship the same `plan-format.md`.
 
 `mstack-plan` needs `node` and `git`, and recommends the cross-vendor reviewer of its host: in Claude Code the `codex` skill from skill-codex with a logged-in `codex` CLI, and in Codex the agent-bridges `claude` plugin with a logged-in `claude` CLI.
 
@@ -45,6 +46,7 @@ Then install the plugins you want and reload:
 /plugin install mstack-plan@mstack
 /plugin install mstack-handoff@mstack
 /plugin install mstack-backlog-triage@mstack
+/plugin install mstack-skill-creator@mstack
 /reload-plugins
 ```
 
@@ -72,6 +74,7 @@ codex plugin add mstack-write-specs@mstack
 codex plugin add mstack-plan@mstack
 codex plugin add mstack-handoff@mstack
 codex plugin add mstack-backlog-triage@mstack
+codex plugin add mstack-skill-creator@mstack
 ```
 
 The Claude reviewer of the workflow and of `mstack-plan` comes from another marketplace:
@@ -107,7 +110,15 @@ In a terminal it asks which skills to install, for which agents, whether to inst
 npx skills add mubeda/mstack --skill mstack-plan mstack-diagnose -a claude-code codex -g -y
 ```
 
-A project install goes into `.agents/skills/` and `.claude/skills/` and is recorded in `skills-lock.json`. A global install goes into `~/.agents/skills/`, which Codex reads, with a link in `~/.claude/skills/` for Claude Code. Keep skills current with `npx skills update`, list them with `npx skills ls`, and remove one with `npx skills remove <skill>`.
+A project install goes into `.agents/skills/` and `.claude/skills/` and is recorded in `skills-lock.json`. A global install goes into `~/.agents/skills/`, which Codex reads, with a link in `~/.claude/skills/` for Claude Code. OpenCode and Cursor install mstack skills this way only. Both load the shared `.agents/skills/` folder at project level and `~/.agents/skills/` globally, where the skills CLI writes:
+
+```bash
+npx skills add mubeda/mstack --skill mstack-skill-creator -a opencode cursor
+```
+
+`mstack-skill-creator` runs on all four hosts. The other skills are written for Claude Code and Codex.
+
+Keep skills current with `npx skills update`, list them with `npx skills ls`, and remove one with `npx skills remove <skill>`.
 
 Install the workflow that matches the agent: `mstack-codex-review-workflow` for Claude Code, `mstack-claude-review-workflow` for Codex. The Codex workflow's Claude reviewer, the agent-bridges `claude` plugin, has to be installed as a plugin, because its skill runs a script from the plugin's root folder.
 

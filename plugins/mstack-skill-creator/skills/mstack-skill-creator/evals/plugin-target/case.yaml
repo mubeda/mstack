@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: plugin-target
+expected_outcome: |
+  The run recognizes skills-repo as a plugin target, adds a plugin with both manifests, both registry entries, the
+  license copy, the notices file and a README row at equal versions, runs the repository check after writing and it
+  passes with 2 plugins, reports every workflow step with its outcome and fallbacks, records the review as same-vendor,
+  and keeps every path inside the skill folder.
+context:
+  scaffold_script: place-files.sh

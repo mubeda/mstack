@@ -1,0 +1,6 @@
+{
+  "name": "skills-repo",
+  "plugins": [
+    {"name": "greet", "source": {"source": "local", "path": "./plugins/greet"}}
+  ]
+}

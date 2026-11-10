@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: local-small-skill
+expected_outcome: |
+  The run asks to confirm the target before writing anything. Once the prompt's answers apply, it writes one local skill
+  in .agents/skills/<name>/ with a .claude/skills/<name> link, two frontmatter fields, a "Use when" description without
+  a step summary, shows the static check pass line and a comparison of a run with and without the skill (or calls the
+  skill untested), and commits nothing.
+context:
+  scaffold_script: place-files.sh

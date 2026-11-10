@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: improve-existing
+expected_outcome: |
+  The run copies the existing release-notes skill to a snapshot outside its folder before the first edit, uses that copy
+  as the baseline of the comparison, rewrites the description to start with "Use when" without a step summary, and says
+  whether the new version did better, the same or worse than the old one.
+context:
+  scaffold_script: place-files.sh
