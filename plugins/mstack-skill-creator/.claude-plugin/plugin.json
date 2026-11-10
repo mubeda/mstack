@@ -1,0 +1,9 @@
+{
+  "name": "mstack-skill-creator",
+  "version": "0.1.0",
+  "description": "Create or improve agent skills (SKILL.md folders) that Claude Code, Codex, OpenCode and Cursor all load: an interview, a check for an existing skill, writing by portable rules, a static check, a comparison test against a baseline, and for an mstack-style repository the full plugin packaging and cross-vendor review. Uses the other mstack skills when they are installed. Never commits or publishes on its own.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,8 @@
+---
+name: sql-review
+description: Use when the user asks to review SQL migrations for unsafe statements such as DROP TABLE or ALTER without a default. Produces a list of findings per file.
+---
+
+# SQL review
+
+Read each file in migrations/ and list unsafe statements with the line.

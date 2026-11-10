@@ -1,0 +1,8 @@
+---
+name: release-notes
+description: Reads git log, groups the commits, then writes RELEASE.md.
+---
+
+# Release notes
+
+Read `git log` since the last tag. Group commits by type. Write RELEASE.md with a heading for the version and one bullet per commit.

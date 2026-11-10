@@ -1,0 +1,12 @@
+---
+name: api-errors
+description: Use when handling errors from HTTP APIs.
+---
+
+# API errors
+
+Treat every 429 as a promise, not a refusal. Wait for the Retry-After header.
+
+A retry without jitter is a stampede you scheduled yourself. Add random jitter.
+
+Log the request id before you log the apology.
