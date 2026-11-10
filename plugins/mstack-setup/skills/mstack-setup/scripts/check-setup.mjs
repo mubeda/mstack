@@ -73,15 +73,23 @@ function hasSkill(name) {
 }
 // skill-codex ships a skill folder named `codex`; match its plugin path, or a standalone copy that runs `codex exec`.
 function hasCodexSkill() {
-  if (cacheSkills.some((p) => p.includes('skill-codex') && p.endsWith('/skills/codex/SKILL.md'))) return true;
+  if (pluginInstalled('skill-codex') && cacheSkills.some((p) => p.includes('skill-codex') && p.endsWith('/skills/codex/SKILL.md'))) return true;
   return skillRoots.some((r) => {
     try { return readFileSync(join(r, 'codex', 'SKILL.md'), 'utf8').includes('codex exec'); } catch { return false; }
   });
 }
 // The agent-bridges `claude` plugin ships `claude-review` next to the companion script it runs.
 function hasClaudeReview() {
-  return cacheSkills.filter((p) => p.endsWith('/skills/claude-review/SKILL.md'))
+  return pluginInstalled('claude') && cacheSkills.filter((p) => p.endsWith('/skills/claude-review/SKILL.md'))
     .some((p) => existsSync(join(dirname(dirname(dirname(p))), 'scripts', 'claude-companion.mjs')));
+}
+// A plugin is installed when the host records it: Claude Code in plugins/installed_plugins.json, Codex in config.toml.
+// That record is what the host's own plugin list reads; a cache folder alone is not taken as proof.
+function pluginInstalled(name) {
+  if (host === 'claude') {
+    try { return Object.keys(JSON.parse(readFileSync(join(claudeDir, 'plugins', 'installed_plugins.json'), 'utf8')).plugins ?? {}).some((k) => k.startsWith(`${name}@`)); } catch { return false; }
+  }
+  try { return new RegExp(`^\\s*\\[plugins\\."${name}@`, 'm').test(readFileSync(join(codexDir, 'config.toml'), 'utf8')); } catch { return false; }
 }
 function codegraphConnected() {
   if (host === 'claude') {
@@ -106,7 +114,7 @@ const cg = which('codegraph');
 add('codegraph-cli', 'mandatory', cg, 'codegraph command-line tool (code index)');
 add('codegraph-connected', 'mandatory', cg && codegraphConnected(), cg ? `codegraph server in the ${host === 'claude' ? 'Claude Code' : 'Codex'} configuration` : 'needs codegraph-cli first');
 // ponytail counts only as the plugin, because its hooks come with the plugin and not with the skill folder.
-const ponytailPlugin = cacheSkills.some((p) => p.endsWith('/skills/ponytail/SKILL.md'));
+const ponytailPlugin = pluginInstalled('ponytail') && cacheSkills.some((p) => p.endsWith('/skills/ponytail/SKILL.md'));
 add('ponytail', 'mandatory', ponytailPlugin, ponytailPlugin || !hasSkill('ponytail')
   ? (host === 'codex' ? 'ponytail plugin (its hooks need a trust step in Codex)' : 'ponytail plugin')
   : 'ponytail skill found without the plugin, so its hooks are missing');

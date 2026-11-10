@@ -1,13 +1,13 @@
 #!/bin/sh
-# Stub of curl: fixed audit answers and skill pages, no network.
+# Stub of curl: fixed skill pages with their audit parts, no network.
 case "$*" in
-  *api/v1/skills/audit/acme-tools/web-skills/driftwright-e2e*)
-    echo '{"audits":[{"provider":"Socket","slug":"socket","status":"pass","summary":"No issues","auditedAt":"2026-11-01"},{"provider":"Gen Agent Trust Hub","slug":"gen","status":"fail","summary":"Downloads and runs a remote script","categories":["REMOTE_CODE_EXECUTION"],"auditedAt":"2026-11-01"}]}' ;;
-  *api/v1/skills/audit/*)
-    echo '{"error":"not_found","message":"No security audits found for this skill. Audits are generated automatically after a skill is installed for the first time."}' ;;
-  *api/search*) echo "stub: disallowed path requested" >&2; exit 22 ;;
-  *skills.sh/acme-tools/web-skills/driftwright-e2e*) echo '<html>Installs 12.4K First Seen Mar 2, 2026 Repository acme-tools/web-skills License MIT</html>' ;;
-  *skills.sh/nova-labs/qa-skills/driftwright-flows*) echo '<html>Installs 3.1K First Seen Jun 20, 2026 Repository nova-labs/qa-skills License MIT</html>' ;;
+  */api/*) echo "stub: disallowed path requested" >&2; exit 22 ;;
+  *skills.sh/acme-tools/web-skills/driftwright-e2e/security/agent-trust-hub*)
+    echo '<html>Fail Audited by Gen Agent Trust Hub on Nov 1, 2026 Risk Level: HIGH REMOTE_CODE_EXECUTION Downloads and runs a remote script.</html>' ;;
+  *skills.sh/acme-tools/web-skills/driftwright-e2e/security/socket*)
+    echo '<html>Pass Audited by Socket on Nov 1, 2026 Risk Level: SAFE No issues.</html>' ;;
+  *skills.sh/acme-tools/web-skills/driftwright-e2e*) echo '<html>driftwright-e2e Installs 12.4K First Seen Mar 2, 2026 Repository acme-tools/web-skills License MIT Security Audits Gen Agent Trust Hub Fail Socket Pass <a href="/acme-tools/web-skills/driftwright-e2e/security/agent-trust-hub">Gen Agent Trust Hub</a> <a href="/acme-tools/web-skills/driftwright-e2e/security/socket">Socket</a></html>' ;;
+  *skills.sh/nova-labs/qa-skills/driftwright-flows*) echo '<html>driftwright-flows Installs 3.1K First Seen Jun 20, 2026 Repository nova-labs/qa-skills License MIT</html>' ;;
   *LICENSE*) echo 'MIT License' ;;
   *) echo '<html>stub page</html>' ;;
 esac

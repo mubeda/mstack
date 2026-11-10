@@ -198,7 +198,7 @@ Every lane also uses `ponytail` for code. It asks for the smallest change that f
 
 For the work items whose plan gives no Skills line, or that come from no plan, load `mstack-find-skills` in called mode once, before the briefs: say that `mstack-claude-review-workflow` is calling and give those items as work items. Name in each brief the skills its section of the result returns. List the candidates it reports for gaps in the final report; nothing is installed during the run.
 
-Every brief also carries section 3's answers for the tiers `cheap` and `standard` (model and effort), and the skills for its items. A lane never calls a skill to get them. A lane that loads `mstack-diagnose` uses those answers for its own subagents, and that skill's own required-skills step and model call are skipped inside a lane.
+Every brief also carries section 3's answers for the tiers `cheap`, `standard` and `most capable` (model and effort), and the skills for its items. A lane never calls a skill to get them. A lane that loads `mstack-diagnose` uses those answers for its own subagents, and that skill's own required-skills step and model call are skipped inside a lane.
 
 When a reference file collides with a repository rule or a plan rule (for example a required documentation update), that rule wins and the report says so.
 

@@ -49,4 +49,4 @@ Online search: ran | not run (<reason>)
 
 Write `Skills: none` or `Gaps: none` when a list is empty. Write one `### <ID>` section per item, in the caller's order. In user mode, the item ID is `1`.
 
-Never report a candidate whose audit lookup failed or was not found as passed; it reads `not audited`. A candidate with a `fail` verdict or without a license is never recommended.
+Never report a candidate whose audit could not be read from its skills.sh pages as passed; it reads `not audited`. A candidate with a `fail` verdict or without a license is never recommended.

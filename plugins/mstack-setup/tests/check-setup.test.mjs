@@ -48,6 +48,7 @@ function completeClaude(m, base = '.claude') {
   m.skill(`${cache}/ponytail/ponytail/5.3.3/skills/ponytail`);
   m.file(`${cache}/skill-codex/skill-codex/1.3.1/skills/codex/SKILL.md`, 'Run codex exec.');
   for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-setup']) m.skill(`${cache}/mstack/${s}/0.1.0/skills/${s}`);
+  m.file(`${base}/plugins/installed_plugins.json`, JSON.stringify({ version: 2, plugins: { 'ponytail@ponytail': [{}], 'skill-codex@skill-codex': [{}] } }));
   const cfg = base === '.claude' ? '.claude.json' : `${base}/.claude.json`;
   m.file(cfg, JSON.stringify({ mcpServers: { codegraph: { command: 'codegraph', args: ['serve', '--mcp'] } } }));
   return m;
@@ -87,7 +88,7 @@ test('(d) Codex host: claude-review with its companion, codegraph in config.toml
   const pl = join(codexHome, 'plugins/cache/agent-bridges/claude/0.2.1');
   mkdirSync(join(pl, 'skills/claude-review'), { recursive: true }); mkdirSync(join(pl, 'scripts'), { recursive: true });
   writeFileSync(join(pl, 'skills/claude-review/SKILL.md'), 'x'); writeFileSync(join(pl, 'scripts/claude-companion.mjs'), 'x');
-  writeFileSync(join(codexHome, 'config.toml'), '[mcp_servers.codegraph]\ncommand = "codegraph"\n');
+  writeFileSync(join(codexHome, 'config.toml'), '[mcp_servers.codegraph]\ncommand = "codegraph"\n\n[plugins."claude@agent-bridges"]\nenabled = true\n');
   const r = run(m, ['--host', 'codex'], { CODEX_HOME: codexHome });
   assert.equal(r.state('reviewer-plugin'), 'ok', r.out);
   assert.equal(r.state('codegraph-connected'), 'ok');
@@ -147,6 +148,13 @@ test('(i2) a standalone ponytail skill without the plugin is not the plugin', ()
   const r = run(m, ['--host', 'claude']);
   assert.equal(r.state('ponytail'), 'MISSING', r.out);
   assert.match(r.json.items.find((i) => i.id === 'ponytail').detail, /without the plugin/);
+});
+
+test('(i3) a plugin left in the cache without an install record is not installed', () => {
+  const m = machine();
+  m.skill('.claude/plugins/cache/ponytail/ponytail/5.3.3/skills/ponytail');
+  const r = run(m, ['--host', 'claude']);
+  assert.equal(r.state('ponytail'), 'MISSING', r.out);
 });
 
 test('(j) no file under the home folder changes', () => {

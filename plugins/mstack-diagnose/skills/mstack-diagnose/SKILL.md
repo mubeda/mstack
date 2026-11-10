@@ -51,7 +51,7 @@ Without a subagent tool, do the delegated steps yourself, one after another. Ref
    Then start a new session.
    ```
 
-There is no built-in fallback. Inside a workflow lane, whose brief carries the model and effort answers for the tiers `cheap` and `standard`, skip this step and the call in the host section above, use the brief's answers, and say so in the report.
+There is no built-in fallback. Inside a workflow lane, whose brief carries the model and effort answers for the tiers `cheap`, `standard` and `most capable`, skip this step and the call in the host section above, use the brief's answers, and say so in the report.
 
 Record these before anything else. Read `references/intake.md` for the full checklist and for what to do when the problem cannot be reproduced here.
 

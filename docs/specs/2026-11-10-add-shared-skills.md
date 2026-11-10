@@ -98,13 +98,13 @@ IF `npx` is not available, THEN `mstack-find-skills` SHALL read the skills.sh pa
 - THEN the skill reads skills.sh pages, and makes no request to the site's `/api/search` path
 
 ### R7. Vetting a public candidate  [Must]
-`mstack-find-skills` SHALL recommend a public candidate only after reading its skills.sh audit verdicts with their categories, its install count and first-seen date, its repository's license, and its SKILL.md, and SHALL report at most two candidates per gap with those values.
+`mstack-find-skills` SHALL recommend a public candidate only after reading its skills.sh audit verdicts with their categories from the skill's public pages, its install count and first-seen date, its repository's license, and its SKILL.md, and SHALL report at most two candidates per gap with those values.
 #### Scenario: a failed audit
 - GIVEN a candidate with a `fail` verdict from one audit vendor
 - WHEN candidates are reported
 - THEN the candidate is not recommended, and the verdict is shown if it is listed at all
 #### Scenario: no audit yet
-- GIVEN a candidate whose audit lookup returns not found
+- GIVEN a candidate whose skill page has no audit verdicts
 - WHEN candidates are reported
 - THEN it is labelled "not audited", never "passed"
 #### Scenario: no license
@@ -340,7 +340,7 @@ The repository SHALL ship each of the three new skills as its own plugin for Cla
 - Tool versions the facts below were read from, on 2026-11-10: skills CLI 1.7.6, Claude Code 2.1.322, Codex CLI 0.167.0, codegraph 1.6.2. Source: `reports/Skills directory and installer facts.md` and commands run in this session.
 - codegraph: `codegraph init` on an initialized project exits 0 and prints "Already initialized" (run in a scratch repository). `codegraph status -j` exits 0 with `"initialized": false` when there is no index, so the field decides, not the exit code. `codegraph init -y` skips every prompt. The connect command is `codegraph install --yes --target=<host>`, and it writes the host's MCP configuration, a marked section in the host's user instructions file and, for Claude Code, tool permissions.
 - The index folder `.codegraph/` holds its own ignore file and still shows as one untracked folder (run in a scratch repository). In a worktree `.git` is a file, so the local exclude path comes from `git rev-parse --git-path info/exclude`.
-- skills.sh: the documented `/api/v1` search needs a bearer token; `/api/search` works without one and is disallowed by `robots.txt`; the audit lookup `/api/v1/skills/audit/<owner>/<repo>/<skill>` answered without a token and returns not found for a skill never installed. A `pass` verdict can still list a risk category. `npx skills find` has no JSON output.
+- skills.sh: the documented `/api/v1` search needs a bearer token; `/api/search` works without one and is disallowed by `robots.txt`; `robots.txt` disallows all of `/api/`, including the audit lookup `/api/v1/skills/audit/<owner>/<repo>/<skill>`, so the skill reads audits from the skill page's Security Audits part and the vendor pages `/<owner>/<repo>/<skill>/security/<vendor>` (verdict, risk level, categories), which `robots.txt` allows; a page for an unknown skill still answers 200 (read 2026-11-10). A `pass` verdict can still list a risk category. `npx skills find` has no JSON output.
 - Dependencies `mstack-setup` covers, with the tiers decided in the interview:
 
   | Tier | Dependency | Claude Code | Codex |
@@ -409,12 +409,13 @@ D10. Each caller keeps a check of its own hard requirements; install tables and 
 D11. Reviewer defaults stay, with the table's review values as the alternative. Alternatives considered: the guides' review values as defaults. Decided by: user. Source: round 1, Q6.
 D14. The workflows take lane models from `mstack-best-model-for` at run time and keep no lane model names. Alternatives considered: model names kept in each workflow's lane check with a repository check comparing them to the table, which keeps a second copy. Decided by: agent's call. Source: goal 1 and the independent read.
 D12. The model table is written in the repository's own words with links and a date. Alternatives considered: shipping the supplied guide files, which embed an article without a license. Decided by: agent's call. Source: the repository's rule on unlicensed sources.
+D15. Audits are read from the public skill and vendor pages, never from `/api/`. Alternatives considered: the audit lookup under `/api/`, which `robots.txt` disallows (R6). Decided by: user, 2026-11-10, after execution showed the conflict.
 D13. Tier names stay cheap, standard and most capable. Decided by: agent's call. Source: the plan format is shared by three plugins, and old plans carry these names.
 
 ## Risks
 
 - Model names age quickly. -> The table carries its verification date, every answer shows it, and a rejected model moves to the next row as the workflows already do.
-- The audit lookup may start to need a token. -> A failed lookup is reported as "not audited", and the candidate's page and SKILL.md are still read.
+- The skill pages may change their layout. -> Audits that cannot be read are reported as "not audited", and the candidate's SKILL.md is still read.
 - A caller cannot verify that the session loaded a new skill from a file check alone. -> R19's second scenario: a folder that exists without a loaded skill means a new session.
 - The index folder changes what `git status` shows, which the handoff fingerprint and the workflows' unchanged-status checks read. -> The exclude offer of R25, and the plan sweeps every check that reads `git status`.
 - A setup test could change the machine that runs it. -> R26's second scenario: tests run against throwaway user folders with installs stubbed.
