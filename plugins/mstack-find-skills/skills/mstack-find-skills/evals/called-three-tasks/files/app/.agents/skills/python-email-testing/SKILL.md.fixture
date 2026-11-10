@@ -1,0 +1,8 @@
+---
+name: python-email-testing
+description: Use when testing Python code that sends email, with a fake SMTP server and pytest fixtures.
+---
+
+# python-email-testing
+
+Test fixture skill. Use when testing Python code that sends email, with a fake SMTP server and pytest fixtures.

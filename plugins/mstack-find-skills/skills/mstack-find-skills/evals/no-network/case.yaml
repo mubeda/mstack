@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: no-network
+expected_outcome: |
+  The run says no installed skill fits, treats Quillink contract testing as a gap, tries the online search through the stubs, reports it as not run because of the network, and never says that no public skill exists.
+context:
+  scaffold_script: place-files.sh

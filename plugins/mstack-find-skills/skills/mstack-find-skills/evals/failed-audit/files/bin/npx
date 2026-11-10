@@ -1,0 +1,12 @@
+#!/bin/sh
+# Stub of the skills command: fixed search results and SKILL.md text, no network.
+case "$*" in
+  *" find "*|*"skills find"*)
+    printf 'acme-tools/web-skills@driftwright-e2e  12.4K installs\n└ https://skills.sh/acme-tools/web-skills/driftwright-e2e\n\n'
+    printf 'nova-labs/qa-skills@driftwright-flows  3.1K installs\n└ https://skills.sh/nova-labs/qa-skills/driftwright-flows\n' ;;
+  *" use "*)
+    printf -- '---\nname: driftwright\ndescription: Use when writing Driftwright end-to-end tests.\nlicense: MIT\n---\n\nWrite Driftwright tests with locators and fixtures.\n' ;;
+  *" add "*" -l"*|*" add "*" --list"*) echo "Available skills: one skill in this repository" ;;
+  *" add "*) echo "stub: install refused in this test" >&2; exit 3 ;;
+  *) echo "stub npx: $*" >&2; exit 2 ;;
+esac

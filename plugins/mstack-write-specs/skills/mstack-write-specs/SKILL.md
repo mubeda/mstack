@@ -15,11 +15,12 @@ This file is the same for both hosts. It never names a host tool outside the tab
 |---|---|---|
 | your question tool | `AskUserQuestion` for short choices; a numbered round in chat for longer ones | A numbered round in chat, then wait for the answer |
 | your subagent tool | `Agent` with a fresh context | A separate read-only `codex exec` run with the brief, or the session's agent tool if it has one |
-| a cheap subagent | `model: "haiku"`, `effort: "low"` | `-m` with the cheapest model the account offers, and `model_reasoning_effort` low |
-| a standard subagent | `model: "sonnet"`, `effort: "medium"` | `-m` with the account's standard coding model, and `model_reasoning_effort` medium |
+| a cheap subagent | `model` and `effort` set to `mstack-best-model-for`'s answer for the tier `cheap` | `-m` and `model_reasoning_effort` set to its answer for the tier `cheap` |
+| a standard subagent | `model` and `effort` set to its answer for the tier `standard` | `-m` and `model_reasoning_effort` set to its answer for the tier `standard` |
 | the skill folder | The base directory the host showed when it loaded this skill | The folder of the SKILL.md you loaded |
+| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/` (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/` (`CODEX_HOME` replaces `~/.codex`) |
 
-A subagent started without a model runs on the session's model, the most expensive choice, so set it every time. A lookup (what the code does today, which version is installed) is a cheap subagent. The independent read of Phase 6 is a standard subagent, or the session's own model for a full spec that touches security, stored data or money, because that reader is the last check before approval.
+Before the first subagent of a run, load `mstack-best-model-for` in called mode once: say which skill is calling, and ask for this host's vendor (`claude` in Claude Code, `codex` in Codex) and the tiers `cheap`, `standard` and `most capable`. A subagent started without a model runs on the session's model, the most expensive choice, so set it every time. A lookup (what the code does today, which version is installed) is a cheap subagent. The independent read of Phase 6 is a standard subagent, or the `most capable` answer for a full spec that touches security, stored data or money, because that reader is the last check before approval.
 
 Without a subagent tool, do the delegated step yourself and say that you did. Refer to the files below by their path inside the skill folder.
 
@@ -34,12 +35,29 @@ Without a subagent tool, do the delegated step yourself and say that you did. Re
 
 ## Phases
 
+**Required skill, first.** Before any other step, check `mstack-best-model-for`, which this skill calls for its subagents' models.
+
+1. It is in this session's skill list (as `mstack-best-model-for` or `<plugin>:mstack-best-model-for`): continue.
+2. Its folder exists on disk (in the user skill folders the host table names) but the session has not loaded it: say that a new session is needed, and stop.
+3. Otherwise print this and stop, with no other step and no subagent started:
+
+   ```text
+   mstack-write-specs needs mstack-best-model-for, which is not installed.
+   Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-best-model-for@mstack
+   Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-best-model-for@mstack
+   Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex> -y
+   Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
+   Then start a new session.
+   ```
+
+There is no built-in fallback.
+
 Each phase ends at a gate. Do not start the next phase before the gate holds.
 
 | Phase | Work | Gate |
 |---|---|---|
 | 0. Intake and size | Restate the goal, the problem and the smallest change that meets it. Classify the input (feature, bug class, refactor, vague idea). Size it and pick a mode (below) | The restatement, size and mode are stated to the user. If the evidence already rules the request out, show the evidence and stop |
-| 1. Ground | Read the repository's instructions, existing specs and docs, the linked issue (in full, even when it arrives as a row of an `mstack-backlog-triage` table, whose reason and acceptance hint are a starting point, not decisions), and the code the change touches | You can explain how the relevant parts work today and what the change touches, with citations |
+| 1. Ground | Read the repository's instructions, existing specs and docs, the linked issue (in full, even when it arrives as a row of an `mstack-backlog-triage` table, whose reason and acceptance hint are a starting point, not decisions), and the code the change touches, after following `references/codegraph.md` | You can explain how the relevant parts work today and what the change touches, with citations |
 | 2. Interview | Grilling rounds over the design tree (below) | The frontier is empty and the user confirms the shared understanding |
 | 3. Approaches | Two or three structurally different approaches, in a message of their own, with trade-offs and a recommendation | The user picks one, or hands you the choice and you record it as your call |
 | 4. Draft | Write the spec from `references/spec-template.md` at its final path (below) | The file exists |

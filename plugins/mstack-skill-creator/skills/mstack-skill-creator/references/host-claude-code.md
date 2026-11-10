@@ -5,7 +5,7 @@ Read this in Phase 0 when the session runs in Claude Code, and whenever a later 
 ## Tools
 
 - Question tool: `AskUserQuestion` for short choices, a numbered round in chat for longer ones.
-- Subagent tool: `Agent`, with a fresh context. Set `model` on every call, because a subagent without one runs on the session's model.
+- Subagent tool: `Agent`, with a fresh context. Set `model` and `effort` on every call, from `mstack-best-model-for`'s answer for the task's tier, because a subagent without them runs on the session's model.
 - Loading a skill: the Skill tool, by its listed name (`<plugin>:<name>` for a plugin skill, `<name>` otherwise).
 - Research: the multi-agent research workflow when the session lists one, otherwise web search and fetch.
 
@@ -49,8 +49,8 @@ Anthropic's `skill-creator` is often installed (as `skill-creator:skill-creator`
 
 ## Cross-vendor reviewer
 
-Codex, through the `codex` skill of the skill-codex plugin, or `codex exec --sandbox read-only` with the prompt on stdin from a file. When neither is available, warn the user and use a fresh read-only `Agent` subagent on the most capable model, recorded as a same-vendor review.
+Codex, through the `codex` skill of the skill-codex plugin, or `codex exec --sandbox read-only` with the prompt on stdin from a file. When neither is available, warn the user and use a fresh read-only `Agent` subagent on the model and effort `mstack-best-model-for` returns for the tier `most capable`, recorded as a same-vendor review.
 
 ## mstack skills supported here
 
-Seven of the eight mstack skills, as of 2026-11-10: `mstack-write-specs`, `mstack-plan`, `mstack-codex-review-workflow`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, and this skill. `mstack-claude-review-workflow` is the Codex workflow and does not run here.
+Ten of the eleven mstack skills, as of 2026-11-10: `mstack-write-specs`, `mstack-plan`, `mstack-codex-review-workflow`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup`, and this skill. `mstack-claude-review-workflow` is the Codex workflow and does not run here.

@@ -36,7 +36,7 @@ After three passes, list whatever still fails for the user instead of looping.
 
 ## Independent read
 
-Give a fresh-context reader, through your subagent tool and on the model `SKILL.md` names for the independent read, only the spec's path and this brief. Fill in the domain.
+Give a fresh-context reader, through your subagent tool and on the tier `SKILL.md` names for the independent read (its model and effort from `mstack-best-model-for`), only the spec's path and this brief. Fill in the domain.
 
 ```text
 You are an experienced <domain> engineer. You have been handed the spec at <path>

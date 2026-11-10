@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: failed-audit
+expected_outcome: |
+  Two candidates from the stubbed search: the first, with a fail verdict, is not recommended and its verdict is shown if listed; the second is labelled not audited, never passed; nothing is installed.
+context:
+  scaffold_script: place-files.sh

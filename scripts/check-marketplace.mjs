@@ -80,6 +80,13 @@ for (const file of ['plan-format.md', 'receiving-review.md']) {
   }
 }
 
+// The six skills that read code ship the same codegraph steps; each install copies only its own folder.
+for (const name of ['mstack-write-specs', 'mstack-diagnose', 'mstack-backlog-triage', ...shared]) {
+  const path = (n) => `plugins/${n}/skills/${n}/references/codegraph.md`;
+  assert(existsSync(resolve(root, path(name))), `${name}: references/codegraph.md is missing; copy mstack-plan's`);
+  assert.equal(read(path(name)), read(path('mstack-plan')), `${name}: references/codegraph.md differs from mstack-plan's copy`);
+}
+
 // The skills CLI (npx skills) installs only a skill's own folder, so each one carries its license and notices,
 // and no other SKILL.md may sit inside it (an eval fixture's would install as a second skill).
 assert.deepEqual(json('skills.sh.json').paths, ['./plugins'], 'skills.sh.json must point the skills CLI at ./plugins');

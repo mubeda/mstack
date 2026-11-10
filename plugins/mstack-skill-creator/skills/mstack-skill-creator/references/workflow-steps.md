@@ -1,6 +1,6 @@
 # Workflow steps
 
-Read this in Phase 0 (the optional steps), Phase 1 (the existing-skill check) and Phase 2 (understanding the skill). It says which mstack skill covers which step, what to do when one is missing, and the short built-in version of each step.
+Read this in Phase 0 (the required shared skills and the optional steps), Phase 1 (the existing-skill check on OpenCode and Cursor) and Phase 2 (understanding the skill). It says which mstack skill covers which step, what to do when one is missing, and the short built-in version of each step.
 
 ## Steps and the skills that cover them
 
@@ -13,22 +13,42 @@ Read this in Phase 0 (the optional steps), Phase 1 (the existing-skill check) an
 | An interrupted session | `mstack-handoff` |
 | A shipped script that fails | `mstack-diagnose` |
 | A skill idea taken from an issue tracker | `mstack-backlog-triage` |
+| The existing-skill check and the public search (Claude Code and Codex) | `mstack-find-skills` |
+| The model and effort of test and review subagents (Claude Code and Codex) | `mstack-best-model-for` |
+| Installing a missing skill or tool (Claude Code and Codex) | `mstack-setup` |
 
 Use the mstack skill when it is installed and the "mstack skills supported here" section of the host file lists it. Otherwise use its built-in fallback below, and say so in the report. Check what is installed by the session's skill list, then the skill folders in the host file.
 
+## Required shared skills
+
+In Claude Code and Codex, `mstack-find-skills` and `mstack-best-model-for` are required. For each one: when it is in the session's skill list, continue. When its folder exists on disk (the skill folders in the host file) but the session has not loaded it, say that a new session is needed, and stop. Otherwise print this and stop, with nothing written:
+
+```text
+mstack-skill-creator needs <name>, which is not installed.
+Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install <name>@mstack
+Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add <name>@mstack
+Skills CLI:  npx skills add mubeda/mstack --skill <name> -g -a <claude-code|codex> -y
+Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
+Then start a new session.
+```
+
+There is no built-in fallback for them in Claude Code and Codex. In OpenCode and Cursor they are not required.
+
 ## When a skill is missing
+
+In Claude Code and Codex, a step's skill that is supported here but not installed is installed with `mstack-setup`: name it, use the step's built-in fallback below, and go on. This skill installs nothing itself there.
+
+### OpenCode and Cursor
 
 When a step's skill is supported on this host but not installed, offer to install it once, at the step. Install nothing without a yes. Ask the user:
 
-1. The route: as a plugin, or with the skills CLI (`npx skills`). On OpenCode and Cursor only the skills CLI applies.
+1. The route: only the skills CLI (`npx skills`) applies on these hosts.
 2. For the skills CLI, the scope: global, for every project, or this repository only.
 3. For the skills CLI, the method: symlink (one copy that `npx skills update` refreshes) or copy.
 4. For the skills CLI, the agents it installs for.
 
 | Route | Command |
 |---|---|
-| Claude Code plugin | `claude plugin marketplace add mubeda/mstack`, then `claude plugin install <skill>@mstack` |
-| Codex plugin | `codex plugin marketplace add mubeda/mstack`, then `codex plugin add <skill>@mstack` |
 | Skills CLI | `npx skills add mubeda/mstack --skill <skill> -a <agents> -y`, adding `-g` for global and `--copy` for copy |
 
 A skill installed during a session usually loads only in a new one. When the user declines, or the new skill cannot load yet, use the built-in fallback and go on.
@@ -51,7 +71,7 @@ The required steps are never optional: the interview, the existing-skill check, 
 
 ## Existing-skill check
 
-Before writing, look for a skill that already does the job.
+The built-in check, for OpenCode and Cursor. In Claude Code and Codex, Phase 1 calls `mstack-find-skills` instead. Before writing, look for a skill that already does the job.
 
 1. Read the skill folders the host file lists, at project and user level, the session's skill list, and every `SKILL.md` anywhere in the target repository (outside `.git`), for a local target as well as a plugin target.
 2. Compare each one's description with the purpose agreed in the interview.
@@ -61,7 +81,7 @@ Before writing, look for a skill that already does the job.
 
 ## Public search
 
-Offer it in the same question as the optional steps. Only after a yes, run:
+The built-in search, for OpenCode and Cursor; in Claude Code and Codex, `mstack-find-skills` runs it. Offer it in the same question as the optional steps. Only after a yes, run:
 
 ```bash
 npx --yes skills find "<two or three words for the job>"

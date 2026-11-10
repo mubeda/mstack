@@ -9,7 +9,7 @@ This skill adapts methods from the open-source projects below. The rules were re
 | `grilling`, `grill-me`, `to-tickets` | https://github.com/mattpocock/skills | MIT | `SKILL.md` (question rounds, the outline check, vertical slices, expand-migrate-contract) |
 | spec-kit (`tasks` template) | https://github.com/github/spec-kit | MIT | `SKILL.md` (phase order: foundation, then one phase per user story, then polish), `references/plan-format.md` (checkpoints per phase) |
 
-The wave model for parallel rounds (Kiro) and the skill-vetting thresholds of the `find-skills` skill (vercel-labs/skills) are used as published ideas only; no text from them is copied.
+The wave model for parallel rounds (Kiro) is used as a published idea only; no text from it is copied. The skill-vetting rules moved to `mstack-find-skills`, which carries their credit.
 
 ## MIT-licensed components
 

@@ -1,0 +1,8 @@
+---
+name: vue-testing
+description: Use when writing tests for Vue single-file components with Vue Test Utils and Vitest.
+---
+
+# vue-testing
+
+Test fixture skill. Use when writing tests for Vue single-file components with Vue Test Utils and Vitest.

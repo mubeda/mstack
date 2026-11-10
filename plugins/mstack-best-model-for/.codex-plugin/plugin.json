@@ -1,0 +1,28 @@
+{
+  "name": "mstack-best-model-for",
+  "version": "0.1.0",
+  "description": "Pick the model and effort for a task, for Claude or Codex: one table of tiers and tasks with how to set each choice, a reason and a next step, in a user mode that asks and a called mode other mstack skills use, with the caller's limits applied. One skill for Claude Code and Codex.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "model",
+    "effort",
+    "subagent",
+    "codex",
+    "claude"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Best Model For",
+    "shortDescription": "Choose the model and effort for a task, for Claude or Codex.",
+    "longDescription": "Answers which model and effort fit a task or a tier (cheap, standard, most capable) for Claude, Codex or both, from one dated table, with the exact setting for each vendor's tool, a reason, and the next step when a result falls short. Other mstack skills call it with their limits, such as models never to use or a highest effort.",
+    "developerName": "mubeda",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ]
+  }
+}

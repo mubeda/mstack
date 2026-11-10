@@ -15,11 +15,12 @@ This file is the same for both hosts. It never names a host tool outside the tab
 |---|---|---|
 | your question tool | `AskUserQuestion` | Ask in chat with numbered options, then wait |
 | your subagent tool | `Agent`, with `isolation: "worktree"` when it edits code | A separate `codex exec` run in its own `git worktree`, or the session's agent tool if it has one |
-| a cheap subagent | `model: "haiku"`, `effort: "low"` | `-m` with the cheapest model the account offers, and `model_reasoning_effort` low |
-| a standard subagent | `model: "sonnet"`, `effort: "medium"` | `-m` with the account's standard coding model, and `model_reasoning_effort` medium |
+| a cheap subagent | `model` and `effort` set to `mstack-best-model-for`'s answer for the tier `cheap` | `-m` and `model_reasoning_effort` set to its answer for the tier `cheap` |
+| a standard subagent | `model` and `effort` set to its answer for the tier `standard` | `-m` and `model_reasoning_effort` set to its answer for the tier `standard` |
 | the skill folder | The base directory the host showed when it loaded this skill | The folder of the SKILL.md you loaded |
+| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/` (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/` (`CODEX_HOME` replaces `~/.codex`) |
 
-A subagent started without a model runs on the session's model, the most expensive choice, so set it every time. A subagent that only reads (a log search, a history lookup) is a cheap subagent. A subagent that tests a hypothesis or edits code is a standard subagent. Use the session's own model for a subagent only when its hypothesis is about concurrency, memory corruption or a cause that spans components, and say why in the report.
+Before the first subagent of a run, load `mstack-best-model-for` in called mode once: say which skill is calling, and ask for this host's vendor (`claude` in Claude Code, `codex` in Codex) and the tiers `cheap`, `standard` and `most capable`. A subagent started without a model runs on the session's model, the most expensive choice, so set it every time. A subagent that only reads (a log search, a history lookup) is a cheap subagent. A subagent that tests a hypothesis or edits code is a standard subagent. A subagent whose hypothesis is about concurrency, memory corruption or a cause that spans components runs on the `most capable` answer instead (ask for that tier in the same call), and the report says why.
 
 Without a subagent tool, do the delegated steps yourself, one after another. Refer to the files below by their path inside the skill folder.
 
@@ -35,6 +36,23 @@ Without a subagent tool, do the delegated steps yourself, one after another. Ref
 
 ## Phase 0. Intake and classify
 
+**Required skill, first.** Before any other step, check `mstack-best-model-for`, which this skill calls for its subagents' models.
+
+1. It is in this session's skill list (as `mstack-best-model-for` or `<plugin>:mstack-best-model-for`): continue.
+2. Its folder exists on disk (in the user skill folders the host table names) but the session has not loaded it: say that a new session is needed, and stop.
+3. Otherwise print this and stop, with no other step and no subagent started:
+
+   ```text
+   mstack-diagnose needs mstack-best-model-for, which is not installed.
+   Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-best-model-for@mstack
+   Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-best-model-for@mstack
+   Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex> -y
+   Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
+   Then start a new session.
+   ```
+
+There is no built-in fallback. Inside a workflow lane, whose brief carries the model and effort answers for the tiers `cheap` and `standard`, skip this step and the call in the host section above, use the brief's answers, and say so in the report.
+
 Record these before anything else. Read `references/intake.md` for the full checklist and for what to do when the problem cannot be reproduced here.
 
 1. The symptom, verbatim: the error text, exit code, signal, or the number that is wrong.
@@ -48,6 +66,8 @@ Record these before anything else. Read `references/intake.md` for the full chec
 Gate: the record exists, one problem type is chosen, and the deliverable is chosen.
 
 ## Phase 1. Get a signal
+
+Follow `references/codegraph.md` before reading the code under suspicion. Inside a workflow lane, skip it: the coordinator already refreshed the index.
 
 A signal is one of two things.
 

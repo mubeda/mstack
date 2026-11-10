@@ -8,23 +8,7 @@ This file sets how web UI lanes use the `ui-ux-pro-max` skill and defines the UI
 
 ## Install
 
-Install it only when the work touches web UI, by a route its upstream README documents.
-
-1. For Claude Code, use the plugin marketplace. Run these in a shell, then start a new session. This route also installs six sibling design skills.
-
-   ```bash
-   claude plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill
-   claude plugin install ui-ux-pro-max@ui-ux-pro-max-skill
-   ```
-
-2. For Codex, use the `uipro` CLI, run from the root of the target project. It writes the skill into the project's `.agents/skills/` folder, which a lane never commits.
-
-   ```bash
-   npm install -g ui-ux-pro-max-cli
-   uipro init --ai codex
-   ```
-
-3. Both routes need Python 3 on the PATH (standard library only). Check with `python3 --version`. Python is installed only at preflight, by the coordinator with the user's approval.
+Install it only when the work touches web UI. The coordinator never installs it during a run: the preflight stops and names `mstack-setup`, which installs it for the user's host (the plugin in Claude Code, its own installer in Codex) after the user's yes, and a new session loads it. It needs Python 3 on the PATH (standard library only); check with `python3 --version`. `mstack-setup` reports Python 3 but does not install it: that is a step for the user.
 
 ## Using it in a lane
 

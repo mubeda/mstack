@@ -24,6 +24,7 @@ The repository's own rules (AGENTS.md, CLAUDE.md, CONTRIBUTING, delivery skills)
 | `references/external-facts.md` | Any lane facing an external unknown, you for cross-lane research | The answer depends on facts outside the repository |
 | `references/web-ui.md` | Web UI lanes, you when reviewing UI diffs | Any web or frontend UI change |
 | `references/plan-format.md` | You | The work items are an `mstack-plan` folder |
+| `references/codegraph.md` | You only, never a lane brief | Section 1, once, before reading code |
 | `scripts/check-required-skills.sh` | You | Preflight |
 | `scripts/check-lanes.mjs` | You | Section 3, before any lane starts and whenever a lane changes tier |
 
@@ -56,8 +57,8 @@ Show the status of every work item in one table, using exactly three states.
 ```markdown
 | Item | Title | State | Lane | Note |
 |---|---|---|---|---|
-| #41 | Second save loses changes | In progress | A, sonnet | Codex review running |
-| #42 | Reset to defaults button | Open | B, sonnet | Waits for lane A's store change |
+| #41 | Second save loses changes | In progress | A, standard | Codex review running |
+| #42 | Reset to defaults button | Open | B, standard | Waits for lane A's store change |
 ```
 
 1. Print the whole table at the end of intake, with every item Open.
@@ -68,10 +69,27 @@ Show the status of every work item in one table, using exactly three states.
 
 ## 0. Ask before starting
 
+**Required skills, first.** Before anything else, check the two shared skills this workflow calls: `mstack-find-skills` and `mstack-best-model-for`. For each one:
+
+1. It is in this session's skill list (as `<name>` or `<plugin>:<name>`): continue.
+2. It is not in the list, but the preflight checker reports it `ok` on disk: it was installed after this session started. Say that a new session is needed, and stop.
+3. Otherwise it is not installed. Print this and stop, with no lane started and no question asked:
+
+   ```text
+   mstack-codex-review-workflow needs <name>, which is not installed.
+   Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install <name>@mstack
+   Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add <name>@mstack
+   Skills CLI:  npx skills add mubeda/mstack --skill <name> -g -a <claude-code|codex> -y
+   Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
+   Then start a new session.
+   ```
+
+There is no built-in fallback for either skill. This check comes before the message below.
+
 Before the preflight or any other work, send one message that restates the user's goal and the smallest change that meets it (see `working-style.md`), and in that same message ask with `AskUserQuestion`. The items are read only at intake, so restate the goal from what the request says and refine it after intake.
 
 1. Which model Codex reviews with. Offer `gpt-6.1-sol` as the recommended answer and `gpt-6-astra` as the alternative, and accept any other model name the user types.
-2. Which reasoning effort Codex uses. Offer `high` as the recommended answer, then `medium`, `xhigh` and `max`, and accept any other level the user types.
+2. Which reasoning effort Codex uses. Offer `high` as the recommended answer, then the code-review effort `mstack-best-model-for` gives for vendor `codex` (load it in called mode, ask for the task "code review"), then `medium`, `xhigh` and `max` without repeating a level, and accept any other level the user types. When its code-review model differs from both models above, offer it too.
 3. Which execution mode to run. Recommend Workflow mode when the work has two or more items whose predicted files do not overlap, and Single mode otherwise.
 
 Skip a question only when the user's request already answers it. A hand-off from an `mstack-plan` `execute-plan.md` counts as the request, so the answers the user gave there about the reviewer model, the effort and the commits answer those questions here. A request that names the Codex model or effort answers that question. "Fan out agents", "parallel" or "workflow" mean Workflow mode, and "one by one", "single" or "no subagents" mean Single mode. The Codex sandbox is always `read-only` and is never asked.
@@ -91,42 +109,23 @@ Run the checker from the repository root. Add `--github` when the items are GitH
 bash <skill-dir>/scripts/check-required-skills.sh [--github] [--web-ui]
 ```
 
-The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's available-skills list, because a skill installed after the session started loads only in a new session (or after `/reload-plugins` for plugins). Look for every skill the checker reported: `mstack-diagnose:mstack-diagnose` and `skill-codex:codex` (or `mstack-diagnose` and `codex` when installed as standalone skills), `ponytail`, and `ui-ux-pro-max` for web UI work, each under its plugin form (`<plugin>:<skill>`) or its bare name. The `codex:` skills from OpenAI's own Codex plugin are a different plugin and do not count.
+The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's available-skills list, because a skill installed after the session started loads only in a new session (or after `/reload-plugins` for plugins). Look for every skill the checker reported: `mstack-diagnose:mstack-diagnose`, `mstack-find-skills:mstack-find-skills`, `mstack-best-model-for:mstack-best-model-for` and `skill-codex:codex` (or the bare names when installed as standalone skills), `ponytail`, and `ui-ux-pro-max` for web UI work, each under its plugin form (`<plugin>:<skill>`) or its bare name. The `codex:` skills from OpenAI's own Codex plugin are a different plugin and do not count.
 
-Required always: `ponytail` and `mstack-diagnose` from this marketplace. Recommended: the `codex` skill from the skill-codex plugin with a logged-in `codex` CLI, the cross-vendor reviewer. Without it the run continues, and section 6 › When the cross-vendor reviewer is missing says how reviews are done instead. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
+Required always: `ponytail`, `mstack-diagnose`, `mstack-find-skills` and `mstack-best-model-for` from this marketplace. Recommended: the `codex` skill from the skill-codex plugin with a logged-in `codex` CLI, the cross-vendor reviewer. Without it the run continues, and section 6 › When the cross-vendor reviewer is missing says how reviews are done instead. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
 
 If anything is missing:
 
-1. Tell the user exactly which items are missing and ask (`AskUserQuestion`) whether to install them now.
-2. If they agree, install them with the commands below (the `claude plugin` commands run in a shell, so you can run them yourself), re-run the checker, and continue only when it passes. If a new session is needed for the skills to load, say so and stop there.
-3. If they decline, print the install instructions below for the missing items and stop, because without them the code style and diagnosis this workflow guarantees would silently not happen. The cross-vendor reviewer is the exception: when it stays missing, warn the user and continue with the fallback in section 6.
+1. `mstack-find-skills` or `mstack-best-model-for`: section 0's required-skills step already stopped the run.
+2. `ponytail`, `mstack-diagnose`, `node` or `git`, or for this work `gh`, `ui-ux-pro-max` or Python 3: tell the user exactly which items are missing, say that `mstack-setup` installs the missing skills and plugins at user scope after one yes and lists the rest (`gh`, Python 3, logins) as steps for the user, and stop, because without them the code style and diagnosis this workflow guarantees would silently not happen. If a skill is installed but not in this session's list, say that a new session is needed.
+3. The cross-vendor reviewer: warn the user, name `mstack-setup` as the way to install it, and continue with the fallback in section 6.
 
-When the user agrees, ask in the same round how they want each skill installed (`AskUserQuestion`). An agent cannot answer the skills CLI's own prompts, because run by an agent it installs without asking, so these answers are the user's only way to choose.
-
-1. The route: as a plugin (recommended when the table offers one, because it updates with its marketplace), or with the skills CLI (`npx skills`), which installs only the skill folder.
-2. For the skills CLI, the scope: global, for every project (recommended), or this repository only (into `.agents/skills` and `.claude/skills` in the repository, recorded in `skills-lock.json`).
-3. For the skills CLI, the method: symlink (recommended, one copy that `npx skills update` refreshes), or copy (independent files, for file systems or sync tools that do not follow symlinks).
-4. For the skills CLI, the agents: Claude Code only (recommended), or Claude Code and Codex.
-
-Then run `npx skills add <source> --skill <skill> -a <agents> -y`, adding `-g` for global and `--copy` for copy, where `<agents>` is `claude-code`, `codex`, or `claude-code codex`. A skill installed during the session loads only in a new session.
-
-| Missing | Install |
-|---|---|
-| `ponytail` | Plugin: `claude plugin marketplace add DietrichGebert/ponytail` then `claude plugin install ponytail@ponytail`. Skills CLI: source `DietrichGebert/ponytail`, skill `ponytail` |
-| `mstack-diagnose` | Plugin: `claude plugin marketplace add mubeda/mstack` then `claude plugin install mstack-diagnose@mstack`. Skills CLI: source `mubeda/mstack`, skill `mstack-diagnose` |
-| `codex` skill (skill-codex) | Plugin: `claude plugin marketplace add skills-directory/skill-codex` then `claude plugin install skill-codex@skill-codex`. Skills CLI: source `skills-directory/skill-codex`, skill `codex`. It needs the `codex` CLI below |
-| `codex` CLI | `npm install -g @openai/codex`, then `codex login`, then check `codex --version` |
-| `gh` CLI | See https://cli.github.com, then `gh auth login` |
-| `ui-ux-pro-max` | Plugin: `claude plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill` then `claude plugin install ui-ux-pro-max@ui-ux-pro-max-skill`. Skills CLI: source `nextlevelbuilder/ui-ux-pro-max-skill`, skill `ui-ux-pro-max`. Details are in `references/web-ui.md` |
-| Python 3 | The system package manager, or https://www.python.org/downloads/ |
-
-Installing runs third-party code from those sources. That is why the user decides, not the skill.
+This workflow installs nothing itself. Installing runs third-party code, so the user decides, through `mstack-setup`.
 
 ## 1. Intake (you, not a subagent)
 
 This skill is project-agnostic. Discover each repository's own rules, tools and checks instead of assuming them.
 
-1. Read every applicable AGENTS.md, CLAUDE.md and CONTRIBUTING file, run `git status --short`, and follow the repository's pre-work (code index sync, docs index, setup steps). Lanes need git worktrees, so if the target is not a Git repository, stop and ask the user. Do not run `git init` yourself. If the repository's rules restrict commits, branches or pushes (for example commits only on an explicit request), ask the user once, here, to approve the lane-branch commits, the integration branch and the PR this workflow makes, and follow their answer.
+1. Read every applicable AGENTS.md, CLAUDE.md and CONTRIBUTING file, run `git status --short`, and follow the repository's pre-work (code index sync, docs index, setup steps). Then follow `references/codegraph.md` once, in your own checkout, before reading code. Lanes never run those steps and never build an index. Lanes need git worktrees, so if the target is not a Git repository, stop and ask the user. Do not run `git init` yourself. If the repository's rules restrict commits, branches or pushes (for example commits only on an explicit request), ask the user once, here, to approve the lane-branch commits, the integration branch and the PR this workflow makes, and follow their answer.
 2. Read every work item in full, as the work items table says for its source. When the input is a whole backlog that nobody has triaged (many open issues and no triage table), recommend running `mstack-backlog-triage` first when it is installed, and ask the user once whether to triage or to go ahead with the issues as given.
 3. Record per item the acceptance criteria (when an item states none, write the ones you infer, mark them as inferred, and confirm them in the grilling round), the type (bug, feature, docs, test, CI, measurement), the owning package, its dependencies on other items (a plan's order counts), and the files it will most likely touch. Use the repository's code index or `rg` to predict the file set. A guess is fine, but write it down, because the partition depends on it.
 4. Where requirements or a needed decision are ambiguous, run a grilling round with the user (`grilling.md`) before lanes start, so no lane builds on a guess. Settle facts yourself. Ask the user only for decisions.
@@ -147,25 +146,25 @@ A lane is one writer subagent in its own git worktree with an exclusive file set
 
 ## 3. Choose model and effort per lane
 
-Spend tokens where the difficulty is. This table overrides any other model or effort default.
+Spend tokens where the difficulty is. Before writing the lane table, load `mstack-best-model-for` in called mode once: say that `mstack-codex-review-workflow` is calling, and ask for vendor `claude`, the tiers `cheap`, `standard` and `most capable`, with the limits `never: fable` and `max effort: medium`. Its answers fill the Model and Effort columns of this table for the whole run, and the table overrides any other model or effort default. An `mstack-plan` written before this change names the same three tiers, so it runs unchanged.
 
 | Tier | Task shape | Model | Effort |
 |---|---|---|---|
-| cheap | Docs, README, copy, mechanical edits, log or CI-artifact reading, focused re-checks | `haiku`, or `sonnet` when the edit needs judgment the brief cannot spell out | low to medium |
-| standard | Contained UI or test work in one package with clear criteria | `sonnet` | medium |
-| most capable | Root-cause bugs, concurrency, persistence or protocol changes, cross-package design | `opus` | medium |
+| cheap | Docs, README, copy, mechanical edits, log or CI-artifact reading, focused re-checks | the `cheap` answer, or the `standard` answer when the edit needs judgment the brief cannot spell out | the `cheap` answer |
+| standard | Contained UI or test work in one package with clear criteria | the `standard` answer | the `standard` answer |
+| most capable | Root-cause bugs, concurrency, persistence or protocol changes, cross-package design | the `most capable` answer | the `most capable` answer |
 
-Never use `fable` for subagents. Never give a subagent effort above `medium`, with the one exception below. Set `model` and `effort` explicitly on every spawn, because a subagent spawned without them runs on this session's model, the most expensive choice. Say in the lane table why a lane needs Opus.
+Never use `fable` for subagents. Never give a subagent effort above `medium`, with the one exception below. Set `model` and `effort` explicitly on every spawn, because a subagent spawned without them runs on this session's model, the most expensive choice. Say in the lane table why a lane needs the most capable tier.
 
 1. **A plan's tier picks the row.** For an `mstack-plan` task, use the row named by the task's `Tier` line. A lane that holds several tasks takes the highest tier among them. Put a lane on another row only with the reason in the lane table.
 2. **Helpers are cheap.** A read-only helper you start yourself (a search, a log or CI-artifact reader, a focused re-check) is a cheap-tier subagent, with `model` and `effort` set like any lane.
 3. **Move up, never repeat.** A round fails on capability when the work is wrong or incomplete although the brief was clear and the tools worked. A context limit, a dropped connection or a tool error is not that, and `working-style.md` says how to retry those. After such a round, do not send another round to the same model. Start a fresh lane one tier up with a consolidated brief, give it the failed lane's branch as its lane base, and record the move and its reason in the lane table. A running `Agent` lane keeps its model, which is why this needs a fresh lane. A most capable lane has no tier above it: its second round runs on the same model, and after two failed rounds step 5 of section 6 replans it under rule 4.
-4. **The one exception to the cap.** When a most capable lane has failed two rounds and is replanned (section 6, step 5), the replanned lane may run `opus` at `high`. Write "escalated" and the reason in the lane table and in the final report. Nothing else runs above `medium`, and `fable` stays excluded.
+4. **The one exception to the cap.** When a most capable lane has failed two rounds and is replanned (section 6, step 5), the replanned lane may run the `most capable` answer's model at `high`. Write "escalated" and the reason in the lane table and in the final report. Nothing else runs above `medium`, and `fable` stays excluded.
 5. **Check the table before spawning.** Write the lane table to `<scratchpad>/lane-table.md` with the columns Lane, Items, Plan tier, Tier, Model, Effort and Reason, and run the check. It also fails a lane whose model is not its tier's unless the Reason says why (a rejected model, for example). Spawn only when it passes, and run it again whenever a lane changes tier. Without `node`, check the rules listed at the top of the script by reading the table, and say so.
 
    ```bash
-   node <skill-dir>/scripts/check-lanes.mjs --forbid fable --allow cheap=haiku,sonnet --allow standard=sonnet \
-     --allow 'most capable=opus' <scratchpad>/lane-table.md
+   node <skill-dir>/scripts/check-lanes.mjs --forbid fable --allow cheap=<cheap model>,<standard model> \
+     --allow standard=<standard model> --allow 'most capable=<most capable model>' <scratchpad>/lane-table.md
    ```
 
 ## 4. Assign reference files and skills
@@ -183,7 +182,9 @@ Every brief names the files the lane must read in full before any work, by absol
 
 Every writing lane also loads `ponytail` for code. It asks for the smallest change that fully solves the task, with every caller, test and fixture the change breaks still updated, and one line on what was skipped. That line is content and stays in the lane report.
 
-Add task-specific skills that are installed in the session when the lane needs them, for example a test-first skill for regression tests, a benchmarking checklist for measured numbers, the framework's best-practice skill and the repository's UI guide for frontend work, accessibility and interface review skills, a platform skill family for platform work, and the repository's own delivery or review skills. Name each one in the brief. A skill that is not installed is not required.
+For the work items whose plan gives no Skills line, or that come from no plan, load `mstack-find-skills` in called mode once, before the briefs: say that `mstack-codex-review-workflow` is calling and give those items as work items. Name in each brief the skills its section of the result returns. List the candidates it reports for gaps in the final report; nothing is installed during the run.
+
+Every brief also carries section 3's answers for the tiers `cheap` and `standard` (model and effort), and the skills for its items. A lane never calls a skill to get them. A lane that loads `mstack-diagnose` uses those answers for its own subagents, and that skill's own required-skills step and model call are skipped inside a lane.
 
 When a reference file collides with a repository rule or a plan rule (for example a required documentation update), that rule wins and the report says so.
 
@@ -235,8 +236,8 @@ Every review is processed with `receiving-review.md`, by you and by the lanes. T
 
 When the `codex` skill or a logged-in `codex` CLI is missing and the user did not install it, or a Codex run fails in a way an agent cannot fix, the review still happens, by Claude in a fresh context.
 
-1. Warn the user once, in the next message, that Codex is not available (say what is missing), and that reviews will run as a same-vendor review by a fresh Claude subagent, which tends to miss more than a review by another vendor. Give the install command from the preflight table.
-2. For each review, spawn a read-only reviewer with `Agent`, `model: "opus"`, `effort: "medium"` (or `<codex-effort>` when the user chose a lower one), and no `isolation`. Its prompt is the text of the Codex review prompt above, plus the worktree path and "Read the diff with `git -C <worktree> diff <lane base>...HEAD`". Save its final message to `<scratchpad>/review-<lane>.md`. The reviewer never edits, and you check that `git -C <worktree> status --short` is unchanged after it ran.
+1. Warn the user once, in the next message, that Codex is not available (say what is missing), and that reviews will run as a same-vendor review by a fresh Claude subagent, which tends to miss more than a review by another vendor. Name `mstack-setup` as the way to install it.
+2. For each review, spawn a read-only reviewer with `Agent`, `model` set to the `most capable` answer of section 3 and `effort: "medium"` (or `<codex-effort>` when the user chose a lower one), and no `isolation`. Its prompt is the text of the Codex review prompt above, plus the worktree path and "Read the diff with `git -C <worktree> diff <lane base>...HEAD`". Save its final message to `<scratchpad>/review-<lane>.md`. The reviewer never edits, and you check that `git -C <worktree> status --short` is unchanged after it ran.
 3. Process its findings with `receiving-review.md` exactly like a Codex review, reproducing each one before you accept it.
 4. Mark every review that ran this way as "same-vendor review" in the status table note, the lane's review record and the final report.
 

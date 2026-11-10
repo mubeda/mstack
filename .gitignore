@@ -5,3 +5,6 @@
 .remember/
 .serena/
 .claude/settings.local.json
+
+# Plan folders are local working files
+docs/plans/

@@ -156,7 +156,7 @@ for (const word of ['Recommended mode', 'Inline', 'mstack-codex-review-workflow'
 // Template placeholders left behind.
 for (const [name, text] of [['plan.md', plan], ['progress.md', progress], ['execute-plan.md', execute], ...phaseFiles.map((f) => [`phases/${f}`, readFileSync(join(phaseDir, f), 'utf8')])]) {
   // <model>, <effort>, <branch> and similar are filled by the executing session, so only planning-time placeholders count.
-  const left = [...new Set(prose(text).match(/<(title|path|command|reason|plan title|slug|yyyy-mm-dd|placeholder|base|review model|review effort|reviewer and model|Claude Code \| Codex|Codex \| Claude|Inline \| Workflow|one sentence from the plan|path of the plan folder[^>]*)>/g) ?? [])];
+  const left = [...new Set(prose(text).match(/<(title|path|command|reason|plan title|slug|yyyy-mm-dd|placeholder|base|review model|review effort|reviewer and model|Claude Code \| Codex|Codex \| Claude|Inline \| Workflow|one sentence from the plan|(?:cheap|standard) helper: (?:claude|codex)|fallback reviewer: (?:claude|codex)|path of the plan folder[^>]*)>/g) ?? [])];
   if (left.length) fail(`${name}: unfilled placeholder${left.length > 1 ? 's' : ''} ${left.join(', ')}`);
 }
 
