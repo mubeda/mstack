@@ -30,15 +30,16 @@ It indexes no code. The code-reading skills build each repository's index themse
 | ID | For | Claude Code | Codex |
 |---|---|---|---|
 | `ui-ux-pro-max` | web and UI work | `claude plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill`, then `claude plugin install ui-ux-pro-max@ui-ux-pro-max-skill --scope user` (it also installs six companion design skills) | no plugin: `npm install -g ui-ux-pro-max-cli`, then `uipro init --ai codex --global`. Where that puts the skill was not verified; check with `uipro init --ai codex --global --dry-run` first |
+| `archify` | the diagrams `mstack-explain-me-better` offers | no plugin: `npx -y skills@latest add https://archify.si --skill archify --agent claude-code --global --copy --yes` | no plugin: `npx -y skills@latest add https://archify.si --skill archify --agent codex --global --copy --yes` |
 | `gh` | GitHub issues and pull requests | none: install from https://cli.github.com, then the user runs `gh auth login` | same |
 | `python3` | `ui-ux-pro-max`'s search script | none: install from https://www.python.org/downloads/ or the system package manager | same |
-| `mstack-plan`, `mstack-write-specs`, `mstack-brainstorm`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-handoff`, `mstack-skill-creator`, `mstack-chief-of-staff` | the other mstack skills | `claude plugin install <id>@mstack --scope user`, after the marketplace line above | `codex plugin add <id>@mstack`, after the marketplace line above |
+| `mstack-plan`, `mstack-write-specs`, `mstack-brainstorm`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-handoff`, `mstack-skill-creator`, `mstack-chief-of-staff`, `mstack-explain-me-better` | the other mstack skills | `claude plugin install <id>@mstack --scope user`, after the marketplace line above | `codex plugin add <id>@mstack`, after the marketplace line above |
 | `mstack-codex-review-workflow` | plan execution with Codex review | `claude plugin install mstack-codex-review-workflow@mstack --scope user` | not for this host |
 | `mstack-claude-review-workflow` | plan execution with Claude review | not for this host | `codex plugin add mstack-claude-review-workflow@mstack` |
 | `mstack-claude-pm-codex-dev` | plan execution with Codex as the developer and Claude reviewing | `claude plugin install mstack-claude-pm-codex-dev@mstack --scope user` | not for this host |
 | `codex-plugin` | Codex as the developer in `mstack-claude-pm-codex-dev` | `claude plugin marketplace add openai/codex-plugin-cc`, then `claude plugin install codex@openai-codex --scope user`, then the user runs `/codex:setup` | not for this host |
 
-A skill without a plugin for the host would go through the skills command with its global option (`npx skills add <source> --skill <skill> -g -a <claude-code|codex> -y`). Every skill above has a plugin for the host it is offered on, except `ui-ux-pro-max` on Codex, which has its own installer.
+A skill without a plugin for the host would go through the skills command with its global option (`npx skills add <source> --skill <skill> -g -a <claude-code|codex> -y`). Every skill above has a plugin for the host it is offered on, except `ui-ux-pro-max` on Codex, which has its own installer, and `archify`, which installs with the skills command on both hosts (the command is the one its own install file gives, read 2026-11-11).
 
 ## Manual steps
 

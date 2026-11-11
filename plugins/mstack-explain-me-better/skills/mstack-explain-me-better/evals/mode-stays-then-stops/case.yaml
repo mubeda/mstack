@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: mode-stays-then-stops
+expected_outcome: |
+  The mode was started earlier in the conversation. A later, unrelated question is still answered in the simple style, and 'stop' ends the mode in one line.
+  The case runs from a transcript in one turn: it shows the rules are applied to a later question, not that the mode survives real later turns.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-explain-me-better]

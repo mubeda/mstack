@@ -20,6 +20,7 @@ mkdir -p "$H/$C/skill-codex/skill-codex/1.3.1/skills/codex"; echo "Run codex exe
 for s in mstack-best-model-for mstack-receive-review mstack-setup mstack-plan mstack-write-specs mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-codex-review-workflow; do skill "$C/mstack/$s/0.1.0/skills/$s"; done
 
 skill "$C/mstack/mstack-find-skills/0.1.0/skills/mstack-find-skills"
+skill ".agents/skills/archify"
 stub claude '*"plugin install ponytail"*) echo "Error: marketplace ponytail could not be reached" >&2; exit 1 ;;'
 stub codex; stub npx
 # The npm stub "installs" codegraph by dropping a codegraph stub, so the later connect command is logged too.

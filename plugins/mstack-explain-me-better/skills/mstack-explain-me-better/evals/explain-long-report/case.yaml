@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: explain-long-report
+expected_outcome: |
+  A long migration report hides its conclusion in the last paragraph, a deleted column and an untested rollback in the middle.
+  The run explains it bottom line first, keeps the command, the numbers, the deletion and the 'not tested on Windows' statement,
+  explains or avoids the term idempotent, says what it left out, and closes by saying the simple style is on and how to stop it.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-explain-me-better]

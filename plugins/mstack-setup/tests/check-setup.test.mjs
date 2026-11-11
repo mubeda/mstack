@@ -230,6 +230,25 @@ for (const host of ['claude', 'codex']) {
     const r = run(machine(), ['--host', host]);
     assert.equal(r.json.items.find((i) => i.id === 'mstack-chief-of-staff')?.tier, 'optional', r.out);
   });
+  test(`${host}: mstack-explain-me-better is an optional row`, () => {
+    const r = run(machine(), ['--host', host]);
+    assert.equal(r.json.items.find((i) => i.id === 'mstack-explain-me-better')?.tier, 'optional', r.out);
+  });
+  test(`${host}: archify is an optional row, MISSING without it and ok with it, and never fails the run alone`, () => {
+    const complete = host === 'claude' ? completeClaude(machine()) : null;
+    const bare = run(machine(), ['--host', host]);
+    const row = bare.json.items.find((i) => i.id === 'archify');
+    assert.deepEqual([row?.tier, row?.state], ['optional', 'MISSING'], bare.out);
+    const m = machine();
+    m.skill('.agents/skills/archify');
+    const withIt = run(m, ['--host', host]);
+    assert.equal(withIt.json.items.find((i) => i.id === 'archify')?.state, 'ok', withIt.out);
+    if (complete) {
+      const r = run(complete, ['--host', host]);
+      assert.equal(r.json.items.find((i) => i.id === 'archify')?.state, 'MISSING', r.out);
+      assert.equal(r.status, 0, r.out);
+    }
+  });
 }
 
 // A skill in the plugin cache counts only when the host records its plugin (a cache folder alone can be a leftover).

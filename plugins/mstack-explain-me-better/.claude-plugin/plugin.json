@@ -1,0 +1,9 @@
+{
+  "name": "mstack-explain-me-better",
+  "version": "0.1.0",
+  "description": "A mode that explains AI answers and reports in everyday language. Once started it explains the answer in front of you again, bottom line first, in full short sentences and in your language, and keeps that style until you stop it. Numbers, commands, warnings, risks and stated uncertainty are never dropped, and it says what it left out. When the optional archify skill is installed it offers a diagram for explanations with real structure, and draws one only after a yes. One skill for Claude Code and Codex.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0"
+}

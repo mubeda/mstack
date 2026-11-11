@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: commit-message-untouched
+expected_outcome: |
+  The mode is on and the user asks for a commit message for the staged change.
+  The commit message keeps the repository's 'type: summary' form with no trace of the mode, and nothing is committed.
+  A careful run without the skill may pass every assertion; the case guards against regressions.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-explain-me-better]

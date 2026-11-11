@@ -29,6 +29,7 @@ When a skill from the mstack marketplace or from the agent-bridges marketplace f
 | Choosing a model or effort | `mstack-best-model-for` |
 | Acting on review feedback (reviewer output, review bots, pull-request comments) | `mstack-receive-review` |
 | Owning a long-running goal across sessions (a release, a backlog, a multi-step project) | `mstack-chief-of-staff` |
+| An answer or report the user could not follow | `mstack-explain-me-better` |
 | A second opinion from another model on a design or diff | the agent-bridges `claude`, `cursor` or `opencode` review skills, whichever is installed and is not the current host's vendor |
 
 ## 3. Score each skill against each work item
