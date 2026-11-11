@@ -46,9 +46,10 @@ if (cmd === 'status') {
 
 if (cmd === 'result') {
   const result = { status: job.status === 'completed' ? 0 : 1, threadId: job.threadId, rawOutput: job.output ?? '', touchedFiles: job.touchedFiles ?? [] };
+  // No process.exit here: exiting right after console.log cuts a large answer on a pipe at 64 KiB.
   console.log(JSON.stringify({ job: bare(job), storedJob: { ...bare(job), result, rendered: result.rawOutput } }));
-  process.exit(0);
+  process.exitCode = 0;
+} else {
+  console.error(`unknown command: ${cmd}`);
+  process.exitCode = 2;
 }
-
-console.error(`unknown command: ${cmd}`);
-process.exit(2);

@@ -31,7 +31,14 @@ codex_cache="$codex_dir/plugins/cache" # <marketplace>/<plugin>/<version>/skills
 has_claude_skill() { # $1 = skill folder name
   local r
   for r in "${claude_roots[@]}"; do [ -f "$r/$1/SKILL.md" ] && return 0; done
-  [ -d "$claude_cache" ] && find "$claude_cache/" -path "*/skills/$1/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
+  # A cache folder alone proves nothing (leftover clones and old versions stay there): the plugin must be in the install record.
+  local p rel market plugin
+  [ -d "$claude_cache" ] || return 1
+  while IFS= read -r p; do
+    rel="${p#"$claude_cache"}"; rel="${rel#/}"; rel="${rel#/}"
+    market="${rel%%/*}"; rel="${rel#*/}"; plugin="${rel%%/*}"
+    grep -q "\"$plugin@$market\"" "$claude_dir/plugins/installed_plugins.json" 2>/dev/null && return 0
+  done < <(find "$claude_cache/" -path "*/skills/$1/SKILL.md" 2>/dev/null)
   return 1
 }
 
@@ -51,7 +58,7 @@ has_codex_skill() { # $1 = skill folder name
   for r in "${codex_roots[@]}"; do [ -f "$r/$1/SKILL.md" ] && return 0; done
   [ -d "$codex_cache" ] || return 1
   while IFS= read -r p; do
-    rel="${p#"$codex_cache"/}"
+    rel="${p#"$codex_cache"}"; rel="${rel#/}"; rel="${rel#/}" # BSD find prints "//" after a root that ends in a slash
     market="${rel%%/*}"; rel="${rel#*/}"; plugin="${rel%%/*}"
     codex_plugin_enabled "$plugin" "$market" && return 0
   done < <(find "$codex_cache/" -path "*/skills/$1/SKILL.md" 2>/dev/null)

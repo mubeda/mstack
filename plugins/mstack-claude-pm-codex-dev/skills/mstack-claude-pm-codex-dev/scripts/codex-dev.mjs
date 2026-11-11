@@ -15,7 +15,7 @@
 // jobs, wait and result need CLAUDE_PLUGIN_DATA, which the Codex plugin's session-start hook exports to the session's
 // shell; the plugin finds its job records through it, so the environment is passed through unchanged.
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -24,7 +24,14 @@ const ALLOWED = { locate: [], jobs: ['--cwd'], wait: ['--cwd', '--timeout-ms'], 
 const NEEDS_JOB = new Set(['wait', 'result']);
 
 function usage(msg) { if (msg) console.error(msg); console.error(USAGE); process.exit(2); }
-function emit(obj, code) { console.log(JSON.stringify(obj)); process.exit(code); }
+// Writes all of the text before the process exits: console.log followed by process.exit cuts piped output at 64 KiB.
+function print(text) {
+  const buf = Buffer.from(`${text}\n`);
+  for (let off = 0; off < buf.length;) {
+    try { off += writeSync(1, buf, off); } catch (e) { if (e.code !== 'EAGAIN') throw e; }
+  }
+}
+function emit(obj, code) { print(JSON.stringify(obj)); process.exit(code); }
 
 const [cmd, ...rest] = process.argv.slice(2);
 if (!ALLOWED[cmd]) usage(cmd ? `unknown command: ${cmd}` : undefined);
@@ -65,7 +72,7 @@ function locate() {
 function companion(args, timeoutMs) {
   const located = locate();
   if (located.missing) { console.error(located.missing); process.exit(1); }
-  const r = spawnSync(process.execPath, [located.path, ...args], { cwd, encoding: 'utf8', env: process.env, timeout: timeoutMs, killSignal: 'SIGKILL' });
+  const r = spawnSync(process.execPath, [located.path, ...args], { cwd, encoding: 'utf8', env: process.env, timeout: timeoutMs, killSignal: 'SIGKILL', maxBuffer: 256 * 1024 * 1024 });
   if (r.error?.code === 'ETIMEDOUT') return { timedOut: true };
   try { return { json: JSON.parse(r.stdout), status: r.status }; } catch { return { notJson: true, status: r.status, text: `${r.stdout}${r.stderr}`.trim() }; }
 }
@@ -92,17 +99,19 @@ if (cmd === 'snapshot') {
   const dir = mkdtempSync(join(tmpdir(), 'codex-dev-index-'));
   const env = { ...process.env, GIT_INDEX_FILE: join(dir, 'index') };
   const git = (...a) => spawnSync('git', a, { cwd, env, encoding: 'utf8' });
+  // The outcome is decided inside the try and acted on after it, because process.exit would skip the cleanup.
+  let tree, error;
   try {
     const head = spawnSync('git', ['rev-parse', '--verify', '-q', 'HEAD'], { cwd, encoding: 'utf8' });
-    for (const step of [head.status === 0 ? ['read-tree', 'HEAD'] : ['read-tree', '--empty'], ['add', '-A']]) {
+    for (const step of [head.status === 0 ? ['read-tree', 'HEAD'] : ['read-tree', '--empty'], ['add', '-A'], ['write-tree']]) {
       const r = git(...step);
-      if (r.status !== 0) { console.error(`git ${step.join(' ')} failed: ${r.stderr.trim()}`); process.exit(1); }
+      if (r.status !== 0) { error = `git ${step.join(' ')} failed: ${r.stderr.trim()}`; break; }
+      tree = r.stdout.trim();
     }
-    const tree = git('write-tree');
-    if (tree.status !== 0) { console.error(`git write-tree failed: ${tree.stderr.trim()}`); process.exit(1); }
-    console.log(tree.stdout.trim());
-    process.exit(0);
   } finally { rmSync(dir, { recursive: true, force: true }); }
+  if (error) { console.error(error); process.exit(1); }
+  print(tree);
+  process.exit(0);
 }
 
 needPluginData();
@@ -135,7 +144,13 @@ if (cmd === 'wait') {
     last = j;
     if (j.status === 'completed') out('completed', j, 0);
     if (!active(j.status)) out(['failed', 'cancelled'].includes(j.status) ? j.status : 'unknown', j, 1);
-    if (j.status === 'running' && Number.isInteger(j.pid) && !alive(j.pid)) out('gone', j, 1);
+    if (j.status === 'running' && Number.isInteger(j.pid) && !alive(j.pid)) {
+      // The worker may have finished between the status answer and this check, so ask once more before "gone".
+      const again = companion(['status', jobId, '--json'], 30000).json?.job;
+      if (again?.status === 'completed') out('completed', again, 0);
+      if (again && !active(again.status)) out(['failed', 'cancelled'].includes(again.status) ? again.status : 'unknown', again, 1);
+      out('gone', again ?? j, 1);
+    }
     await new Promise((res) => setTimeout(res, Math.min(500, Math.max(0, deadline - Date.now()))));
   }
 }

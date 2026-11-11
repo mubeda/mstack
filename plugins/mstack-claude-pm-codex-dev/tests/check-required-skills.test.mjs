@@ -23,7 +23,10 @@ function machine(o = {}) {
   writeFileSync(join(bin, 'gh'), '#!/bin/sh\nexit 0\n');
   for (const t of ['codex', 'gh']) chmodSync(join(bin, t), 0o755);
 
-  for (const s of ['mstack-find-skills', 'mstack-best-model-for', ...(o.noReceiveReview ? [] : ['mstack-receive-review'])]) put(join(claude, 'skills', s));
+  for (const s of ['mstack-find-skills', 'mstack-best-model-for', ...(o.noReceiveReview ? [] : ['mstack-receive-review'])]) {
+    if (o.claudeCache === s) continue;
+    put(join(claude, 'skills', s));
+  }
   const record = {};
   if (!o.noCodexPlugin) {
     const install = join(claude, 'plugins', 'cache', 'openai-codex', 'codex', '1.0.6');
@@ -31,6 +34,12 @@ function machine(o = {}) {
     record['codex@openai-codex'] = [{ scope: 'user', installPath: install }];
   }
   if (!o.noSkillCodex) put(join(claude, 'plugins', 'cache', 'skill-codex', 'skill-codex', '1.0.0', 'skills', 'codex'), 'SKILL.md', 'codex exec');
+  // A Claude-side skill that exists only in the plugin cache: a leftover clone, or an installed plugin with its record.
+  if (o.claudeCache) {
+    const where = o.claudeCacheRecorded ? ['mstack', o.claudeCache, '0.1.0'] : ['temp_git_123', 'plugins', o.claudeCache];
+    put(join(claude, 'plugins', 'cache', ...where, 'skills', o.claudeCache));
+    if (o.claudeCacheRecorded) record[`${o.claudeCache}@mstack`] = [{ scope: 'user' }];
+  }
   put(join(claude, 'plugins'), 'installed_plugins.json', JSON.stringify({ version: 2, plugins: record }));
 
   const codexSide = ['mstack-diagnose', ...(o.noCodexModel ? [] : ['mstack-best-model-for']), ...(o.noReceiveReview ? [] : ['mstack-receive-review']), ...(o.ponytail === 'codex' || o.ponytail === undefined ? ['ponytail'] : []), ...(o.uiux ? ['ui-ux-pro-max'] : [])];
@@ -140,4 +149,15 @@ test('a missing mstack-receive-review is reported on both sides: exit 1', () => 
   assert.equal(r.status, 1, r.out);
   assert.match(r.out, /^MISSING {2}mstack-receive-review \(Claude side\)/m);
   assert.match(r.out, /^MISSING {2}mstack-receive-review \(Codex side\)/m);
+});
+
+test('a Claude-side skill found only in a leftover cache clone is MISSING', () => {
+  const r = check({ claudeCache: 'mstack-find-skills' });
+  assert.equal(r.status, 1, r.out);
+  assert.match(r.out, /^MISSING {2}mstack-find-skills \(Claude side\)/m);
+});
+
+test('a Claude-side skill in the cache of an installed plugin is ok', () => {
+  const r = check({ claudeCache: 'mstack-find-skills', claudeCacheRecorded: true });
+  assert.equal(r.status, 0, r.out);
 });

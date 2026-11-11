@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -223,4 +223,29 @@ test('snapshot builds a tree with untracked files and without ignored ones, and 
   writeFileSync(join(repo, 'tracked.txt'), 'three\n');
   git(repo, 'add', '-A');
   assert.notEqual(git(repo, 'write-tree'), tree2);
+});
+
+// --- findings of the code review
+
+test('result returns a report larger than a pipe buffer as whole JSON', () => {
+  const big = `Phase 1\n${'x'.repeat(300000)}\n`;
+  const r = run(['result', 'j1', '--phase', '1'], done(big));
+  assert.equal(r.status, 0, r.err);
+  assert.equal(r.json?.output.length, big.length);
+});
+
+test('snapshot leaves no temporary index folder behind', () => {
+  const repo = mkdtempSync(join(tmpdir(), 'cxd-repo-'));
+  const tmp = mkdtempSync(join(tmpdir(), 'cxd-tmp-'));
+  git(repo, 'init', '-q');
+  writeFileSync(join(repo, 'a.txt'), 'a\n');
+  const r = run(['snapshot'], { TMPDIR: tmp }, repo);
+  assert.equal(r.status, 0, r.err);
+  assert.deepEqual(readdirSync(tmp), []);
+});
+
+test('wait asks once more before reporting gone, so a job that just finished is completed', () => {
+  const r = run(['wait', 'j1'], withJobs([job('j1', 'running', { pid: 999999, answers: ['running', 'completed'] })]));
+  assert.equal(r.status, 0, r.out + r.err);
+  assert.equal(r.json.state, 'completed');
 });
