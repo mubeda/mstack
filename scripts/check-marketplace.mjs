@@ -7,8 +7,16 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
 const json = (path) => JSON.parse(read(path));
-const claude = json('.claude-plugin/marketplace.json').plugins;
-const codex = json('.agents/plugins/marketplace.json').plugins;
+const claudeCatalog = json('.claude-plugin/marketplace.json');
+const codexCatalog = json('.agents/plugins/marketplace.json');
+const claude = claudeCatalog.plugins;
+const codex = codexCatalog.plugins;
+// A Codex-only reader gets the release version from the Codex registry, so both registries carry the same one.
+// Two missing versions are equal, so every version is checked for its form before copies are compared.
+const isVersion = (value) => typeof value === 'string' && /^\d+\.\d+\.\d+$/.test(value);
+assert(isVersion(claudeCatalog.metadata?.version), 'Claude registry has no valid metadata.version');
+assert.equal(codexCatalog.metadata?.version, claudeCatalog.metadata.version,
+  'Codex registry metadata.version differs from the Claude registry');
 const names = (entries) => entries.map((entry) => entry.name).sort();
 const folders = readdirSync(resolve(root, 'plugins'), { withFileTypes: true })
   .filter((file) => file.isDirectory()).map((file) => file.name);
@@ -32,6 +40,7 @@ for (const name of folders) {
     assert.equal(cc.source, source, `${name}: source must be its plugins/ folder`);
     const ccManifest = json(`${source}/.claude-plugin/plugin.json`);
     assert.equal(ccManifest.name, name);
+    assert(isVersion(cc.version), `${name}: Claude registry entry has no valid version`);
     assert.equal(ccManifest.version, cc.version, `${name}: Claude manifest version differs`);
     versions.push(cc.version);
   }
@@ -41,6 +50,8 @@ for (const name of folders) {
     const cxManifest = json(`${source}/.codex-plugin/plugin.json`);
     assert.equal(cxManifest.name, name);
     assert.equal(cxManifest.skills, './skills/');
+    assert(isVersion(cx.version), `${name}: Codex registry entry has no valid version`);
+    assert.equal(cx.version, cxManifest.version, `${name}: Codex registry version differs from its manifest`);
     versions.push(cxManifest.version);
   }
   assert.equal(new Set(versions).size, 1, `${name}: Claude and Codex versions differ`);

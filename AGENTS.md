@@ -57,13 +57,14 @@ Skill search, installs, model choice and review processing each live in one skil
    node scripts/check-marketplace.mjs
    ```
 2. **Bump the version of every plugin you changed.** Claude Code and Codex only pick up a plugin
-   change when its version changes. Change it everywhere it appears: `.claude-plugin/marketplace.json`,
-   the plugin's `.claude-plugin/plugin.json` and its `.codex-plugin/plugin.json` (Claude-only
-   plugins have none). A plugin already bumped on this branch
+   change when its version changes. Change it everywhere it appears: its entries in `.claude-plugin/marketplace.json`
+   and `.agents/plugins/marketplace.json`, the plugin's `.claude-plugin/plugin.json` and its
+   `.codex-plugin/plugin.json` (a plugin for one host has only that host's entry and manifest). A plugin already bumped on this branch
    (not yet on `main`) needs no second bump for later fixes in the same pull request. After
    merging `main`, a plugin bumped on both sides needs a version above both parents.
-   Also raise the marketplace's own `metadata.version` in `.claude-plugin/marketplace.json`, the minor
-   number when a plugin is added or removed and the patch number otherwise.
+   Also raise the marketplace's own `metadata.version`, to the same value in `.claude-plugin/marketplace.json`
+   and `.agents/plugins/marketplace.json`, the minor number when a plugin is added or removed and the patch
+   number otherwise.
    `check-version-bumps.mjs` fails when a changed plugin's version, or the marketplace version, is not higher than `main`'s;
    `check-marketplace.mjs` fails when the copies of a version disagree.
 3. **Run the outside-the-diff sweep** (below).

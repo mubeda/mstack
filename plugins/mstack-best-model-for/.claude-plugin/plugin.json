@@ -1,6 +1,6 @@
 {
   "name": "mstack-best-model-for",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pick the model and effort for a task, for Claude or Codex: one table of tiers and tasks with how to set each choice, a reason and a next step, in a user mode that asks and a called mode other mstack skills use, with the caller's limits applied. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"

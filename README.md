@@ -191,7 +191,7 @@ mstack/
 
 1. Put the skill at `plugins/<plugin>/skills/<skill>/SKILL.md`, with a copy of the root `LICENSE` and a `THIRD_PARTY_NOTICES.md` next to it. Keep everything the skill needs inside that folder, because the skills CLI installs only the folder, and name any `SKILL.md` used as test data `SKILL.md.fixture`.
 2. Create `plugins/<plugin>/.claude-plugin/plugin.json`, and `plugins/<plugin>/.codex-plugin/plugin.json` (with `"skills": "./skills/"` and an `interface` block) if it works in Codex.
-3. Register it in `.claude-plugin/marketplace.json` and, for Codex, `.agents/plugins/marketplace.json` (`source: {source: "local", path: ...}`, `policy`, `category`), and add a row to the table above.
+3. Register it in `.claude-plugin/marketplace.json` and, for Codex, `.agents/plugins/marketplace.json` (`version`, `source: {source: "local", path: ...}`, `policy`, `category`), and add a row to the table above.
 4. Run the checks listed in [`AGENTS.md`](./AGENTS.md) › Before every commit.
 
 Skills here are for anyone: no personal names, machine paths, company or project data. See `AGENTS.md`.
