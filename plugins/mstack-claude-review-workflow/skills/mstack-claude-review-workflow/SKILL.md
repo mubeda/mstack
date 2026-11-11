@@ -281,11 +281,11 @@ When the `claude-review` skill or a logged-in `claude` CLI is missing and the us
 
 Bug lanes follow the `mstack-diagnose` skill, so their reports carry its evidence. Accept a lane's root-cause claim only when the report has all of these. A missing item sends the lane back for it.
 
-1. The signal: the loop command already run, with its redacted failing output, or the saved record with its symbol status.
-2. Evidence that the reproduced failure matches the reported symptom and repeats (or its measured rate).
-3. The minimized scenario, with every element shown to be needed.
+1. The signal: the loop command already run, with its redacted failing output, or the saved record with its format and its completeness (for a crash record, its symbol status).
+2. Evidence that the reproduced failure matches the reported symptom and repeats (or its measured rate). For a saved record that cannot be replayed, such as a past CI failure, evidence that the record is of the reported failure.
+3. The minimized scenario, with every element shown to be needed, or for a saved record the one finding it was reduced to.
 4. The ranked hypotheses with their predictions, and which were confirmed, refuted or left untested.
-5. Which probe tested which prediction, one variable at a time, and for performance the baseline, the run counts and the spread.
+5. Which probe tested which prediction, one variable at a time, and for performance the baseline, the run counts and the spread. For a saved record that cannot be replayed, which record supports or refutes each hypothesis.
 6. The root-cause tier from `mstack-diagnose`, and Confirmed unless the item is a diagnosis of a past event that cannot be reproduced (then Supported, said plainly).
 7. For a fix, the regression test seen failing before and passing after (with the pristine `diff` if the failure was forced), the original loop rerun, the fix verdict, and for a flaky failure the passing runs chosen in advance. Or a recorded "no correct seam" finding with both outputs.
 8. An empty debug-prefix search (`git grep -n --untracked '\[DEBUG-'`) on the lane's diff, and the hypothesis that proved correct named in the commit message, to carry into the PR body.
