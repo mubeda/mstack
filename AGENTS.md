@@ -44,6 +44,9 @@ Skill search, installs, model choice and review processing each live in one skil
 - Before switching branches or editing, check which branch is checked out (`git status -sb`).
 - Commit, push or open a pull request only when the user explicitly asks for that step.
   Approving something else (a draft, a plan, a list of fixes) is not consent.
+- Never merge a pull request before its review bots have finished. Wait until every automated
+  review on it reports a result, process each finding, and merge only then. A review that arrives
+  after the merge costs a second pull request.
 
 ## Before every commit
 
