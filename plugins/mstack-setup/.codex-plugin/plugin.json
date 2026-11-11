@@ -1,6 +1,6 @@
 {
   "name": "mstack-setup",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: a status script for the host, then one list of install commands (codegraph, ponytail, the cross-vendor reviewer, the mstack skills) that runs only after one yes, and a final check. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"

@@ -1,6 +1,6 @@
 {
   "name": "mstack-chief-of-staff",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Own a long-running goal across many sessions: a release, a backlog, a multi-step project. Keeps the goal, its done criteria and every decision in a wiki of dated claims that the next session starts from, cites a commit for every claim about code, marks changed claims superseded instead of rewriting them, lints the wiki with a script, delegates substantial work to subagents through briefs that point at files, improves the environment after each task, and runs every procedure through the other mstack skills. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"

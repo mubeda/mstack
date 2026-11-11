@@ -33,7 +33,7 @@ Keep the plugin folder name, the manifest `name`, the registry entries and the s
 
 ## Versions
 
-A new plugin starts at the version the repository's newest plugin started at (for example `0.1.0`). A changed plugin needs a higher version than the default branch has. Every copy of one version changes together: both manifests and both registry entries. When the Claude Code registry has its own `metadata.version`, raise it as the repository's rules say (for example the minor number when a plugin is added).
+A new plugin starts at the version the repository's newest plugin started at (for example `0.1.0`). A changed plugin needs a higher version than the default branch has. Every copy of one version changes together: both manifests and both registry entries. When a registry has its own `metadata.version`, raise it as the repository's rules say (for example the minor number when a plugin is added), to the same value in every registry that has one.
 
 ## The repository's checks
 
