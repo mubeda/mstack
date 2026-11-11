@@ -23,9 +23,11 @@ When a skill from the mstack marketplace or from the agent-bridges marketplace f
 | Work in the item | Skill |
 |---|---|
 | A bug, regression, flaky test, crash, hang, leak or performance problem | `mstack-diagnose` |
+| An idea whose goal or reason is not settled yet | `mstack-brainstorm` |
 | A requirement that turns out to be undecided | `mstack-write-specs` |
-| Execution of a plan | `mstack-codex-review-workflow` (Claude Code) or `mstack-claude-review-workflow` (Codex) |
+| Execution of a plan | `mstack-codex-review-workflow` (Claude Code) or `mstack-claude-review-workflow` (Codex); in Claude Code, `mstack-claude-pm-codex-dev` when Codex is to write the code |
 | Choosing a model or effort | `mstack-best-model-for` |
+| Acting on review feedback (reviewer output, review bots, pull-request comments) | `mstack-receive-review` |
 | A second opinion from another model on a design or diff | the agent-bridges `claude`, `cursor` or `opencode` review skills, whichever is installed and is not the current host's vendor |
 
 ## 3. Score each skill against each work item

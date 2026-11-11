@@ -1,6 +1,6 @@
 {
   "name": "mstack-plan",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "description": "Turn an approved spec into a reviewed implementation plan: phases and tasks sized for one agent session each, red-green test steps, dependencies and parallel rounds, the best installed skills named per task (with vetted online suggestions for gaps), a review of every plan (cross-vendor, or a same-vendor fallback when that reviewer is missing), a shared progress file, and an execute-plan.md that starts inline or multi-agent execution. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"

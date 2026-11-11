@@ -19,7 +19,6 @@ The repository's own rules (AGENTS.md, CONTRIBUTING, delivery skills) and the ru
 |---|---|---|
 | `references/working-style.md` | You and every lane | Always, before any work |
 | `references/writing.md` | You and every lane | Every message to the user, lane report, PR body, commit, tracker comment and doc |
-| `references/receiving-review.md` | You and every lane | Before acting on any review |
 | `references/grilling.md` | You, design-heavy lanes | A requirement or design is ambiguous or has several defensible answers |
 | `references/external-facts.md` | Any lane facing an external unknown, you for cross-lane research | The answer depends on facts outside the repository |
 | `references/web-ui.md` | Web UI lanes, you when reviewing UI diffs | Any web or frontend UI change |
@@ -83,7 +82,7 @@ Lanes run in `workspace-write` with the network off, so a lane can never commit.
 
 ## 0. Ask before starting
 
-**Required skills, first.** Before anything else, check the two shared skills this workflow calls: `mstack-find-skills` and `mstack-best-model-for`. For each one:
+**Required skills, first.** Before anything else, check the three shared skills this workflow calls: `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review`. For each one:
 
 1. It is in this session's skill list (as `<name>` or `<plugin>:<name>`): continue.
 2. It is not in the list, but the preflight checker reports it `ok` on disk: it was installed after this session started. Say that a new session is needed, and stop.
@@ -98,7 +97,7 @@ Lanes run in `workspace-write` with the network off, so a lane can never commit.
    Then start a new session.
    ```
 
-There is no built-in fallback for either skill. This check comes before the message below.
+There is no built-in fallback for any of them. This check comes before the message below.
 
 Before the preflight or any other work, send one message that restates the user's goal and the smallest change that meets it (see `working-style.md`), and in that same message ask the user and wait for the answers. The items are read only at intake, so restate the goal from what the request says and refine it after intake. Say in the same message that the run will ask for approval of the commands in the table above.
 
@@ -111,7 +110,7 @@ Skip a question only when the user's request already answers it. A hand-off from
 Record the answers as `<claude-model>` and `<claude-effort>`. Every Claude review in the run uses that model, and that effort is the most any review uses, so you do not ask again per review. The review of a cheap-tier lane (section 3) runs one effort level lower, never below `low`, because a docs or mechanical diff does not need the effort a design change does. These two answers are passed to every `claude-review` run. If the first Claude run rejects the model or the effort, rerun with the alternative model from question 1 (or the next lower effort), use it for the rest of the run, and say so in the final report. Reviews never wait on the user.
 
 - Workflow mode runs parallel `codex exec` lanes in their own worktrees, as described in sections 2 to 6. It is fastest for many independent items and costs more tokens and machine resources.
-- Single mode means you implement the items yourself, one after another, on one branch, in the order the partition suggests. No lanes. Everything else still applies: the reference files, the status table, Claude reviews processed with `receiving-review.md`, local validation, one PR, serialized CI. You are the only lane, so the lane rules in the reference files apply to you, and you fix review findings yourself.
+- Single mode means you implement the items yourself, one after another, on one branch, in the order the partition suggests. No lanes. Everything else still applies: the reference files, the status table, Claude reviews processed with `mstack-receive-review`, local validation, one PR, serialized CI. You are the only lane, so the lane rules in the reference files apply to you, and you fix review findings yourself.
 
 State the chosen mode and the Claude model and effort in your first message after the answers and in the final report.
 
@@ -123,13 +122,13 @@ Run the checker from the repository root. Add `--github` when the items are GitH
 bash <skill-dir>/scripts/check-required-skills.sh [--github] [--web-ui]
 ```
 
-The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's skill list, because a skill installed after the session started loads only in a new session. Look for `mstack-diagnose`, `mstack-find-skills` and `mstack-best-model-for` (shown as `<name>:<name>` from a plugin, or the bare name from the skills CLI) and `claude-review` from the `claude` plugin (shown as `claude:claude-review`).
+The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's skill list, because a skill installed after the session started loads only in a new session. Look for `mstack-diagnose`, `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review` (shown as `<name>:<name>` from a plugin, or the bare name from the skills CLI) and `claude-review` from the `claude` plugin (shown as `claude:claude-review`).
 
 Required always: `ponytail`, `mstack-diagnose`, `mstack-find-skills` and `mstack-best-model-for` from this marketplace, `node`, and `git`. Recommended: the `claude-review` skill from the agent-bridges `claude` plugin with a logged-in `claude` CLI, the cross-vendor reviewer. Without it the run continues, and section 6 › When the cross-vendor reviewer is missing says how reviews are done instead. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
 
 If anything is missing:
 
-1. `mstack-find-skills` or `mstack-best-model-for`: section 0's required-skills step already stopped the run.
+1. `mstack-find-skills`, `mstack-best-model-for` or `mstack-receive-review`: section 0's required-skills step already stopped the run.
 2. `ponytail`, `mstack-diagnose`, `node` or `git`, or for this work `gh`, `ui-ux-pro-max` or Python 3: tell the user exactly which items are missing, say that `mstack-setup` installs the missing skills and plugins at user scope after one yes and lists the rest (`gh`, Python 3, logins) as steps for the user, and stop, because without them the code style and diagnosis this workflow guarantees would silently not happen. If a skill is installed but not in this session's list, say that a new session is needed.
 3. The cross-vendor reviewer: warn the user, name `mstack-setup` as the way to install it, and continue with the fallback in section 6.
 
@@ -187,7 +186,7 @@ Every brief names the files the lane must read in full before any work, by absol
 
 | Condition | Files |
 |---|---|
-| Every lane | `working-style.md`, `writing.md`, `receiving-review.md` |
+| Every lane | `working-style.md`, `writing.md`, and the `mstack-receive-review` skill |
 | A task from an `mstack-plan` folder | The Read first entries of the task and its phase, and the skills in their Skills lines. The plan names skills without a plugin prefix, so name each in the brief the way this host lists it. A skill this host does not have is skipped and named in the report |
 | Bug, regression, flaky test, crash, hang, leak, performance problem or production incident | The `mstack-diagnose` skill. The lane loads it (or reads its SKILL.md in full) and the reference file its branch table names. A lane cannot ask the user, so where the skill says to ask, the lane finishes what does not depend on the answer and ends its run with the question in its report |
 | Design-heavy work with open choices | `grilling.md` (the lane half: settle facts, return decisions as questions) |
@@ -226,14 +225,14 @@ Every brief is self-contained, follows `writing.md` › Prose rules, and contain
 6. The validation it must run and report verbatim (focused tests, typecheck, lint and format, the repository's or the plan's completion checklist).
 7. "Do not commit, push, open a PR or trigger CI. The sandbox keeps `.git` read-only, so leave every change in this worktree, and the coordinator commits it. Where a reference file tells you to commit at a point that later work changes again (for example the failing test before the fix, when both touch one file), stop your run at that point and end it with that commit in your report, its files and its message written per `writing.md`. The coordinator commits it and resumes you to continue. List any remaining commits at the end of your report, in order, each with its files and its message."
 8. "You cannot ask the user or the coordinator while you run. When a reference file tells you to ask or to wait (an open decision, or a root-cause check before a fix), finish everything that does not depend on the answer, then end your run with the question and its evidence in your report. The coordinator resumes your session with the answer."
-9. "Process every review you receive (from the coordinator or Claude) with `receiving-review.md`, and report per finding what you did."
+9. "Process every review you receive (from the coordinator or Claude) with `mstack-receive-review`, and report per finding what you did."
 10. The report format, written per `writing.md` › Lane reports. It has the outcome (done, partial or blocked), files changed, each acceptance criterion with its evidence, commands run with results, the external-facts list if any, what could not be done and why, open decisions as questions, the commits to make in order (files and message for each), and the changelog line it proposes.
 
 ## 6. Review loop (per lane, as each finishes)
 
 You own every line that ships. A "done" summary is a claim, not proof.
 
-Every review is processed with `receiving-review.md`, by you and by the lanes. That covers Claude reviews, your own findings sent to a lane, CI review bots and human PR comments. Put this rule in every brief, and repeat it in every message that carries findings to a lane.
+Every review is processed with `mstack-receive-review`, by you and by the lanes. That covers Claude reviews, your own findings sent to a lane, CI review bots and human PR comments. Put this rule in every brief, and repeat it in every message that carries findings to a lane.
 
 1. Commit the lane's work on its branch, as approved commands, in the order the lane listed. A lane that stopped at a commit point gets that commit made now, then a resume (as in step 4) with the message "Committed. Continue.", and its review waits until it reports done. For each commit, write its message to `<run-dir>/commit-<lane>-<n>.txt`, run the mechanical check from `writing.md` on it, then run `git -C <run-dir>/wt/<lane> add <its files>` and `git -C <run-dir>/wt/<lane> commit -F <run-dir>/commit-<lane>-<n>.txt`. Check with `git -C <run-dir>/wt/<lane> status --short` that nothing was left out. Then read the diff yourself (`git -C <run-dir>/wt/<lane> diff <lane base>...HEAD`). Check it against the acceptance criteria, scope (no unrelated edits, no files outside the lane), tests that prove the behavior, and the repository and plan rules. For a bug lane, check the report against the acceptance list at the end of this section. For a web UI lane, check that the pre-review UI check in `web-ui.md` ran and passed.
 2. Get Claude's review through the `claude-review` skill. Load it, and resolve `<claude-plugin-root>` the way that skill says (for a Codex install, the plugin's folder under `~/.codex/plugins/cache/agent-bridges/claude/`). The command for one lane is below. It runs Claude read-only in plan mode against the lane's branch. Run it as an approved command, and run reviews for different lanes in parallel.
@@ -245,8 +244,8 @@ Every review is processed with `receiving-review.md`, by you and by the lanes. T
      </dev/null > <run-dir>/claude-review-<lane>.md 2> <run-dir>/claude-review-<lane>.err
    ```
    For a cheap-tier lane, pass one effort level below `<claude-effort>`. The review reads the branch diff, not the acceptance criteria, so checking the criteria stays your job in step 1. Never pass `--write`. A non-zero exit or an empty output file is never a clean review. Read the end of the `.err` file. For a model or effort error, switch as section 0 says and rerun once. For an error an agent cannot fix (a login), or a second failure, use the fallback below for this review and warn the user.
-3. Triage the findings with `receiving-review.md`. Verify each point against the real code, reproducing Claude's findings before accepting them, reject wrong ones with a reason, and keep the real ones.
-4. Send the real findings back to the same lane session. Write them to `<run-dir>/findings-<lane>-<n>.md`, telling the lane to process them with `receiving-review.md` and to report per finding fixed or rejected with a reason, then resume the lane from its worktree. You do not patch lane code. `codex exec resume` takes its model, effort and sandbox from the current configuration, not from the lane's first run, so pass the lane's model, effort and sandbox again every time, and the network override too when the first run had it. When it finishes, commit its changes as in step 1, re-review the fix diff, and repeat Claude's review only if the fix is substantial.
+3. Triage the findings with `mstack-receive-review`. Verify each point against the real code, reproducing Claude's findings before accepting them, reject wrong ones with a reason, and keep the real ones.
+4. Send the real findings back to the same lane session. Write them to `<run-dir>/findings-<lane>-<n>.md`, telling the lane to process them with `mstack-receive-review` and to report per finding fixed or rejected with a reason, then resume the lane from its worktree. You do not patch lane code. `codex exec resume` takes its model, effort and sandbox from the current configuration, not from the lane's first run, so pass the lane's model, effort and sandbox again every time, and the network override too when the first run had it. When it finishes, commit its changes as in step 1, re-review the fix diff, and repeat Claude's review only if the fix is substantial.
 
    ```bash
    cd <run-dir>/wt/<lane> && nohup codex exec --sandbox workspace-write resume <thread-id> -m <model> \
@@ -275,7 +274,7 @@ When the `claude-review` skill or a logged-in `claude` CLI is missing and the us
      < <run-dir>/review-prompt-<lane>.md > <run-dir>/review-<lane>.md 2> <run-dir>/review-<lane>.err
    ```
    An empty output file is never a clean review. Read the end of the `.err` file, fix the cause, and rerun once.
-3. Process its findings with `receiving-review.md` exactly like a Claude review, reproducing each one before you accept it, and check the acceptance criteria yourself as in step 1.
+3. Process its findings with `mstack-receive-review` exactly like a Claude review, reproducing each one before you accept it, and check the acceptance criteria yourself as in step 1.
 4. Mark every review that ran this way as "same-vendor review" in the status table note, the lane's review record and the final report.
 
 ### Accepting a root-cause claim
@@ -306,10 +305,10 @@ Bug lanes follow the `mstack-diagnose` skill, so their reports carry its evidenc
 - When there is no such remote, or the user asked for a local result, stop at the validated integration branch and report its name. Do not push.
 - When the repository runs CI, CI runs one at a time across all of this work, meaning one CI run (workflow run or pipeline) in flight at once. Never push while a CI run for this PR is in progress, never push lane branches, and never trigger CI on several branches in parallel. The jobs inside that one run may run in parallel as the CI definition says, so do not serialize jobs or matrix legs. Batch fixes for CI failures into one push after the current run finishes.
 - Triage a CI failure before any retrigger, as `working-style.md` describes. Diagnose from the logs, fix through the owning lane, re-validate locally, then push once.
-- Review-bot and human comments on the PR go through `receiving-review.md` like any other review. Only you reply on the PR.
+- Review-bot and human comments on the PR go through `mstack-receive-review` like any other review. Only you reply on the PR. Post each reply that `mstack-receive-review` drafted as an inline reply in the comment's own thread, not a top-level comment. Write the reply to a file with your file tool, so no quote or apostrophe in it meets the shell, then run `gh api -X POST repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies -F body=@<reply file>`, where `{id}` is a top-level review comment (GitHub has no replies to replies) and `gh` fills `{owner}` and `{repo}`. Write the body yourself and never paste review text into it.
 
 ## 9. Final report
 
 When the run stops with work left (an item not Closed, or integration, the final review, the push, CI or delivery not finished), because the context or the session is running out, a blocker, or the user stops it, stop at a safe point and write a handoff with `mstack-handoff` when it is installed, then put its path in this report. Without it, put the same content in this report: branch and HEAD, uncommitted paths, running lanes and their worktrees, `<run-dir>`, gates still due with their commands, and decisions blocked on the user.
 
-Write it per `writing.md` › Messages to the user. Line one names the goal and the outcome (for example "The goal was to finish the six tasks in the plan. PR #40 is open and completes 5 of 6."). Line two is the next action for the user. Then the final status table, with evidence in the note column. Then the models used: per lane its tier, model and effort, the number of rounds, and every move to another tier with its reason. Then which reviews ran as same-vendor fallback reviews and why, if any. Then the review findings the run did not apply, each rejected or deferred finding with its reason (see `receiving-review.md` › Log every finding). Then validation commands with results, what was not run and why, residual risk, and the path of `<run-dir>` with a cleanup command once the user no longer needs its logs.
+Write it per `writing.md` › Messages to the user. Line one names the goal and the outcome (for example "The goal was to finish the six tasks in the plan. PR #40 is open and completes 5 of 6."). Line two is the next action for the user. Then the final status table, with evidence in the note column. Then the models used: per lane its tier, model and effort, the number of rounds, and every move to another tier with its reason. Then which reviews ran as same-vendor fallback reviews and why, if any. Then the review findings the run did not apply, each rejected or deferred finding with its reason (see `mstack-receive-review` › Log every finding). Then validation commands with results, what was not run and why, residual risk, and the path of `<run-dir>` with a cleanup command once the user no longer needs its logs.

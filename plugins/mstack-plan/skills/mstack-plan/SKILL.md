@@ -30,10 +30,9 @@ Set the model on every subagent, because one started without it runs on this ses
 
 | File | When |
 |---|---|
-| `references/plan-format.md` | Phases 3 and 5. The plan's file layout, fields, states and resume rules. The mstack review workflows ship the same file |
+| `references/plan-format.md` | Phases 3 and 5. The plan's file layout, fields, states and resume rules. The three mstack workflows that execute plans (`mstack-codex-review-workflow`, `mstack-claude-review-workflow`, `mstack-claude-pm-codex-dev`) ship the same file |
 | `references/codegraph.md` | Phase 1, before reading the code |
 | `references/plan-review.md` | Phase 7 |
-| `references/receiving-review.md` | Phase 7, and copied into every plan folder for the executor. The mstack review workflows ship the same file |
 | `references/execute-plan-template.md` | Phase 5 |
 | `scripts/check-required-skills.sh` | Preflight |
 | `scripts/check-plan.mjs` | Phases 6 and 7 |
@@ -50,7 +49,7 @@ Set the model on every subagent, because one started without it runs on this ses
 
 ## 0. Start
 
-**Required skills, first.** Before any question or other work, check the two shared skills this skill calls: `mstack-find-skills` and `mstack-best-model-for`. For each one:
+**Required skills, first.** Before any question or other work, check the three shared skills this skill calls: `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review`. For each one:
 
 1. It is in this session's skill list (as `<name>` or `<plugin>:<name>`): continue.
 2. It is not in the list, but `scripts/check-required-skills.sh` (Preflight) reports it `ok` on disk: it was installed after this session started. Say that a new session is needed, and stop.
@@ -65,7 +64,7 @@ Set the model on every subagent, because one started without it runs on this ses
    Then start a new session.
    ```
 
-There is no built-in fallback for either skill.
+There is no built-in fallback for any of them.
 
 Then send one message that restates the user's goal in a sentence and asks these questions together with your question tool. Skip a question only when the request already answers it.
 
@@ -82,7 +81,7 @@ When the folder already holds a plan (`plan.md` and `progress.md`), read both an
 bash <skill-folder>/scripts/check-required-skills.sh --host <host>
 ```
 
-It checks `node`, `git` and the two shared skills, warns when the cross-vendor reviewer is missing, and notes the recommended mstack skills. Also confirm the reviewer skill appears in this session's skill list, because a skill installed mid-session loads only in a new session.
+It checks `node`, `git` and the three shared skills, warns when the cross-vendor reviewer is missing, and notes the recommended mstack skills. Also confirm the reviewer skill appears in this session's skill list, because a skill installed mid-session loads only in a new session.
 
 If `node` or `git` is missing (a `MISSING` line), tell the user and stop until it is installed, because no fallback replaces them. A `MISSING` shared skill is handled by the required-skills step of section 0. If the checker warns that the cross-vendor reviewer is missing (a `WARN` line), tell the user that `mstack-setup` installs it (the login stays a step for the user), and continue without waiting. Warn the user that the plan review will run as a same-vendor review by a fresh subagent, which tends to miss more than a review by another vendor, and continue with the fallback in `references/plan-review.md` › When the run fails. The plan says so.
 
@@ -140,7 +139,7 @@ Never install anything without the user's yes.
 
 ## 5. Write the plan
 
-Write every file in `references/plan-format.md` › Folder layout, filling every field. Copy `references/execute-plan-template.md` into `execute-plan.md` and fill it, including the recommended mode and its reason. Fill its helper and fallback-reviewer placeholders from the `mstack-best-model-for` answers of the Host tools call, for both vendors, because the executing session may run on the other host and may not have that skill. Copy `references/receiving-review.md` into the plan folder unchanged, because the executor processes its reviews with it. Create `progress.md` with every task Open, `Executor: none`, and the first 12 hex digits of `spec.md`'s sha256 (`sha256sum` or `shasum -a 256`).
+Write every file in `references/plan-format.md` › Folder layout, filling every field. Copy `references/execute-plan-template.md` into `execute-plan.md` and fill it, including the recommended mode and its reason. Fill its helper and fallback-reviewer placeholders from the `mstack-best-model-for` answers of the Host tools call, for both vendors, because the executing session may run on the other host and may not have that skill. Create `progress.md` with every task Open, `Executor: none`, and the first 12 hex digits of `spec.md`'s sha256 (`sha256sum` or `shasum -a 256`).
 
 Keep it proportionate. Steps name exact signatures, values and commands, not whole code bodies. A plan several times longer than its spec, or longer than the code it describes, has written the code instead of planning it.
 
@@ -152,7 +151,7 @@ Keep it proportionate. Steps name exact signatures, values and commands, not who
 
 ## 7. Cross-vendor review
 
-Follow `references/plan-review.md`, and process the review with `references/receiving-review.md`. The other vendor's model reviews the whole plan folder, read-only, or the same-vendor fallback when that reviewer is not available. Nothing in this phase asks the user: verify every finding, fix the facts, reject what is wrong or contradicts a decision already made, keep design changes for the approval summary, and record how each finding was handled in `reviews/plan-review-<n>.md`. At most two review rounds.
+Follow `references/plan-review.md`, and process the review with `mstack-receive-review`. The other vendor's model reviews the whole plan folder, read-only, or the same-vendor fallback when that reviewer is not available. Nothing in this phase asks the user: verify every finding, fix the facts, reject what is wrong or contradicts a decision already made, keep design changes for the approval summary, and record how each finding was handled in `reviews/plan-review-<n>.md`. At most two review rounds.
 
 ## 8. Approval
 
@@ -166,6 +165,6 @@ Report in this order:
 2. Phases with their rounds as a small dependency graph, and the task count.
 3. The skills named per phase, the installs the user accepted, and the gaps left.
 4. The review: reviewer, model, verdict, findings fixed, deferred and rejected.
-5. How to start: "Open a new session in the repository and say: execute `<plan-folder>/execute-plan.md`." That file first asks whether to run inline or with the mstack review workflow for that host, and recommends one. Say which and why.
+5. How to start: "Open a new session in the repository and say: execute `<plan-folder>/execute-plan.md`." That file first asks which of three ways to run it: inline, with the mstack review workflow for that host, or, in Claude Code, with `mstack-claude-pm-codex-dev` (Codex writes each phase, Claude reviews and commits it). It recommends inline or the review workflow. Say which and why.
 
 Do not start execution in this session unless the user asks. A fresh session starts with a clean context and the plan as its only memory, which is what the plan was written for.

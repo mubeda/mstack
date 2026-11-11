@@ -57,3 +57,9 @@ test('a lane at effort high without "escalated" fails', () => {
   const r = lanes(['| C | 2.1 | most capable | most capable | big-model-x | high | hard design |']);
   assert.equal(r.status, 1, r.out);
 });
+
+test('a missing mstack-receive-review is reported, because every review is processed with it', () => {
+  const r = required(['ponytail', 'mstack-diagnose', 'mstack-find-skills', 'mstack-best-model-for']);
+  assert.match(r.out, /MISSING {2}mstack-receive-review/);
+  assert.equal(r.status, 1, r.out);
+});

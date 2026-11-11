@@ -1,0 +1,28 @@
+{
+  "name": "mstack-brainstorm",
+  "version": "0.1.1",
+  "description": "Turn an unformed idea into a design brief the user approved: reads before asking, asks one open question at a time until the reason is known, then numbered rounds, lays out whole-shape approaches, generates ideas before judging them in ideas mode, and hands the approved brief to mstack-write-specs. One skill for Claude Code and Codex.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "brainstorm",
+    "ideas",
+    "design-brief",
+    "requirements",
+    "approaches"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Brainstorm",
+    "shortDescription": "Turn an unformed idea into an approved design brief.",
+    "longDescription": "Finds out what the user wants and why before anything is built: reads the repository first, asks open questions until the reason is known and numbered rounds after, lays out whole-shape approaches, offers ideas mode, and writes a design brief the user approves, ready for mstack-write-specs.",
+    "developerName": "mubeda",
+    "category": "Planning",
+    "capabilities": [
+      "Read",
+      "Write"
+    ]
+  }
+}

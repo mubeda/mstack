@@ -1,0 +1,19 @@
+{
+  "name": "mstack-receive-review",
+  "version": "0.1.0",
+  "description": "Process any code review as claims to check: verify each finding against the code with the method its type calls for, fix what holds with a failing test first and in every place with the same mistake, reject what does not with evidence, and log every outcome with a drafted reply, without asking the user. The other mstack skills call it for every review. One skill for Claude Code and Codex.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": ["code-review", "review-feedback", "pull-request", "findings", "verification"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Receive Review",
+    "shortDescription": "Verify, fix or reject every review finding, with evidence.",
+    "longDescription": "Processes reviews from a cross-vendor reviewer, the advisor, CI bots or pull-request comments: labels and merges findings, verifies each against the code, fixes what holds test-first, rejects what does not with an artifact, respects the user's recorded decisions, and logs every outcome with a drafted reply. Nothing is posted.",
+    "developerName": "mubeda",
+    "category": "Development",
+    "capabilities": ["Read", "Write"]
+  }
+}

@@ -18,7 +18,7 @@ This file is the same for both hosts. It never names a host tool outside the tab
 | a cheap subagent | `model` and `effort` set to `mstack-best-model-for`'s answer for the tier `cheap` | `-m` and `model_reasoning_effort` set to its answer for the tier `cheap` |
 | a standard subagent | `model` and `effort` set to its answer for the tier `standard` | `-m` and `model_reasoning_effort` set to its answer for the tier `standard` |
 | the skill folder | The base directory the host showed when it loaded this skill | The folder of the SKILL.md you loaded |
-| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/` (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/` (`CODEX_HOME` replaces `~/.codex`) |
+| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/`, but only under a plugin that `claude plugin list` shows as installed, because the cache keeps leftover copies (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/`, but only under a plugin that Codex has enabled in its `config.toml` (`CODEX_HOME` replaces `~/.codex`) |
 
 Before the first subagent of a run, load `mstack-best-model-for` in called mode once: say which skill is calling, and ask for this host's vendor (`claude` in Claude Code, `codex` in Codex) and the tiers `cheap`, `standard` and `most capable`. A subagent started without a model runs on the session's model, the most expensive choice, so set it every time. A lookup (what the code does today, which version is installed) is a cheap subagent. The independent read of Phase 6 is a standard subagent, or the `most capable` answer for a full spec that touches security, stored data or money, because that reader is the last check before approval.
 
@@ -57,7 +57,7 @@ Each phase ends at a gate. Do not start the next phase before the gate holds.
 | Phase | Work | Gate |
 |---|---|---|
 | 0. Intake and size | Restate the goal, the problem and the smallest change that meets it. Classify the input (feature, bug class, refactor, vague idea). Size it and pick a mode (below) | The restatement, size and mode are stated to the user. If the evidence already rules the request out, show the evidence and stop |
-| 1. Ground | Read the repository's instructions, existing specs and docs, the linked issue (in full, even when it arrives as a row of an `mstack-backlog-triage` table, whose reason and acceptance hint are a starting point, not decisions), and the code the change touches, after following `references/codegraph.md` | You can explain how the relevant parts work today and what the change touches, with citations |
+| 1. Ground | Read the repository's instructions, existing specs and docs, the linked issue (in full, even when it arrives as a row of an `mstack-backlog-triage` table, whose reason and acceptance hint are a starting point, not decisions), a design brief given as the source (see "A brief as the source"), and the code the change touches, after following `references/codegraph.md` | You can explain how the relevant parts work today and what the change touches, with citations |
 | 2. Interview | Grilling rounds over the design tree (below) | The frontier is empty and the user confirms the shared understanding |
 | 3. Approaches | Two or three structurally different approaches, in a message of their own, with trade-offs and a recommendation | The user picks one, or hands you the choice and you record it as your call |
 | 4. Draft | Write the spec from `references/spec-template.md` at its final path (below) | The file exists |
@@ -81,7 +81,18 @@ If the request grows during the interview, say so and step up a size.
 - **Feature.** The standard flow.
 - **Bug class** (for example "every date parser accepts 31 February"). The cause must be known first. If it is not, hand off to a diagnosis skill before specifying. Requirements are mostly unwanted-behavior sentences (`If ..., then ...`) plus requirements that keep today's correct behavior unchanged.
 - **Refactor.** No user stories. Requirements are invariants on observable behavior, and Phase 3 (the approach) comes before most requirements.
-- **Vague idea.** Spend longer in Phase 2 on the why, the goals and the anti-goals (results that would count as failure even if everything technically works).
+- **Vague idea.** When `mstack-brainstorm` is in this session's skill list, name it as the better start, because it works out the goal and the reason before any spec, and ask once whether to switch; on a no, continue here. Otherwise spend longer in Phase 2 on the why, the goals and the anti-goals (results that would count as failure even if everything technically works).
+- **A design brief.** A source file whose first heading starts with `# Design brief:` is a brief, usually from `mstack-brainstorm`. See "A brief as the source" below.
+
+## A brief as the source
+
+Whatever its Status, name the brief's path as the source in your first message and in the spec's Source line. When its `Status:` line says Approved:
+
+1. Every decision under its `### Decided by the user` is settled. Never ask it again; record it in the interview record as decided in the brief, with the brief's path.
+2. Every item under its `### Agent's calls` is an agent's call in the spec too: carry it with its reason and list it for the user at approval, so the user can still reject it.
+3. Its open questions and its "Left to the spec" part join the frontier of the interview.
+
+When its `Status:` line says Draft, read it as context only. Its decisions are not settled: say that the brief is not approved yet, and ask its decisions like any other open decision (or offer to finish it with `mstack-brainstorm` first).
 
 ## The interview
 
@@ -93,7 +104,7 @@ Model the subject as a design tree, where each decision branches into the decisi
    - **Process call.** Where the file goes, how to show something, whether to look further. Make the call yourself and say what you chose.
    - **Decision.** Ask the user, with a recommendation.
 2. Use the coverage list in `references/coverage.md` privately, to find branches you would otherwise miss. Never read it out as a questionnaire, and mark branches that do not apply instead of asking about them.
-3. Ask the whole frontier in one round. Number the questions. Give a recommendation for each and word the question so a plain "yes" accepts it. A question that depends on another open question in the same round waits for a later round.
+3. Ask the whole frontier in one round, leaving out what an approved brief already settled (see "A brief as the source"). Number the questions. Give a recommendation for each and word the question so a plain "yes" accepts it. A question that depends on another open question in the same round waits for a later round.
 4. Open each round with a short playback of what the last answers settled. Present anything you filled in as your proposal with your reason, never as the user's words.
 5. Wait for the answers. Then recompute the frontier from scratch, because settled answers unblock new decisions. If a later answer changes an earlier one, reopen that branch in the next round.
 6. When the user's words contradict the code, ask about the contradiction directly ("Your code cancels whole orders, but you said partial cancellation is possible. Which is right?").

@@ -69,7 +69,26 @@ const cacheSkills = findFiles(cache, (p) => p.endsWith('SKILL.md')).map(norm);
 
 function hasSkill(name) {
   if (skillRoots.some((r) => existsSync(join(r, name, 'SKILL.md')))) return true;
-  return cacheSkills.some((p) => p.endsWith(`/skills/${name}/SKILL.md`));
+  // A cache folder alone proves nothing (leftover clones and old versions stay there): the host must record the plugin.
+  return cacheSkills.some((p) => p.endsWith(`/skills/${name}/SKILL.md`) && recorded(p));
+}
+// True when the cache path sits under <cache>/<marketplace>/<plugin>/ and the host records "<plugin>@<marketplace>".
+function recorded(path) {
+  const [market, plugin] = path.slice(norm(cache).length).replace(/^\/+/, '').split('/');
+  return Boolean(market && plugin) && pluginRecorded(`${plugin}@${market}`);
+}
+function pluginRecorded(key) {
+  if (host === 'claude') {
+    try { return Object.hasOwn(JSON.parse(readFileSync(join(claudeDir, 'plugins', 'installed_plugins.json'), 'utf8')).plugins ?? {}, key); } catch { return false; }
+  }
+  let text;
+  try { text = readFileSync(join(codexDir, 'config.toml'), 'utf8'); } catch { return false; }
+  // The plugin's table, up to the next table header; switched off when it says enabled = false.
+  const at = text.split(/\r?\n/).findIndex((l) => l.trim() === `[plugins."${key}"]`);
+  if (at < 0) return false;
+  const rest = text.split(/\r?\n/).slice(at + 1);
+  const end = rest.findIndex((l) => /^\s*\[/.test(l));
+  return !(end < 0 ? rest : rest.slice(0, end)).some((l) => /^\s*enabled\s*=\s*false/.test(l));
 }
 // skill-codex ships a skill folder named `codex`; match its plugin path, or a standalone copy that runs `codex exec`.
 function hasCodexSkill() {
@@ -128,12 +147,14 @@ else {
   const ok = loggedIn(cli, host === 'claude' ? ['login', 'status'] : ['auth', 'status']);
   add('reviewer-login', 'mandatory', ok, `${cliName} logged in`, ok ? 'ok' : 'LOGIN');
 }
-for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-setup']) add(s, 'mandatory', hasSkill(s), 'mstack skill');
+for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-setup']) add(s, 'mandatory', hasSkill(s), 'mstack skill');
 add('ui-ux-pro-max', 'optional', hasSkill('ui-ux-pro-max'), 'UI design skill');
 add('gh', 'optional', which('gh'), 'GitHub command-line tool');
 add('python3', 'optional', which('python3') || (win && (which('python') || which('py'))), 'Python 3');
 const workflow = host === 'claude' ? 'mstack-codex-review-workflow' : 'mstack-claude-review-workflow';
-for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', workflow]) {
+if (host === 'claude') add('codex-plugin', 'optional', pluginInstalled('codex'), 'OpenAI Codex plugin (Codex as developer in mstack-claude-pm-codex-dev)');
+const pmWorkflow = host === 'claude' ? ['mstack-claude-pm-codex-dev'] : [];
+for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', workflow, ...pmWorkflow]) {
   add(s, 'optional', hasSkill(s), 'mstack skill');
 }
 

@@ -23,17 +23,43 @@ roots=(
 )
 plugin_cache="${CODEX_HOME:-$HOME/.codex}/plugins/cache" # <marketplace>/<plugin>/<version>/skills/<skill>/SKILL.md
 
+record_kind=codex; record_file="${CODEX_HOME:-$HOME/.codex}/config.toml"
+
+# A cache folder alone proves nothing (leftover clones and old versions stay there): the host must record the plugin.
+# Claude Code records it as a "<plugin>@<marketplace>" key in installed_plugins.json; Codex as a
+# [plugins."<plugin>@<marketplace>"] table in config.toml that does not say enabled = false.
+plugin_recorded() { # $1 = plugin, $2 = marketplace
+  if [ "$record_kind" = claude ]; then
+    grep -qF "\"$1@$2\"" "$record_file" 2>/dev/null
+  else
+    [ -f "$record_file" ] || return 1
+    awk -v want="[plugins.\"$1@$2\"]" '
+      /^[[:space:]]*\[/ { line=$0; gsub(/^[[:space:]]+|[[:space:]]+$/, "", line); inside = (line == want); if (inside) found=1; next }
+      inside && /^[[:space:]]*enabled[[:space:]]*=[[:space:]]*false/ { off=1 }
+      END { exit !(found && !off) }' "$record_file"
+  fi
+}
+cache_hit_recorded() { # $1 = find -path pattern, $2 = optional file that must exist relative to the hit's folder
+  local p rel market plugin
+  [ -d "$plugin_cache" ] || return 1
+  while IFS= read -r p; do
+    [ -z "${2:-}" ] || [ -f "$(dirname "$p")/$2" ] || continue
+    rel="${p#"$plugin_cache"}"; rel="${rel#/}"; rel="${rel#/}" # BSD find prints "//" after a root that ends in a slash
+    market="${rel%%/*}"; rel="${rel#*/}"; plugin="${rel%%/*}"
+    plugin_recorded "$plugin" "$market" && return 0
+  done < <(find "$plugin_cache/" -path "$1" 2>/dev/null)
+  return 1
+}
+
 has_skill() { # $1 = skill folder name
   local r
   for r in "${roots[@]}"; do [ -f "$r/$1/SKILL.md" ] && return 0; done
-  [ -d "$plugin_cache" ] && find "$plugin_cache/" -path "*/skills/$1/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
-  return 1
+  cache_hit_recorded "*/skills/$1/SKILL.md"
 }
 
 # The agent-bridges `claude` plugin ships `claude-review` next to the companion script it runs.
 has_claude_review() {
-  [ -d "$plugin_cache" ] && find "$plugin_cache/" -path "*/skills/claude-review/SKILL.md" 2>/dev/null \
-    | while read -r f; do [ -f "$(dirname "$f")/../../scripts/claude-companion.mjs" ] && echo y; done | grep -q y
+  cache_hit_recorded "*/skills/claude-review/SKILL.md" "../../scripts/claude-companion.mjs"
 }
 
 missing=0
@@ -48,6 +74,7 @@ check "ponytail"                          "has_skill ponytail"
 check "mstack-diagnose (this marketplace)"  "has_skill mstack-diagnose"
 check "mstack-find-skills (this marketplace)"  "has_skill mstack-find-skills"
 check "mstack-best-model-for (this marketplace)" "has_skill mstack-best-model-for"
+check "mstack-receive-review (this marketplace)" "has_skill mstack-receive-review"
 reviewer "claude-review (agent-bridges claude plugin)" "has_claude_review"
 check "node on PATH"                      "command -v node >/dev/null"
 reviewer "claude CLI logged in"              "command -v claude >/dev/null && claude auth status >/dev/null 2>&1"

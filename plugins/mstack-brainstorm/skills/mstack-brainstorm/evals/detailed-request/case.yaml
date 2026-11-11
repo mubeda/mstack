@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: detailed-request
+expected_outcome: |
+  Four turns. The first reply restates, numbers the two independent open choices with recommendations and withholds the
+  dependent one. After reply-1 it lays out approaches with a recommendation and writes no brief. After reply-2 it writes
+  the brief under docs/briefs/ with the eight parts, runs a builder check on a fresh subagent, and asks for approval.
+  After reply-3 the brief is Approved and the reply offers mstack-write-specs and starts nothing. No commit, no product code.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-brainstorm, mstack-best-model-for]
+  tools: subagent tool allowed (the builder check must come from a fresh reader)
+notes: |
+  Three things are left open on purpose: the send timing and the opt-out are independent choices with nameable options;
+  where the opt-out setting lives depends on the opt-out answer and must wait for a later round. Send reply-3 only after the
+  turn that wrote the brief has ended.

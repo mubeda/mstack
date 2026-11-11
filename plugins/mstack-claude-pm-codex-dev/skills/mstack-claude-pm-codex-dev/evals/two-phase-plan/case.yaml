@@ -1,0 +1,14 @@
+schema_version: "1.1"
+name: two-phase-plan
+expected_outcome: |
+  The real Codex plugin is loaded. A two-phase plan of four functions runs: two first-round developer starts, one per phase,
+  two brief files, the coordinator's own validation in each phase record, every Codex review labelled same-vendor, one
+  commit per phase after its review, progress.md with the executor and four Closed rows, and a final report with the
+  developer model, effort and rounds per phase and the longest developer job.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-claude-pm-codex-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review]
+  plugin_dir: <the installed OpenAI Codex plugin folder>
+  tools: [a logged-in codex CLI on PATH]

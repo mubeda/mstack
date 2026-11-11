@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: spec-from-brief
+expected_outcome: |
+  The source is an approved design brief. The first interview round asks neither decision the brief records as the
+  user's (email only; a link works once), presents the 30-minute expiry as an agent's call to confirm, and cites the
+  brief's path as its source. No spec is approved and no code changes.
+  Variant "draft brief" (place-files.sh run with DRAFT_BRIEF=1): the reply says the brief is not approved and does not
+  treat its decisions as settled.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-write-specs, mstack-best-model-for]

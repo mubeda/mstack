@@ -4,11 +4,11 @@ The reference files in this plugin's `references/` folder adapt rules from the o
 
 | Component | Source | License | Used in |
 |---|---|---|---|
-| pstack (`poteto-mode`, `unslop`, and the principles and playbooks they route to) | https://github.com/backnotprop/pstack, a mirror of `cursor/plugins` pstack | MIT | `working-style.md`, `writing.md`, `receiving-review.md` |
+| pstack (`poteto-mode`, `unslop`, and the principles and playbooks they route to) | https://github.com/backnotprop/pstack, a mirror of `cursor/plugins` pstack | MIT | `working-style.md`, `writing.md` |
 | i-have-adhd | https://github.com/ayghri/i-have-adhd | MIT | `writing.md` |
 | A terse status voice skill | https://github.com/juliusbrussee/caveman | Apache-2.0 | `writing.md` |
 | `grill-me`, `grilling` | https://github.com/mattpocock/skills | MIT | `grilling.md` |
-| superpowers (`receiving-code-review`) | https://github.com/obra/superpowers | MIT | `receiving-review.md` |
+| superpowers (`receiving-code-review`) | https://github.com/obra/superpowers | MIT | the review rules, now in the `mstack-receive-review` skill |
 | ui-ux-pro-max | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill | MIT | `web-ui.md` (usage notes only; the skill itself is installed separately) |
 
 ## MIT-licensed components

@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: ideas-mode
+expected_outcome: |
+  Two turns. The first reply generates at least six varied ideas with no ranking or recommendation. After reply-1 it gives
+  a short list with each idea's biggest unknown and the cheapest way to settle it, names the ideas set aside, and asks
+  for a pick. No brief is written.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-brainstorm, mstack-best-model-for]

@@ -1,0 +1,5 @@
+{
+  "name": "codex",
+  "version": "0.0.0",
+  "description": "Test stand-in for the OpenAI Codex plugin, loaded only by mstack-claude-pm-codex-dev's test cases with --plugin-dir. It writes files fixed in advance instead of running Codex."
+}

@@ -40,15 +40,16 @@ function run(m, args, env = {}) {
 }
 
 const MANDATORY_CLAUDE = ['node', 'git', 'codegraph-cli', 'codegraph-connected', 'ponytail', 'reviewer-plugin',
-  'reviewer-cli', 'mstack-find-skills', 'mstack-best-model-for', 'mstack-setup'];
+  'reviewer-cli', 'mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-setup'];
 
 function completeClaude(m, base = '.claude') {
   m.stub('node').stub('git').stub('codegraph').stub('codex');
   const cache = `${base}/plugins/cache`;
   m.skill(`${cache}/ponytail/ponytail/5.3.3/skills/ponytail`);
   m.file(`${cache}/skill-codex/skill-codex/1.3.1/skills/codex/SKILL.md`, 'Run codex exec.');
-  for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-setup']) m.skill(`${cache}/mstack/${s}/0.1.0/skills/${s}`);
-  m.file(`${base}/plugins/installed_plugins.json`, JSON.stringify({ version: 2, plugins: { 'ponytail@ponytail': [{}], 'skill-codex@skill-codex': [{}] } }));
+  for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-setup']) m.skill(`${cache}/mstack/${s}/0.1.0/skills/${s}`);
+  m.file(`${base}/plugins/installed_plugins.json`, JSON.stringify({ version: 2, plugins: { 'ponytail@ponytail': [{}], 'skill-codex@skill-codex': [{}],
+    'mstack-find-skills@mstack': [{}], 'mstack-best-model-for@mstack': [{}], 'mstack-receive-review@mstack': [{}], 'mstack-setup@mstack': [{}] } }));
   const cfg = base === '.claude' ? '.claude.json' : `${base}/.claude.json`;
   m.file(cfg, JSON.stringify({ mcpServers: { codegraph: { command: 'codegraph', args: ['serve', '--mcp'] } } }));
   return m;
@@ -192,4 +193,57 @@ test('(m) CLAUDE_CONFIG_DIR replaces ~/.claude', () => {
   assert.equal(r.state('codegraph-connected'), 'ok');
   const plain = run(m, ['--host', 'claude', '--platform', 'linux']);
   assert.equal(plain.state('ponytail'), 'MISSING', plain.out);
+});
+
+// The Codex plugin (Codex as developer in mstack-claude-pm-codex-dev) and the two newer mstack skills.
+test('claude: the Codex plugin in the install record is an ok optional codex-plugin row', () => {
+  const m = machine().file('.claude/plugins/installed_plugins.json', JSON.stringify({ version: 2, plugins: { 'codex@openai-codex': [{}] } }));
+  const r = run(m, ['--host', 'claude']);
+  const row = r.json.items.find((i) => i.id === 'codex-plugin');
+  assert.deepEqual([row?.state, row?.tier], ['ok', 'optional'], r.out);
+});
+
+test('claude: without the Codex plugin the codex-plugin row is MISSING and optional', () => {
+  const m = machine().file('.claude/plugins/installed_plugins.json', JSON.stringify({ version: 2, plugins: {} }));
+  const r = run(m, ['--host', 'claude']);
+  const row = r.json.items.find((i) => i.id === 'codex-plugin');
+  assert.deepEqual([row?.state, row?.tier], ['MISSING', 'optional'], r.out);
+});
+
+test('codex: no codex-plugin row and no mstack-claude-pm-codex-dev row', () => {
+  const r = run(machine(), ['--host', 'codex']);
+  assert.equal(r.json.items.some((i) => i.id === 'codex-plugin' || i.id === 'mstack-claude-pm-codex-dev'), false, r.out);
+});
+
+test('claude: a missing mstack-claude-pm-codex-dev is an optional MISSING row', () => {
+  const r = run(machine(), ['--host', 'claude']);
+  const row = r.json.items.find((i) => i.id === 'mstack-claude-pm-codex-dev');
+  assert.deepEqual([row?.state, row?.tier], ['MISSING', 'optional'], r.out);
+});
+
+for (const host of ['claude', 'codex']) {
+  test(`${host}: mstack-brainstorm is an optional row`, () => {
+    const r = run(machine(), ['--host', host]);
+    assert.equal(r.json.items.find((i) => i.id === 'mstack-brainstorm')?.tier, 'optional', r.out);
+  });
+}
+
+// A skill in the plugin cache counts only when the host records its plugin (a cache folder alone can be a leftover).
+test('claude: a skill only in a leftover cache clone is MISSING', () => {
+  const m = machine().skill('.claude/plugins/cache/temp_git_1/plugins/mstack-find-skills/skills/mstack-find-skills')
+    .file('.claude/plugins/installed_plugins.json', JSON.stringify({ version: 2, plugins: {} }));
+  assert.equal(run(m, ['--host', 'claude']).state('mstack-find-skills'), 'MISSING');
+});
+test('claude: a cached skill of a recorded plugin is ok', () => {
+  const m = machine().skill('.claude/plugins/cache/mstack/mstack-find-skills/0.1.0/skills/mstack-find-skills')
+    .file('.claude/plugins/installed_plugins.json', JSON.stringify({ version: 2, plugins: { 'mstack-find-skills@mstack': [{}] } }));
+  assert.equal(run(m, ['--host', 'claude']).state('mstack-find-skills'), 'ok');
+});
+test('codex: a cached skill whose plugin is switched off is MISSING, and ok when it is on', () => {
+  const off = machine().skill('.codex/plugins/cache/mstack/mstack-find-skills/0.1.0/skills/mstack-find-skills')
+    .file('.codex/config.toml', '[plugins."mstack-find-skills@mstack"]\nenabled = false\n');
+  assert.equal(run(off, ['--host', 'codex']).state('mstack-find-skills'), 'MISSING');
+  const on = machine().skill('.codex/plugins/cache/mstack/mstack-find-skills/0.1.0/skills/mstack-find-skills')
+    .file('.codex/config.toml', '[plugins."mstack-find-skills@mstack"]\nenabled = true\n');
+  assert.equal(run(on, ['--host', 'codex']).state('mstack-find-skills'), 'ok');
 });

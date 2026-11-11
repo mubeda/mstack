@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: vague-idea
+expected_outcome: |
+  The run reads the shop repository, restates the request, says what it found, and ends its first message with exactly
+  one question and what the answer would change. It asks nothing the instructions file answers and changes no file.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-brainstorm, mstack-best-model-for]

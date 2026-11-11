@@ -14,7 +14,7 @@ You read a tracker's open issues, decide for each one what it is and when it sho
 | Your question tool | `AskUserQuestion` | A numbered round in chat, then wait for the reply |
 | Your subagent tool | `Agent`, with `model` and `effort` set to `mstack-best-model-for`'s answer for the tier `standard` | The session's agent tool if it has one, with that answer's model and effort set, otherwise do the step yourself |
 | The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md |
-| The user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/` (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/` (`CODEX_HOME` replaces `~/.codex`) |
+| The user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/`, but only under a plugin that `claude plugin list` shows as installed, because the cache keeps leftover copies (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/`, but only under a plugin that Codex has enabled in its `config.toml` (`CODEX_HOME` replaces `~/.codex`) |
 | `gh` commands | Run directly | Run as approved (escalated) commands, because the sandbox turns the network off |
 | `<scratch>` | The session's scratch folder, outside the repository | `${TMPDIR:-/tmp}/mstack-triage-<repository name>` |
 
