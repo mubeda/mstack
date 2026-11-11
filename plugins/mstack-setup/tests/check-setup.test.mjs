@@ -226,6 +226,10 @@ for (const host of ['claude', 'codex']) {
     const r = run(machine(), ['--host', host]);
     assert.equal(r.json.items.find((i) => i.id === 'mstack-brainstorm')?.tier, 'optional', r.out);
   });
+  test(`${host}: mstack-chief-of-staff is an optional row`, () => {
+    const r = run(machine(), ['--host', host]);
+    assert.equal(r.json.items.find((i) => i.id === 'mstack-chief-of-staff')?.tier, 'optional', r.out);
+  });
 }
 
 // A skill in the plugin cache counts only when the host records its plugin (a cache folder alone can be a leftover).

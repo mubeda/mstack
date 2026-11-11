@@ -24,12 +24,13 @@ The repository is [`github.com/mubeda/mstack`](https://github.com/mubeda/mstack)
 | [`mstack-best-model-for`](./plugins/mstack-best-model-for) | Pick the model and effort for a task or a tier, for Claude or Codex, from one dated table, with the exact setting, a reason and the next step if the result falls short. The other skills call it before they start a subagent, a lane or a reviewer. | Claude Code and Codex CLI |
 | [`mstack-receive-review`](./plugins/mstack-receive-review) | Process any code review as claims to check: label and merge findings, verify each against the code, fix what holds test-first and everywhere the same mistake sits, reject what does not with evidence, keep your recorded decisions, and log every outcome with a drafted reply. Posts nothing. The other skills call it for every review. | Claude Code and Codex CLI |
 | [`mstack-setup`](./plugins/mstack-setup) | Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: codegraph, ponytail, the cross-vendor reviewer and the mstack skills, from one list after one yes. | Claude Code and Codex CLI |
+| [`mstack-chief-of-staff`](./plugins/mstack-chief-of-staff) | Own a long-running goal (a release, a backlog, a multi-step project) across many sessions: a wiki of dated claims that every session starts from, a commit beside every claim about code, superseded claims kept, a lint script, work delegated through briefs that point at files, and every procedure run through the other mstack skills. One skill, shared by both hosts. | Claude Code and Codex CLI |
 
 Each plugin can be installed on its own. The three workflows share their reference files (the review rules live in `mstack-receive-review`), and `scripts/check-marketplace.mjs` fails if the copies drift apart.
 
-The plugins also work together. `mstack-backlog-triage` picks what to work on and routes each issue, `mstack-brainstorm` turns an unformed idea into an approved design brief, `mstack-write-specs` writes the spec (from that brief, without asking its settled decisions again), `mstack-plan` turns it into a plan folder, and any of the three workflows executes that folder, task by task, writing progress into the plan's `progress.md`, so execution can switch between inline and a workflow and resume where it stopped. When a session runs out before the work does, `mstack-handoff` writes the file the next session starts from. `mstack-skill-creator` builds new skills with the same chain: it uses each of these skills for its step when it is installed, and a short built-in version when it is not, except the shared skills `mstack-find-skills` and `mstack-best-model-for`, which it requires in Claude Code and Codex. `mstack-plan` and the three workflows ship the same `plan-format.md`.
+The plugins also work together. `mstack-backlog-triage` picks what to work on and routes each issue, `mstack-brainstorm` turns an unformed idea into an approved design brief, `mstack-write-specs` writes the spec (from that brief, without asking its settled decisions again), `mstack-plan` turns it into a plan folder, and any of the three workflows executes that folder, task by task, writing progress into the plan's `progress.md`, so execution can switch between inline and a workflow and resume where it stopped. When a session runs out before the work does, `mstack-handoff` writes the file the next session starts from. For a goal that takes many sessions, `mstack-chief-of-staff` owns it: it keeps the goal, its decisions and its history in a wiki of dated claims, starts every session from that wiki, and runs each procedure through the skills above. It requires none of them: when one is missing it says so, names `mstack-setup`, skips only that route and keeps going. `mstack-skill-creator` builds new skills with the same chain: it uses each of these skills for its step when it is installed, and a short built-in version when it is not, except the shared skills `mstack-find-skills` and `mstack-best-model-for`, which it requires in Claude Code and Codex. `mstack-plan` and the three workflows ship the same `plan-format.md`.
 
-Four shared skills do the jobs the others have in common. `mstack-receive-review` processes every review, `mstack-find-skills` finds the skills for each task, `mstack-best-model-for` picks every subagent's, lane's and reviewer's model and effort, and `mstack-setup` installs dependencies. `mstack-plan`, the three workflows and `mstack-skill-creator` (in Claude Code and Codex) require `mstack-find-skills` and `mstack-best-model-for`, and `mstack-plan` and the three workflows also require `mstack-receive-review`; `mstack-diagnose`, `mstack-write-specs`, `mstack-brainstorm` and `mstack-backlog-triage` require `mstack-best-model-for`. A skill whose required shared skill is missing stops before any work and prints the install commands and the name `mstack-setup`.
+Four shared skills do the jobs the others have in common. `mstack-receive-review` processes every review, `mstack-find-skills` finds the skills for each task, `mstack-best-model-for` picks every subagent's, lane's and reviewer's model and effort (`mstack-chief-of-staff` falls back to the host's default model when it is not installed, and says so), and `mstack-setup` installs dependencies. `mstack-plan`, the three workflows and `mstack-skill-creator` (in Claude Code and Codex) require `mstack-find-skills` and `mstack-best-model-for`, and `mstack-plan` and the three workflows also require `mstack-receive-review`; `mstack-diagnose`, `mstack-write-specs`, `mstack-brainstorm` and `mstack-backlog-triage` require `mstack-best-model-for`. A skill whose required shared skill is missing stops before any work and prints the install commands and the name `mstack-setup`.
 
 The skills that read code (`mstack-plan`, `mstack-write-specs`, `mstack-diagnose`, `mstack-backlog-triage` and the three workflows) refresh a [codegraph](https://github.com/colbymchenry/codegraph) index of the repository when codegraph is installed, and use it to find code. Without codegraph they read code as before. They never install it; `mstack-setup` does.
 
@@ -65,6 +66,7 @@ Then install the plugins you want and reload:
 /plugin install mstack-best-model-for@mstack
 /plugin install mstack-setup@mstack
 /plugin install mstack-receive-review@mstack
+/plugin install mstack-chief-of-staff@mstack
 /reload-plugins
 ```
 
@@ -80,7 +82,7 @@ Run `/plugin`, open the **Marketplaces** tab, select `mstack` and enable auto-up
 /reload-plugins
 ```
 
-From marketplace version 0.4.0 the other skills require the shared skills `mstack-find-skills` and `mstack-best-model-for`, and stop until they are installed. Install them with the lines above, or install `mstack-setup` and run it, which installs everything missing after one yes. From marketplace version 0.5.0, `mstack-plan` and the three workflows also require `mstack-receive-review`.
+From marketplace version 0.4.0 the other skills require the shared skills `mstack-find-skills` and `mstack-best-model-for`, and stop until they are installed (`mstack-chief-of-staff` requires none: it names a missing skill and goes on). Install them with the lines above, or install `mstack-setup` and run it, which installs everything missing after one yes. From marketplace version 0.5.0, `mstack-plan` and the three workflows also require `mstack-receive-review`.
 
 ## Install in Codex CLI
 
@@ -100,6 +102,7 @@ codex plugin add mstack-find-skills@mstack
 codex plugin add mstack-best-model-for@mstack
 codex plugin add mstack-setup@mstack
 codex plugin add mstack-receive-review@mstack
+codex plugin add mstack-chief-of-staff@mstack
 ```
 
 The Claude reviewer of the workflow and of `mstack-plan` comes from another marketplace:
@@ -109,7 +112,7 @@ codex plugin marketplace add https://github.com/mubeda/agent-bridges.git
 codex plugin add claude@agent-bridges
 ```
 
-Or launch `codex` and browse with `/plugins`. Codex has no auto-update; refresh with `codex plugin marketplace upgrade mstack`, then run `codex plugin add` again for each plugin you use. From marketplace version 0.4.0 the other skills require `mstack-find-skills` and `mstack-best-model-for`, and from 0.5.0 `mstack-plan` and `mstack-claude-review-workflow` also require `mstack-receive-review`; `mstack-setup` installs whatever is missing.
+Or launch `codex` and browse with `/plugins`. Codex has no auto-update; refresh with `codex plugin marketplace upgrade mstack`, then run `codex plugin add` again for each plugin you use. From marketplace version 0.4.0 the other skills require `mstack-find-skills` and `mstack-best-model-for` (`mstack-chief-of-staff` requires none), and from 0.5.0 `mstack-plan` and `mstack-claude-review-workflow` also require `mstack-receive-review`; `mstack-setup` installs whatever is missing.
 
 `mstack-codex-review-workflow` and `mstack-claude-pm-codex-dev` are not published for Codex, because they drive Claude Code's subagent tools (the second also drives the Codex plugin for Claude Code). Codex users install `mstack-claude-review-workflow` instead.
 

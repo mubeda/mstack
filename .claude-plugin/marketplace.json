@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Daily-driver agent skills for Claude Code and Codex CLI, packaged as independently installable plugins.",
-    "version": "0.5.2"
+    "version": "0.6.0"
   },
   "plugins": [
     {
@@ -91,7 +91,7 @@
     {
       "name": "mstack-skill-creator",
       "description": "Create or improve agent skills (SKILL.md folders) that Claude Code, Codex, OpenCode and Cursor all load: an interview, a check for an existing skill, writing by portable rules, a static check, a comparison test against a baseline, and for an mstack-style repository the full plugin packaging and cross-vendor review. Uses the other mstack skills when they are installed. Never commits or publishes on its own.",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "author": {
         "name": "mubeda"
       },
@@ -111,7 +111,7 @@
     {
       "name": "mstack-find-skills",
       "description": "Find the skills that fit a job: the installed skills scored per task, then vetted public candidates from skills.sh for the gaps only (audits, installs, license and the skill's own text), installed only after the user's yes. Called by the other mstack skills for their tasks. One skill for Claude Code and Codex.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "author": {
         "name": "mubeda"
       },
@@ -121,7 +121,7 @@
     {
       "name": "mstack-setup",
       "description": "Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: a status script for the host, then one list of install commands (codegraph, ponytail, the cross-vendor reviewer, the mstack skills) that runs only after one yes, and a final check. One skill for Claude Code and Codex.",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "author": {
         "name": "mubeda"
       },
@@ -136,6 +136,16 @@
         "name": "mubeda"
       },
       "source": "./plugins/mstack-receive-review",
+      "category": "workflow"
+    },
+    {
+      "name": "mstack-chief-of-staff",
+      "description": "Own a long-running goal across many sessions: a release, a backlog, a multi-step project. Keeps the goal, its done criteria and every decision in a wiki of dated claims that the next session starts from, cites a commit for every claim about code, marks changed claims superseded instead of rewriting them, lints the wiki with a script, delegates substantial work to subagents through briefs that point at files, improves the environment after each task, and runs every procedure through the other mstack skills. One skill for Claude Code and Codex.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-chief-of-staff",
       "category": "workflow"
     }
   ]

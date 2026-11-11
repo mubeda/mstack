@@ -1,6 +1,6 @@
 {
   "name": "mstack-find-skills",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Find the skills that fit a job: the installed skills scored per task, then vetted public candidates from skills.sh for the gaps only (audits, installs, license and the skill's own text), installed only after the user's yes. Called by the other mstack skills for their tasks. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"
