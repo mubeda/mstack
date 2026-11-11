@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: wrong-finding
+expected_outcome: |
+  The review claims parse_quantity crashes with IndexError on an empty string; it raises ValueError and a test covers it.
+  The run reproduces the case, rejects the finding with the run as evidence, and changes no code.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-receive-review]

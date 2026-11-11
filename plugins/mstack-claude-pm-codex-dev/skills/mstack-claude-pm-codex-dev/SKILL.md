@@ -16,7 +16,7 @@ The repository's own rules (AGENTS.md, CLAUDE.md, CONTRIBUTING, delivery skills)
 The reference files are shared with the two other mstack workflows, so read their words this way:
 
 - **A lane** is one developer run of a phase. "Lane duties" in the reference files are the developer's; the brief carries them. "Coordinator duties" are yours.
-- **The cross-vendor reviewer** is the read-only Codex review here. Because Codex also wrote the code, every record in this run calls it a **same-vendor review** (`receiving-review.md` › Cross-vendor review findings, rule 4). The cross-vendor check is your own read and the advisor's.
+- **The cross-vendor reviewer** is the read-only Codex review here. Because Codex also wrote the code, every record in this run calls it a **same-vendor review** (`mstack-receive-review` › Cross-vendor review findings, rule 4). The cross-vendor check is your own read and the advisor's.
 - **The fallback review** is a fresh read-only Claude subagent that reviews when a Codex review cannot run. Record it as "fallback review by Claude", never as same-vendor.
 - **A round that failed on capability** goes one tier up in `working-style.md`. Here section 3 wins: the developer keeps its model and its next round runs one effort level higher. The model changes only when Codex rejects it (section 3, rule 5) or the user chooses another after two failed rounds (section 6, step 9).
 
@@ -28,7 +28,6 @@ The reference files are shared with the two other mstack workflows, so read thei
 |---|---|---|
 | `references/working-style.md` | You and every developer run | Always, before any work |
 | `references/writing.md` | You and every developer run | Every message to the user, brief, report, PR body, commit, tracker comment and doc |
-| `references/receiving-review.md` | You and every developer run | Before acting on any review |
 | `references/grilling.md` | You | A requirement or design is ambiguous or has several defensible answers |
 | `references/external-facts.md` | A developer run facing an external unknown, you for research | The answer depends on facts outside the repository |
 | `references/web-ui.md` | Web UI phases, you when reviewing UI diffs | Any web or frontend UI change |
@@ -82,7 +81,7 @@ Print the whole table at the end of intake, and again, whole, in every message w
 
 **Session-visible dependencies, first.** Before anything else, check three things in this session's own lists:
 
-1. `mstack-find-skills` and `mstack-best-model-for` in the skill list (as `<name>` or `<plugin>:<name>`).
+1. `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review` in the skill list (as `<name>` or `<plugin>:<name>`).
 2. The agent type `codex:codex-rescue` in the list of agent types the subagent tool offers.
 
 For a missing skill: when `bash <skill-dir>/scripts/check-required-skills.sh` reports it `ok` on disk, it was installed after this session started, so say that a new session is needed and stop. Otherwise print this and stop, with no question asked:
@@ -122,7 +121,7 @@ Run the checker from the repository root. Add `--github` when the items are GitH
 bash <skill-dir>/scripts/check-required-skills.sh [--github] [--web-ui]
 ```
 
-It prints one line per item, `ok`, `MISSING` or `WARN`. The Codex-side lines (`ponytail`, `mstack-diagnose`, `mstack-best-model-for`, which `mstack-diagnose` requires, and `ui-ux-pro-max`) are the skills the developer loads in its own sessions, so the Claude-side copies do not count.
+It prints one line per item, `ok`, `MISSING` or `WARN`. The Codex-side lines (`ponytail`, `mstack-diagnose`, `mstack-best-model-for`, which `mstack-diagnose` requires, `mstack-receive-review`, and `ui-ux-pro-max`) are the skills the developer loads in its own sessions, so the Claude-side copies do not count.
 
 1. A `MISSING` line: tell the user exactly which items are missing, say that `mstack-setup` installs missing skills and plugins at user scope after one yes and lists the rest (`gh`, Python 3, logins) as steps for the user, and stop, because without them the code style and diagnosis this workflow promises would silently not happen. No developer run starts.
 2. The `WARN` line for the `codex` skill: continue. The Codex review then runs with the same `codex exec` command, without the skill's helpers.
@@ -164,7 +163,7 @@ Every brief names, by absolute path, the files the developer reads in full befor
 
 | Condition | Files and skills |
 |---|---|
-| Every phase | `working-style.md`, `writing.md`, `receiving-review.md`, and the `ponytail` skill for code |
+| Every phase | `working-style.md`, `writing.md`, and the skills `mstack-receive-review` and `ponytail` |
 | A task from an `mstack-plan` folder | The Read first entries of the task and its phase, and the skills of their Skills lines, by bare name |
 | A bug, regression, flaky test, crash, hang, leak or performance problem | The `mstack-diagnose` skill and the reference file its branch table names. The developer cannot ask the user, so it finishes what does not depend on the answer and ends with the question in its report |
 | Design-heavy work with open choices | `grilling.md` (the lane half: settle facts, return decisions as questions) |
@@ -183,7 +182,7 @@ For items without a plan's Skills line, load `mstack-find-skills` in called mode
    5. Build hygiene: the repository's pinned toolchain, capped build jobs.
    6. The validation to run and report verbatim.
    7. "Do not commit, stage, push or open a pull request." (Git is read-only in the developer's sandbox anyway; the coordinator commits.)
-   8. "Process every review you receive with `receiving-review.md`, and report per finding what you did."
+   8. "Process every review you receive with `mstack-receive-review`, and report per finding what you did."
    9. For a bug phase: "Load `mstack-diagnose` and report its evidence."
    10. The report, per `writing.md` › Lane reports: the first line exactly `Phase <phase-id>`, then the outcome (done, partial or blocked), files changed, each criterion with its evidence, commands run with results, what could not be done and why, open decisions as questions, and the changelog line it proposes.
 2. **Before the start.** Record the phase base as `git rev-parse HEAD` and note the time. Run `node <skill-dir>/scripts/codex-dev.mjs jobs`: when any job is queued or running, wait on it with `wait` before starting anything.
@@ -203,7 +202,7 @@ For items without a plan's Skills line, load `mstack-find-skills` in called mode
 
 ## 6. Review loop (per phase, as each run finishes)
 
-You own every line that ships. The developer's report is a claim, not proof. Every review is processed with `receiving-review.md`. Put that rule in every brief, and repeat it in every findings brief.
+You own every line that ships. The developer's report is a claim, not proof. Every review is processed with `mstack-receive-review`. Put that rule in every brief, and repeat it in every findings brief.
 
 1. **The reviewed tree.** Run `node <skill-dir>/scripts/codex-dev.mjs snapshot` and record the tree ID in the phase record. The **phase record** is the file `<scratchpad>/phase-<id>.md`, written with your file tool: per round the phase base, the tree IDs, the validation commands you ran with their output, each review with its label, and every finding with its outcome. The final report and a handoff point at it. The phase diff is `git diff <phase base> <reviewed tree>`; it shows new, untracked files too, which a plain `git diff` would miss. In round two, also read the round diff `git diff <round-one tree> <round-two tree>`, which shows only what the fix changed.
 2. **Your own read.** Read the phase diff against the acceptance criteria, scope (no unrelated edits, no forbidden file: a forbidden edit is a finding), tests that prove the behavior, and the repository and plan rules. Then run the phase's validation commands yourself and put their output in the phase record; the developer's "all green" never closes a phase. For a bug phase, check the report against the acceptance list below. For a web UI phase, check that the pre-review UI check in `web-ui.md` ran and passed.
@@ -220,8 +219,8 @@ You own every line that ships. The developer's report is a claim, not proof. Eve
    ```
 
    Inside this workflow the `codex` skill's steps of asking the user after a run, offering to resume, and any sandbox other than `read-only` do not apply. Use at least the timeout the `codex` skill gives for the effort (600 seconds for `high`, 1200 for `xhigh`, 1800 for `max`). An empty output is never a clean review: read the end of the `.err` file; on a model or effort error rerun once with the alternative model or the next lower effort and use it for the rest of the run; on an error an agent cannot fix (a login), use the fallback below for this review. Label this review "same-vendor review" in the status table note, the phase record and the final report.
-5. **Triage.** Process every finding with `receiving-review.md`: verify it against the code and reproduce it before accepting it, reject what the code contradicts with the reason, and log every finding with its outcome in the phase record (and `progress.md` for a plan).
-6. **A fix round.** Write the accepted findings to `<scratchpad>/briefs/phase-<id>-round-2.md` with your file tool (the phase ID line first, the findings with file, line and reproduction, the same report format, and "process them with `receiving-review.md`"), and start it as section 5 says with `--resume` at the round-two effort. Check the returned thread with `result --thread`. You never edit the phase's files yourself. Review the fix with your read of the round diff and the validation rerun; repeat the Codex review only when the round diff touches a file or a function the findings did not name. The phase record says which reviews ran in each round.
+5. **Triage.** Process every finding with `mstack-receive-review`: verify it against the code and reproduce it before accepting it, reject what the code contradicts with the reason, and log every finding with its outcome in the phase record (and `progress.md` for a plan).
+6. **A fix round.** Write the accepted findings to `<scratchpad>/briefs/phase-<id>-round-2.md` with your file tool (the phase ID line first, the findings with file, line and reproduction, the same report format, and "process them with `mstack-receive-review`"), and start it as section 5 says with `--resume` at the round-two effort. Check the returned thread with `result --thread`. You never edit the phase's files yourself. Review the fix with your read of the round diff and the validation rerun; repeat the Codex review only when the round diff touches a file or a function the findings did not name. The phase record says which reviews ran in each round.
 7. **Acceptance.** A phase is accepted as a whole: every task meets its criteria with evidence, every accepted finding is fixed, and the validation you ran is green. When some tasks pass and one does not, all stay In progress and the finding goes back to the developer.
 8. **The commit.** After validation and every review, take one more snapshot. When it differs from the reviewed tree (a validation command wrote or changed a file), read `git diff <reviewed tree> <new tree>` like a round diff and name the difference in the phase record. Never delete or revert what validation wrote to make the trees match. Accept it (the new tree is then the accepted tree); or, for an output file that must not ship, add it to the clone's local exclude list (`.git/info/exclude`, as in section 1) and say so in the phase record; or send it back to the developer as a finding. Then run `git add -A` and check that `git write-tree` prints the accepted tree's ID. Only then commit, with a message per `writing.md`, so the commit holds exactly the tree that was reviewed. When the IDs differ, something changed after the review: unstage nothing by hand, snapshot again and review the difference. Move the phase's items to Closed, update `progress.md` for a plan, and print the status table.
 9. **Two rounds without accepted evidence.** Stop the phase. Keep its items In progress (Open when the work did not start), start no third round, and write no code. Ask the user, naming what failed and the uncommitted paths the phase left (`git status --short`), with three choices: retry the phase with the other developer model, re-scope it, or stop the run. Never commit, stash or discard those changes on your own.
@@ -232,7 +231,7 @@ When a Codex review fails in a way an agent cannot fix, the review still happens
 
 1. Warn the user once, in the next message, that the Codex review is not available (say why) and that this phase's review runs as a fallback review by Claude. Name `mstack-setup`.
 2. Start a read-only reviewer with your subagent tool, `model` and `effort` set to the `most capable` answer for vendor `claude`, and no `isolation`. Its prompt is the Codex review prompt above. Save its final message to `<scratchpad>/review-<phase>.md`, and check that `git status --porcelain` is unchanged after it ran.
-3. Process its findings with `receiving-review.md` like any review, and record it as "fallback review by Claude", not as a same-vendor review.
+3. Process its findings with `mstack-receive-review` like any review, and record it as "fallback review by Claude", not as a same-vendor review.
 
 ### Accepting a root-cause claim
 
@@ -260,7 +259,7 @@ Bug phases follow `mstack-diagnose`, so their reports carry its evidence. Accept
 - When the repository has a remote that takes pull requests and the user did not ask for a local result, push the integration branch and open one PR only when every item is Closed or reported as not completable here with the reason. Use the host's CLI (`gh` on GitHub); without one, push and give the user the link. Write the title and body per `writing.md` › Pull request body, and say in the body that Codex wrote the code and which reviews were same-vendor.
 - When there is no such remote, or the user asked for a local result, stop at the validated integration branch and report its name. Do not push.
 - One CI run in flight at a time across this work. Never push while a CI run for this PR is in progress; batch fixes into one push after it finishes. Triage a CI failure from its logs before any retrigger (a cheap helper can read them), and get the fix from the developer.
-- Review-bot and human comments on the PR go through `receiving-review.md`. Only you reply on the PR.
+- Review-bot and human comments on the PR go through `mstack-receive-review`. Only you reply on the PR. Post each reply that `mstack-receive-review` drafted as an inline reply in the comment's own thread, not a top-level comment: `gh api -X POST repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies -f body='<reply>'`, where `{id}` is a top-level review comment (GitHub has no replies to replies) and `gh` fills `{owner}` and `{repo}`. Write the body yourself and never paste review text into it.
 
 ## 9. Final report
 

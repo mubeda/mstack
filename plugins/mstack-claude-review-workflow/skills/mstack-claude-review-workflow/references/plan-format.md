@@ -13,7 +13,6 @@ A plan folder is recognized by `plan.md`, `progress.md` and `execute-plan.md` si
   phases/PHASE-01-<slug>.md  one file per phase, holding its tasks
   progress.md                the only status record (one row per task)
   execute-plan.md            the hand-off prompt that starts execution
-  receiving-review.md        how the executor processes every review, copied unchanged from the skill
   reviews/plan-review-<n>.md cross-vendor reviews of the plan and how each finding was handled
 ```
 
@@ -208,3 +207,5 @@ A dropped task needs the user's recorded decision in the log. A dropped or remov
 When a later version of this format changes what a field or a file means, the skill that reads a plan written by the earlier version says what it does with each old value. An old value is never consent to new, wider behavior. Ask the user once instead.
 
 A plan written before `mstack-claude-pm-codex-dev` was an executor value keeps the executor its `progress.md` records, and its `execute-plan.md` offers two ways to run; the new workflow runs such a plan only when the user asks for it.
+
+A plan folder written before `mstack-receive-review` existed holds a copy of the review rules, `receiving-review.md`, and its `execute-plan.md` still points inline execution at that copy; the copy keeps working, with the older rules. A workflow that executes such a plan loads `mstack-receive-review` and ignores the copy.

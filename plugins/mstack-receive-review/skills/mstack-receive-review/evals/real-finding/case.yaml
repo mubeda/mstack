@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: real-finding
+expected_outcome: |
+  The review finds that parse_quantity accepts negative numbers; parse_price has the same mistake.
+  The run writes a failing test first, fixes parse_quantity, finds and fixes parse_price too with its own test, and the tests pass.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-receive-review]

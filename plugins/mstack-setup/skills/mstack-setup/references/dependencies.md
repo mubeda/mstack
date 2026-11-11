@@ -16,7 +16,7 @@ Run each command on its own, in the order of the table, and only after the user'
 | `reviewer-plugin` | the cross-vendor reviewer | skill-codex: `claude plugin marketplace add skills-directory/skill-codex`, then `claude plugin install skill-codex@skill-codex --scope user` | agent-bridges `claude`, plugin route only (the skill runs a script the skills command does not install): `codex plugin marketplace add https://github.com/mubeda/agent-bridges.git`, then `codex plugin add claude@agent-bridges` |
 | `reviewer-cli` | the reviewer's command-line tool | `npm install -g @openai/codex` | `npm install -g @anthropic-ai/claude-code` |
 | `reviewer-login` | the reviewer can run | manual step: `codex login`, then `codex login status` | manual step: `claude auth login`, then `claude auth status` |
-| `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup` | skills the other mstack skills call | `claude plugin marketplace add mubeda/mstack` (once), then `claude plugin install <id>@mstack --scope user` | `codex plugin marketplace add mubeda/mstack` (once), then `codex plugin add <id>@mstack` |
+| `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review`, `mstack-setup` | skills the other mstack skills call | `claude plugin marketplace add mubeda/mstack` (once), then `claude plugin install <id>@mstack --scope user` | `codex plugin marketplace add mubeda/mstack` (once), then `codex plugin add <id>@mstack` |
 
 What `codegraph install --yes --target=<host>` writes, to tell the user before the yes:
 

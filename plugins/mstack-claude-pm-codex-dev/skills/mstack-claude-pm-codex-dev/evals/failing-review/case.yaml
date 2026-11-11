@@ -9,7 +9,7 @@ context:
   scaffold_script: place-files.sh
   working_folder: mathlib
 needs:
-  skills: [mstack-claude-pm-codex-dev, mstack-find-skills, mstack-best-model-for]
+  skills: [mstack-claude-pm-codex-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review]
   plugin_dir: evals/_fixture/fake-developer
   env:
     CLAUDE_PLUGIN_DATA: <case data folder>

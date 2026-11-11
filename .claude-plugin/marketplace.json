@@ -127,6 +127,16 @@
       },
       "source": "./plugins/mstack-setup",
       "category": "development"
+    },
+    {
+      "name": "mstack-receive-review",
+      "description": "Process any code review as claims to check: verify each finding against the code with the method its type calls for, fix what holds with a failing test first and in every place with the same mistake, reject what does not with evidence, and log every outcome with a drafted reply, without asking the user. The other mstack skills call it for every review. One skill for Claude Code and Codex.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-receive-review",
+      "category": "workflow"
     }
   ]
 }

@@ -75,9 +75,9 @@ for (const file of sharedFiles) {
   }
 }
 
-// mstack-plan writes plans in the format the three workflows read, and all four process reviews the same way,
-// so these files ship identically in all four plugins.
-for (const file of ['plan-format.md', 'receiving-review.md']) {
+// mstack-plan writes plans in the format the three workflows read, so plan-format.md ships identically in all four plugins.
+// The review rules live only in mstack-receive-review, which all four load.
+for (const file of ['plan-format.md']) {
   const path = (name) => `plugins/${name}/skills/${name}/references/${file}`;
   for (const name of shared) {
     assert.equal(read(path(name)), read(path('mstack-plan')), `${file} differs between mstack-plan and ${name}; edit all four copies`);
@@ -113,15 +113,14 @@ const planSkill = resolve(root, 'plugins/mstack-plan/skills/mstack-plan');
 const lint = spawnSync(process.execPath, [resolve(planSkill, 'scripts/check-plan.mjs'), resolve(planSkill, 'evals/_fixture/sample-plan')], { encoding: 'utf8' });
 assert.equal(lint.status, 0, `check-plan.mjs rejects evals/_fixture/sample-plan:\n${lint.stdout}${lint.stderr}`);
 
-// plan-format.md says a plan folder's receiving-review.md is copied unchanged from the skill.
-assert.equal(readFileSync(resolve(planSkill, 'evals/_fixture/sample-plan/receiving-review.md'), 'utf8'), readFileSync(resolve(planSkill, 'references/receiving-review.md'), 'utf8'),
-  'mstack-plan: evals/_fixture/sample-plan/receiving-review.md differs from references/receiving-review.md; copy it again');
+// The review rules have one home: no plugin ships a copy of them.
+for (const name of readdirSync(resolve(root, 'plugins'))) {
+  const copy = `plugins/${name}/skills/${name}/references/receiving-review.md`;
+  assert(!existsSync(resolve(root, copy)), `${copy} exists; the review rules live only in mstack-receive-review`);
+}
 
-// mstack-claude-pm-codex-dev's test cases run a plan folder too, so it must pass the linter and carry the same review rules.
+// mstack-claude-pm-codex-dev's test cases run a plan folder too, so it must pass the linter.
 const pmPlan = resolve(root, 'plugins/mstack-claude-pm-codex-dev/skills/mstack-claude-pm-codex-dev/evals/_fixture/plan');
 const pmLint = spawnSync(process.execPath, [resolve(planSkill, 'scripts/check-plan.mjs'), pmPlan], { encoding: 'utf8' });
 assert.equal(pmLint.status, 0, `check-plan.mjs rejects mstack-claude-pm-codex-dev's evals/_fixture/plan:\n${pmLint.stdout}${pmLint.stderr}`);
-assert.equal(readFileSync(resolve(pmPlan, 'receiving-review.md'), 'utf8'), readFileSync(resolve(planSkill, 'references/receiving-review.md'), 'utf8'),
-  "mstack-claude-pm-codex-dev: evals/_fixture/plan/receiving-review.md differs from mstack-plan's references/receiving-review.md; copy it again");
-
 console.log(`Marketplace checks passed: ${claude.length} Claude plugins, ${codex.length} Codex plugins`);

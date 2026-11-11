@@ -6,6 +6,7 @@ This skill adapts methods from the open-source projects below. The rules were re
 |---|---|---|---|
 | superpowers `brainstorming` 7.0.2 | https://github.com/obra/superpowers | MIT | `SKILL.md` (the start rule, reading before asking, the first message, open questions until the reason is known, playback, approaches before the write-up, throwaway prototypes, the approval gate), `references/brief-template.md` (goals, non-goals and anti-goals) |
 | pstack (`architect` skill and its references, `docs/guide/04-design.md`) | https://github.com/cursor/plugins/tree/main/pstack | MIT | `SKILL.md` (usage first for things that are called, whole-shape approaches), `references/design-red-flags.md`, `references/brief-template.md` (tradeoffs accepted) |
+| `grilling`, `grill-me` | https://github.com/mattpocock/skills | MIT | `SKILL.md` (the design tree, the frontier and its rounds, facts looked up instead of asked, the end of the interview) |
 | `product-brainstorming` (product-management plugin) | https://github.com/anthropics/knowledge-work-plugins | Apache-2.0 | `references/ideas.md` (ways of generating ideas, assumptions to test before choosing) |
 | `bmad-brainstorming` | https://github.com/bmad-code-org/bmad-method | MIT | `references/ideas.md` (generating apart from judging, narrowing to a short list, the agent generating by default) |
 
@@ -14,6 +15,8 @@ This skill adapts methods from the open-source projects below. The rules were re
 Copyright (c) 2025 Jesse Vincent (superpowers)
 
 Copyright (c) 2026 Lauren Tan (pstack)
+
+Copyright (c) 2026 Matt Pocock (mattpocock/skills)
 
 Copyright (c) 2025 BMad Code, LLC (bmad-method)
 

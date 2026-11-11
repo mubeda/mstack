@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,4 +47,12 @@ test('an unknown executor fails with a line that names all five allowed values',
   for (const value of ['none', 'inline', 'mstack-codex-review-workflow', 'mstack-claude-review-workflow', 'mstack-claude-pm-codex-dev']) {
     assert.ok(line.includes(value), `${value} missing from: ${line}`);
   }
+});
+
+test('a plan folder without receiving-review.md passes, because mstack-receive-review holds the review rules', () => {
+  const dir = join(mkdtempSync(join(tmpdir(), 'plan-check-')), 'plan');
+  cpSync(sample, dir, { recursive: true });
+  rmSync(join(dir, 'receiving-review.md'), { force: true });
+  const r = spawnSync(process.execPath, [script, dir], { encoding: 'utf8' });
+  assert.equal(r.status, 0, `${r.stdout}${r.stderr}`);
 });

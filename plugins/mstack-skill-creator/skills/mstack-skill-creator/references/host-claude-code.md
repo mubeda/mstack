@@ -53,4 +53,4 @@ Codex, through the `codex` skill of the skill-codex plugin, or `codex exec --san
 
 ## mstack skills supported here
 
-Twelve of the thirteen mstack skills, as of 2026-11-10: `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-codex-review-workflow`, `mstack-claude-pm-codex-dev`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup`, and this skill. `mstack-claude-review-workflow` is the Codex workflow and does not run here.
+Thirteen of the fourteen mstack skills, as of 2026-11-10: `mstack-receive-review`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-codex-review-workflow`, `mstack-claude-pm-codex-dev`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup`, and this skill. `mstack-claude-review-workflow` is the Codex workflow and does not run here.

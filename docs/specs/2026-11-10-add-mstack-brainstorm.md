@@ -316,6 +316,7 @@ D10. `mstack-write-specs` is named in the hand-off, never required. Alternatives
 D11. `mstack-find-skills` lists the skill for an unformed idea. Alternatives considered: no pointer, which leaves nothing in the chain leading to the skill. Decided by: user. Source: round 2, question 6.
 D12. From pstack the skill takes four things only: usage-first design, whole-shape alternatives, the red-flags screen and the tradeoffs-accepted part. Alternatives considered: its restate-first, prototype and sizing rules, which the base skill already has. Decided by: agent's call. Source: comparison of the pstack research with the base skill's text.
 D13. A prototype of a screen or page uses an installed UI design skill that `mstack-find-skills` returns, named and never required, and no UI guideline text is copied into this skill (the installed candidate has no license file). Alternatives considered: copying a UI skill's guidelines, which the repository's rules forbid for an unlicensed source; no UI skill at all. Decided by: user. Source: conversation 2026-11-10, during execution.
+D14. The numbered rounds use the design tree and frontier method of mattpocock `grilling` and `grill-me` (MIT), rewritten and credited, which widens D7's list of sources by one. Alternatives considered: keeping D7's four sources, which leaves the brainstorm's rounds without the method `mstack-write-specs` already uses. Decided by: user. Source: conversation 2026-11-10, after execution.
 
 ## Risks
 

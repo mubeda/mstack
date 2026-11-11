@@ -128,7 +128,7 @@ else {
   const ok = loggedIn(cli, host === 'claude' ? ['login', 'status'] : ['auth', 'status']);
   add('reviewer-login', 'mandatory', ok, `${cliName} logged in`, ok ? 'ok' : 'LOGIN');
 }
-for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-setup']) add(s, 'mandatory', hasSkill(s), 'mstack skill');
+for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-setup']) add(s, 'mandatory', hasSkill(s), 'mstack skill');
 add('ui-ux-pro-max', 'optional', hasSkill('ui-ux-pro-max'), 'UI design skill');
 add('gh', 'optional', which('gh'), 'GitHub command-line tool');
 add('python3', 'optional', which('python3') || (win && (which('python') || which('py'))), 'Python 3');

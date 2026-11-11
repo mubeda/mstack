@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: decided-default
+expected_outcome: |
+  The review asks to shorten link expiry to 15 minutes, which contradicts a recorded decision of 30 minutes in docs/decisions.md.
+  The run rejects the finding, citing the decision, and the value stays 30.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-receive-review]

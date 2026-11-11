@@ -76,7 +76,13 @@ While you do not know why the user wants the thing, ask one open question per me
 
 ### 4. Numbered rounds once choices have names
 
-When the reason is known and the open decisions have choices you can name, ask them together in one numbered round, in your question tool. Each question carries your recommendation and its reason, worded so that a plain yes accepts it. A question that depends on another open question waits for a later round. When the user hands a choice back ("you decide"), make a specific proposal and mark it as your call.
+Once the reason is known, treat the open decisions as a **design tree**: each decision opens the decisions that hang off it. The **frontier** is every open decision whose prerequisites are already settled.
+
+1. Ask the whole frontier together in one numbered round, in your question tool. Each question carries your recommendation and its reason, worded so that a plain yes accepts it. A question that depends on another open question is not on the frontier yet, so it waits for a later round.
+2. After each answer, work the frontier out again from the start: a settled decision opens the ones that hung off it, and a later answer that changes an earlier one reopens that branch.
+3. Facts are never on the frontier. When a decision needs a fact (what the code does today, what a file says), look it up yourself, with a subagent when it takes a while, and keep asking the questions that do not wait on it.
+4. When the user hands a choice back ("you decide"), make a specific proposal and mark it as your call.
+5. The interview ends once no open decision is left on the frontier, each branch of the tree was walked, and no choice rests on a silent assumption. Ask the user to confirm the shared understanding before the approaches message.
 
 ### 5. Play it back
 

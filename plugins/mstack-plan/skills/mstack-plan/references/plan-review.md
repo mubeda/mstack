@@ -98,7 +98,7 @@ An empty output file or a non-zero exit is never a clean review. Read the last l
 
 ## Handle the findings
 
-Process the review with `references/receiving-review.md`, without asking the user anything. Save the reviewer's output, unchanged, as `<plan-folder>/reviews/plan-review-<n>.md`, then append a "Handling" section to it with one line per finding: the finding, its outcome (fixed, rejected, deferred or kept for approval) and the reason or evidence.
+Process the review with `mstack-receive-review`, without asking the user anything. Save the reviewer's output, unchanged, as `<plan-folder>/reviews/plan-review-<n>.md`, then append a "Handling" section to it with one line per finding: the finding, its outcome (fixed, rejected, deferred or kept for approval) and the reason or evidence.
 
 1. Verify each finding against the code, the spec and the plan's sources before accepting it.
 2. An unclear finding goes back to the reviewer once, with a specific question. Resume the reviewer when its tool supports it, otherwise rerun it with the question and the original finding. Still unclear means rejected.

@@ -9,6 +9,6 @@ context:
   scaffold_script: place-files.sh
   working_folder: mathlib
 needs:
-  skills: [mstack-claude-pm-codex-dev, mstack-find-skills, mstack-best-model-for]
+  skills: [mstack-claude-pm-codex-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review]
   plugin_dir: <the installed OpenAI Codex plugin folder>
   tools: [a logged-in codex CLI on PATH]

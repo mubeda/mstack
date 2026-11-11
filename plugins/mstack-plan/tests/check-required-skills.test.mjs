@@ -35,3 +35,11 @@ for (const host of ['claude', 'codex']) {
     assert.doesNotMatch(r.out, /MISSING {2}mstack-(find-skills|best-model-for)/, r.out);
   });
 }
+
+for (const host of ['claude', 'codex']) {
+  test(`${host}: a missing mstack-receive-review is reported and fails the check`, () => {
+    const r = run(host, ['mstack-find-skills', 'mstack-best-model-for']);
+    assert.equal(r.status, 1, r.out);
+    assert.match(r.out, /MISSING {2}mstack-receive-review/);
+  });
+}

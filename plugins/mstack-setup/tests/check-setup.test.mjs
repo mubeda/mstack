@@ -40,14 +40,14 @@ function run(m, args, env = {}) {
 }
 
 const MANDATORY_CLAUDE = ['node', 'git', 'codegraph-cli', 'codegraph-connected', 'ponytail', 'reviewer-plugin',
-  'reviewer-cli', 'mstack-find-skills', 'mstack-best-model-for', 'mstack-setup'];
+  'reviewer-cli', 'mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-setup'];
 
 function completeClaude(m, base = '.claude') {
   m.stub('node').stub('git').stub('codegraph').stub('codex');
   const cache = `${base}/plugins/cache`;
   m.skill(`${cache}/ponytail/ponytail/5.3.3/skills/ponytail`);
   m.file(`${cache}/skill-codex/skill-codex/1.3.1/skills/codex/SKILL.md`, 'Run codex exec.');
-  for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-setup']) m.skill(`${cache}/mstack/${s}/0.1.0/skills/${s}`);
+  for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-setup']) m.skill(`${cache}/mstack/${s}/0.1.0/skills/${s}`);
   m.file(`${base}/plugins/installed_plugins.json`, JSON.stringify({ version: 2, plugins: { 'ponytail@ponytail': [{}], 'skill-codex@skill-codex': [{}] } }));
   const cfg = base === '.claude' ? '.claude.json' : `${base}/.claude.json`;
   m.file(cfg, JSON.stringify({ mcpServers: { codegraph: { command: 'codegraph', args: ['serve', '--mcp'] } } }));

@@ -78,11 +78,13 @@ warn() { # $1 = label, $2 = command, $3 = what happens without it
 check "node on PATH"                              "command -v node >/dev/null"
 check "mstack-find-skills (Claude side)"          "has_claude_skill mstack-find-skills"
 check "mstack-best-model-for (Claude side)"       "has_claude_skill mstack-best-model-for"
+check "mstack-receive-review (Claude side)"        "has_claude_skill mstack-receive-review"
 check "Codex plugin for Claude Code"              "command -v node >/dev/null && node \"$here/codex-dev.mjs\" locate >/dev/null 2>&1"
 check "codex CLI logged in"                       "command -v codex >/dev/null && codex login status >/dev/null 2>&1"
 check "ponytail (Codex side)"                     "has_codex_skill ponytail"
 check "mstack-diagnose (Codex side)"              "has_codex_skill mstack-diagnose"
 check "mstack-best-model-for (Codex side)"       "has_codex_skill mstack-best-model-for"  # mstack-diagnose requires it in the developer's sessions
+check "mstack-receive-review (Codex side)"        "has_codex_skill mstack-receive-review"  # the developer processes findings with it
 warn  "codex skill (skill-codex plugin)"          "has_skill_codex" "the Codex review uses the plain codex exec command"
 
 if [ "$github" = 1 ]; then

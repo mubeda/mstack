@@ -20,7 +20,7 @@ const spec = read('spec.md');
 const plan = read('plan.md');
 const progress = read('progress.md');
 const execute = read('execute-plan.md');
-for (const [name, text] of [['spec.md', spec], ['plan.md', plan], ['progress.md', progress], ['execute-plan.md', execute], ['receiving-review.md', read('receiving-review.md')]]) {
+for (const [name, text] of [['spec.md', spec], ['plan.md', plan], ['progress.md', progress], ['execute-plan.md', execute]]) {
   if (text === null) fail(`missing ${name}`);
 }
 const phaseDir = join(dir, 'phases');

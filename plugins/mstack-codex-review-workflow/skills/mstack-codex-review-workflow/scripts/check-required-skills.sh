@@ -52,6 +52,7 @@ check "ponytail"                          "has_skill ponytail"
 check "mstack-diagnose (this marketplace)"  "has_skill mstack-diagnose"
 check "mstack-find-skills (this marketplace)"  "has_skill mstack-find-skills"
 check "mstack-best-model-for (this marketplace)" "has_skill mstack-best-model-for"
+check "mstack-receive-review (this marketplace)" "has_skill mstack-receive-review"
 reviewer "codex skill (skill-codex plugin)"   "has_codex_skill"
 reviewer "codex CLI logged in"               "command -v codex >/dev/null && codex login status >/dev/null 2>&1"
 

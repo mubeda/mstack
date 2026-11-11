@@ -23,7 +23,7 @@ function machine(o = {}) {
   writeFileSync(join(bin, 'gh'), '#!/bin/sh\nexit 0\n');
   for (const t of ['codex', 'gh']) chmodSync(join(bin, t), 0o755);
 
-  for (const s of ['mstack-find-skills', 'mstack-best-model-for']) put(join(claude, 'skills', s));
+  for (const s of ['mstack-find-skills', 'mstack-best-model-for', ...(o.noReceiveReview ? [] : ['mstack-receive-review'])]) put(join(claude, 'skills', s));
   const record = {};
   if (!o.noCodexPlugin) {
     const install = join(claude, 'plugins', 'cache', 'openai-codex', 'codex', '1.0.6');
@@ -33,7 +33,7 @@ function machine(o = {}) {
   if (!o.noSkillCodex) put(join(claude, 'plugins', 'cache', 'skill-codex', 'skill-codex', '1.0.0', 'skills', 'codex'), 'SKILL.md', 'codex exec');
   put(join(claude, 'plugins'), 'installed_plugins.json', JSON.stringify({ version: 2, plugins: record }));
 
-  const codexSide = ['mstack-diagnose', ...(o.noCodexModel ? [] : ['mstack-best-model-for']), ...(o.ponytail === 'codex' || o.ponytail === undefined ? ['ponytail'] : []), ...(o.uiux ? ['ui-ux-pro-max'] : [])];
+  const codexSide = ['mstack-diagnose', ...(o.noCodexModel ? [] : ['mstack-best-model-for']), ...(o.noReceiveReview ? [] : ['mstack-receive-review']), ...(o.ponytail === 'codex' || o.ponytail === undefined ? ['ponytail'] : []), ...(o.uiux ? ['ui-ux-pro-max'] : [])];
   for (const s of codexSide) put(join(codex, 'skills', s));
   if (o.ponytail === 'claude') put(join(claude, 'skills', 'ponytail'));
   if (o.ponytail === 'cache') {
@@ -56,7 +56,7 @@ test('every item present: exit 0, no MISSING line, items in order', () => {
   assert.equal(r.status, 0, r.out);
   assert.doesNotMatch(r.out, /MISSING/);
   const labels = r.out.trim().split('\n').map((l) => l.replace(/^\S+\s+/, '').replace(/ is missing.*$/, ''));
-  assert.deepEqual(labels, ['node on PATH', 'mstack-find-skills (Claude side)', 'mstack-best-model-for (Claude side)', 'Codex plugin for Claude Code', 'codex CLI logged in', 'ponytail (Codex side)', 'mstack-diagnose (Codex side)', 'mstack-best-model-for (Codex side)', 'codex skill (skill-codex plugin)']);
+  assert.deepEqual(labels, ['node on PATH', 'mstack-find-skills (Claude side)', 'mstack-best-model-for (Claude side)', 'mstack-receive-review (Claude side)', 'Codex plugin for Claude Code', 'codex CLI logged in', 'ponytail (Codex side)', 'mstack-diagnose (Codex side)', 'mstack-best-model-for (Codex side)', 'mstack-receive-review (Codex side)', 'codex skill (skill-codex plugin)']);
 });
 
 test('no Codex plugin in the install record: exit 1', () => {
@@ -133,4 +133,11 @@ test('mstack-best-model-for only on the Claude side: exit 1, because mstack-diag
   const r = check({ noCodexModel: true });
   assert.equal(r.status, 1, r.out);
   assert.match(r.out, /^MISSING {2}mstack-best-model-for \(Codex side\)/m);
+});
+
+test('a missing mstack-receive-review is reported on both sides: exit 1', () => {
+  const r = check({ noReceiveReview: true });
+  assert.equal(r.status, 1, r.out);
+  assert.match(r.out, /^MISSING {2}mstack-receive-review \(Claude side\)/m);
+  assert.match(r.out, /^MISSING {2}mstack-receive-review \(Codex side\)/m);
 });
