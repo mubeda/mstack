@@ -37,7 +37,7 @@ has_claude_skill() { # $1 = skill folder name
   while IFS= read -r p; do
     rel="${p#"$claude_cache"}"; rel="${rel#/}"; rel="${rel#/}"
     market="${rel%%/*}"; rel="${rel#*/}"; plugin="${rel%%/*}"
-    grep -q "\"$plugin@$market\"" "$claude_dir/plugins/installed_plugins.json" 2>/dev/null && return 0
+    grep -qF "\"$plugin@$market\"" "$claude_dir/plugins/installed_plugins.json" 2>/dev/null && return 0
   done < <(find "$claude_cache/" -path "*/skills/$1/SKILL.md" 2>/dev/null)
   return 1
 }

@@ -16,7 +16,7 @@ This file is the same for both hosts. It never names a host tool outside the tab
 | your question tool | `AskUserQuestion` for a short choice; a numbered round in chat for longer ones | A numbered round in chat, then wait for the answer |
 | your subagent tool | `Agent` with a fresh context, `model` and `effort` set | A separate read-only `codex exec` run with `-m` and `model_reasoning_effort` set, or the session's agent tool if it has one |
 | loading a skill | The Skill tool | Read the skill's SKILL.md and follow it |
-| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/` (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/` (`CODEX_HOME` replaces `~/.codex`) |
+| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/`, but only under a plugin that `claude plugin list` shows as installed, because the cache keeps leftover copies (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/`, but only under a plugin that Codex has enabled in its `config.toml` (`CODEX_HOME` replaces `~/.codex`) |
 
 Refer to the files below by their path inside this skill's folder.
 

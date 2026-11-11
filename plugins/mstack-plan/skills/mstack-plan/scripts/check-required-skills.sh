@@ -26,26 +26,53 @@ else
   plugin_cache="${CODEX_HOME:-$HOME/.codex}/plugins/cache"
 fi
 
+if [ "$host" = claude ]; then record_kind=claude; record_file="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json"
+else record_kind=codex; record_file="${CODEX_HOME:-$HOME/.codex}/config.toml"; fi
+
+# A cache folder alone proves nothing (leftover clones and old versions stay there): the host must record the plugin.
+# Claude Code records it as a "<plugin>@<marketplace>" key in installed_plugins.json; Codex as a
+# [plugins."<plugin>@<marketplace>"] table in config.toml that does not say enabled = false.
+plugin_recorded() { # $1 = plugin, $2 = marketplace
+  if [ "$record_kind" = claude ]; then
+    grep -qF "\"$1@$2\"" "$record_file" 2>/dev/null
+  else
+    [ -f "$record_file" ] || return 1
+    awk -v want="[plugins.\"$1@$2\"]" '
+      /^[[:space:]]*\[/ { line=$0; gsub(/^[[:space:]]+|[[:space:]]+$/, "", line); inside = (line == want); if (inside) found=1; next }
+      inside && /^[[:space:]]*enabled[[:space:]]*=[[:space:]]*false/ { off=1 }
+      END { exit !(found && !off) }' "$record_file"
+  fi
+}
+cache_hit_recorded() { # $1 = find -path pattern, $2 = optional file that must exist relative to the hit's folder
+  local p rel market plugin
+  [ -d "$plugin_cache" ] || return 1
+  while IFS= read -r p; do
+    [ -z "${2:-}" ] || [ -f "$(dirname "$p")/$2" ] || continue
+    rel="${p#"$plugin_cache"}"; rel="${rel#/}"; rel="${rel#/}" # BSD find prints "//" after a root that ends in a slash
+    market="${rel%%/*}"; rel="${rel#*/}"; plugin="${rel%%/*}"
+    plugin_recorded "$plugin" "$market" && return 0
+  done < <(find "$plugin_cache/" -path "$1" 2>/dev/null)
+  return 1
+}
+
 has_skill() { # $1 = skill folder name
   local r
   for r in "${roots[@]}"; do [ -f "$r/$1/SKILL.md" ] && return 0; done
-  [ -d "$plugin_cache" ] && find "$plugin_cache/" -path "*/skills/$1/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
-  return 1
+  cache_hit_recorded "*/skills/$1/SKILL.md"
 }
 
 # skill-codex installs a skill folder named `codex`; other plugins can ship one too, so match its plugin path
 # or, for a standalone copy, its `codex exec` instructions.
 has_codex_skill() {
   local r
-  [ -d "$plugin_cache" ] && find "$plugin_cache/" -path "*skill-codex*/skills/codex/SKILL.md" -print -quit 2>/dev/null | grep -q . && return 0
+  cache_hit_recorded "*skill-codex*/skills/codex/SKILL.md" && return 0
   for r in "${roots[@]}"; do [ -f "$r/codex/SKILL.md" ] && grep -q "codex exec" "$r/codex/SKILL.md" && return 0; done
   return 1
 }
 
 # The agent-bridges `claude` plugin ships `claude-review` next to the companion script it runs.
 has_claude_review() {
-  [ -d "$plugin_cache" ] && find "$plugin_cache/" -path "*/skills/claude-review/SKILL.md" 2>/dev/null \
-    | while read -r f; do [ -f "$(dirname "$f")/../../scripts/claude-companion.mjs" ] && echo y; done | grep -q y
+  cache_hit_recorded "*/skills/claude-review/SKILL.md" "../../scripts/claude-companion.mjs"
 }
 
 missing=0

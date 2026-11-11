@@ -69,7 +69,26 @@ const cacheSkills = findFiles(cache, (p) => p.endsWith('SKILL.md')).map(norm);
 
 function hasSkill(name) {
   if (skillRoots.some((r) => existsSync(join(r, name, 'SKILL.md')))) return true;
-  return cacheSkills.some((p) => p.endsWith(`/skills/${name}/SKILL.md`));
+  // A cache folder alone proves nothing (leftover clones and old versions stay there): the host must record the plugin.
+  return cacheSkills.some((p) => p.endsWith(`/skills/${name}/SKILL.md`) && recorded(p));
+}
+// True when the cache path sits under <cache>/<marketplace>/<plugin>/ and the host records "<plugin>@<marketplace>".
+function recorded(path) {
+  const [market, plugin] = path.slice(norm(cache).length).replace(/^\/+/, '').split('/');
+  return Boolean(market && plugin) && pluginRecorded(`${plugin}@${market}`);
+}
+function pluginRecorded(key) {
+  if (host === 'claude') {
+    try { return Object.hasOwn(JSON.parse(readFileSync(join(claudeDir, 'plugins', 'installed_plugins.json'), 'utf8')).plugins ?? {}, key); } catch { return false; }
+  }
+  let text;
+  try { text = readFileSync(join(codexDir, 'config.toml'), 'utf8'); } catch { return false; }
+  // The plugin's table, up to the next table header; switched off when it says enabled = false.
+  const at = text.split(/\r?\n/).findIndex((l) => l.trim() === `[plugins."${key}"]`);
+  if (at < 0) return false;
+  const rest = text.split(/\r?\n/).slice(at + 1);
+  const end = rest.findIndex((l) => /^\s*\[/.test(l));
+  return !(end < 0 ? rest : rest.slice(0, end)).some((l) => /^\s*enabled\s*=\s*false/.test(l));
 }
 // skill-codex ships a skill folder named `codex`; match its plugin path, or a standalone copy that runs `codex exec`.
 function hasCodexSkill() {

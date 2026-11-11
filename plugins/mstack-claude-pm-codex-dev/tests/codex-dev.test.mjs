@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readdirSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -248,4 +248,65 @@ test('wait asks once more before reporting gone, so a job that just finished is 
   const r = run(['wait', 'j1'], withJobs([job('j1', 'running', { pid: 999999, answers: ['running', 'completed'] })]));
   assert.equal(r.status, 0, r.out + r.err);
   assert.equal(r.json.state, 'completed');
+});
+
+// --- snapshot seeded from the real index (it must be what `git add -A` would stage)
+
+function repoWith(files) {
+  const repo = mkdtempSync(join(tmpdir(), 'cxd-repo-'));
+  git(repo, 'init', '-q');
+  git(repo, 'config', 'core.trustctime', 'false');
+  for (const [name, text] of Object.entries(files)) writeFileSync(join(repo, name), text);
+  git(repo, 'add', '-A');
+  git(repo, '-c', 'user.name=t', '-c', 'user.email=t' + '@t.invalid', 'commit', '-qm', 'base');
+  return repo;
+}
+
+test('snapshot does not re-read an unchanged tracked file', { skip: process.getuid?.() === 0 }, () => {
+  const repo = repoWith({ 'a.txt': 'a\n', 'b.txt': 'b\n' });
+  // An entry as old as the index is always re-read, so make the file clearly older than the index first.
+  const old = new Date('2026-01-01T00:00:00Z');
+  utimesSync(join(repo, 'a.txt'), old, old);
+  git(repo, 'update-index', '--refresh');
+  chmodSync(join(repo, 'a.txt'), 0o000);
+  const r = run(['snapshot'], {}, repo);
+  chmodSync(join(repo, 'a.txt'), 0o644);
+  assert.equal(r.status, 0, r.err);
+  assert.equal(r.out.trim(), git(repo, 'rev-parse', 'HEAD^{tree}'));
+});
+
+test('snapshot equals what git add -A stages, also for an assume-unchanged file', () => {
+  const repo = repoWith({ 'a.txt': 'a\n', 'b.txt': 'b\n' });
+  git(repo, 'update-index', '--assume-unchanged', 'a.txt');
+  writeFileSync(join(repo, 'a.txt'), 'changed\n');
+  writeFileSync(join(repo, 'b.txt'), 'changed too\n');
+  const tree = run(['snapshot'], {}, repo).out.trim();
+  git(repo, 'add', '-A');
+  assert.equal(tree, git(repo, 'write-tree'));
+});
+
+test('snapshot sees a same-size edit made in the same second as the last index write', () => {
+  const repo = repoWith({ 'a.txt': 'one\n' });
+  const t = new Date('2026-01-01T00:00:00Z');
+  utimesSync(join(repo, 'a.txt'), t, t);
+  git(repo, 'update-index', '--refresh');
+  utimesSync(join(repo, '.git', 'index'), t, t);
+  writeFileSync(join(repo, 'a.txt'), 'two\n');
+  utimesSync(join(repo, 'a.txt'), t, t);
+  const tree = run(['snapshot'], {}, repo).out.trim();
+  assert.deepEqual(git(repo, 'diff', '--name-only', 'HEAD', tree), 'a.txt');
+});
+
+test('snapshot of a repository with a split index gives the staged tree and writes no shared index file', () => {
+  const repo = repoWith({ 'a.txt': 'a\n' });
+  git(repo, 'config', 'core.splitIndex', 'true');
+  git(repo, 'update-index', '--split-index');
+  writeFileSync(join(repo, 'a.txt'), 'changed\n');
+  writeFileSync(join(repo, 'new.txt'), 'new\n');
+  const shared = () => readdirSync(join(repo, '.git')).filter((f) => f.startsWith('sharedindex.')).sort();
+  const before = shared();
+  const tree = run(['snapshot'], {}, repo).out.trim();
+  assert.deepEqual(shared(), before);
+  git(repo, 'add', '-A');
+  assert.equal(tree, git(repo, 'write-tree'));
 });

@@ -15,7 +15,7 @@
 // jobs, wait and result need CLAUDE_PLUGIN_DATA, which the Codex plugin's session-start hook exports to the session's
 // shell; the plugin finds its job records through it, so the environment is passed through unchanged.
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, statSync, utimesSync, writeSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -94,16 +94,33 @@ if (cmd === 'locate') {
 }
 
 if (cmd === 'snapshot') {
-  // A tree of the working tree built through a temporary index, so untracked files are in, ignored files are out,
-  // and the real index is untouched.
+  // The tree `git add -A` would stage, built in a temporary index so the real index is untouched: untracked files
+  // are in, ignored files are out. The temporary index starts as a copy of the real one, which keeps its stat cache
+  // (unchanged files are not read again) and its flags, so the result equals `git add -A && git write-tree`.
   const dir = mkdtempSync(join(tmpdir(), 'codex-dev-index-'));
-  const env = { ...process.env, GIT_INDEX_FILE: join(dir, 'index') };
-  const git = (...a) => spawnSync('git', a, { cwd, env, encoding: 'utf8' });
-  // The outcome is decided inside the try and acted on after it, because process.exit would skip the cleanup.
+  const index = join(dir, 'index');
+  const env = { ...process.env, GIT_INDEX_FILE: index };
+  // Split-index is off for the temporary index, so it never writes a shared index file into the repository.
+  const git = (...a) => spawnSync('git', ['-c', 'core.splitIndex=false', ...a], { cwd, env, encoding: 'utf8' });
+  const plain = (...a) => spawnSync('git', a, { cwd, encoding: 'utf8' });
+  // Returns true when the real index was copied. A split index keeps part of itself in a shared file, so it is not copied.
+  const seed = () => {
+    if (plain('config', '--bool', 'core.splitIndex').stdout.trim() === 'true') return false;
+    const real = resolve(cwd, plain('rev-parse', '--git-path', 'index').stdout.trim());
+    try {
+      copyFileSync(real, index);
+      // Git re-reads any entry that is not older than its index file. Keep the original's time (whole seconds), or a
+      // fresh copy would look newer than every entry and a same-second, same-size edit would be trusted.
+      const t = Math.floor(statSync(real).mtimeMs / 1000);
+      utimesSync(index, t, t);
+      return true;
+    } catch { return false; }
+  };
   let tree, error;
   try {
-    const head = spawnSync('git', ['rev-parse', '--verify', '-q', 'HEAD'], { cwd, encoding: 'utf8' });
-    for (const step of [head.status === 0 ? ['read-tree', 'HEAD'] : ['read-tree', '--empty'], ['add', '-A'], ['write-tree']]) {
+    const head = plain('rev-parse', '--verify', '-q', 'HEAD');
+    const first = seed() ? [] : [head.status === 0 ? ['read-tree', 'HEAD'] : ['read-tree', '--empty']];
+    for (const step of [...first, ['add', '-A'], ['write-tree']]) {
       const r = git(...step);
       if (r.status !== 0) { error = `git ${step.join(' ')} failed: ${r.stderr.trim()}`; break; }
       tree = r.stdout.trim();

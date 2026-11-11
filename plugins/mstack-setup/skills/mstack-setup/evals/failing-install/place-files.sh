@@ -17,7 +17,7 @@ C=.claude/plugins/cache
 
 
 mkdir -p "$H/$C/skill-codex/skill-codex/1.3.1/skills/codex"; echo "Run codex exec." > "$H/$C/skill-codex/skill-codex/1.3.1/skills/codex/SKILL.md"
-for s in mstack-best-model-for mstack-setup mstack-plan mstack-write-specs mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-codex-review-workflow; do skill "$C/mstack/$s/0.1.0/skills/$s"; done
+for s in mstack-best-model-for mstack-receive-review mstack-setup mstack-plan mstack-write-specs mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-codex-review-workflow; do skill "$C/mstack/$s/0.1.0/skills/$s"; done
 
 skill "$C/mstack/mstack-find-skills/0.1.0/skills/mstack-find-skills"
 stub claude '*"plugin install ponytail"*) echo "Error: marketplace ponytail could not be reached" >&2; exit 1 ;;'
@@ -31,7 +31,12 @@ stub codex; stub npx
   echo 'esac'
   echo 'exit 0'
 } > "$B/npm"
-mkdir -p "$H/.claude/plugins"; echo '{"version":2,"plugins":{"skill-codex@skill-codex":[{}]}}' > "$H/.claude/plugins/installed_plugins.json"
+# The install record: the plugins the case installs elsewhere, plus one "<skill>@mstack" entry per cached mstack skill,
+# because a skill in the cache counts only when its plugin is recorded.
+mkdir -p "$H/.claude/plugins"
+rec='{"version":2,"plugins":{"skill-codex@skill-codex":[{}]}}'
+for d in "$H/$C"/mstack/*/; do rec="${rec%\}\}},\"$(basename "$d")@mstack\":[{}]}}"; done
+echo "$rec" > "$H/.claude/plugins/installed_plugins.json"
 chmod +x "$B"/*
 # testenv runs one command on this test machine only: its own home folders and a PATH of stubs and a few basic tools.
 for t in sh cat ls grep head tail chmod; do p="$(command -v "$t")" && ln -sf "$p" "$B/$t"; done
