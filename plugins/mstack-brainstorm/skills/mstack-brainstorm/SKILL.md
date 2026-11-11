@@ -20,24 +20,24 @@ This file is the same for both hosts. It never names a host tool outside the tab
 
 Refer to the files below by their path inside this skill's folder.
 
-## Required skill, first
+## The model skill, first
 
 Before the first question, check `mstack-best-model-for`, which gives the model of the builder check.
 
 1. It is in this session's skill list (as `mstack-best-model-for` or `<plugin>:mstack-best-model-for`): continue.
 2. Its folder exists on disk (in the user skill folders the host table names) but the session has not loaded it: say that a new session is needed, and stop.
-3. Otherwise print this and stop, with no question asked and no subagent started:
+3. Otherwise it is not installed. Print this once, then continue without subagents: do every delegated step yourself, one after another, start no subagent in this run, and tell the user so.
 
    ```text
-   mstack-brainstorm needs mstack-best-model-for, which is not installed.
+   mstack-brainstorm runs without subagents, because mstack-best-model-for is not installed. To install it:
    Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-best-model-for@mstack
    Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-best-model-for@mstack
    Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex> -y
    Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
-   Then start a new session.
+   A new session picks it up.
    ```
 
-There is no built-in fallback. When the check passes, load `mstack-best-model-for` in called mode once, before the builder check: say that `mstack-brainstorm` is calling, and ask for this host's vendor (`claude` in Claude Code, `codex` in Codex) and the tier `standard`.
+No subagent starts without that skill's answer, because it would run on the session's model, the most expensive choice. The builder check is then your own read of the brief, as `references/builder-check.md` says for a host without a subagent tool, and you tell the user so. When the skill is installed, load `mstack-best-model-for` in called mode once, before the builder check: say that `mstack-brainstorm` is calling, and ask for this host's vendor (`claude` in Claude Code, `codex` in Codex) and the tier `standard`.
 
 ## Ground rules
 

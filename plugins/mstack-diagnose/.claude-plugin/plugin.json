@@ -1,6 +1,6 @@
 {
   "name": "mstack-diagnose",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Diagnose crashes, bugs, regressions, flaky failures, performance problems, hangs and leaks with evidence: intake, a signal from a live loop or a saved crash record, ranked falsifiable hypotheses, one-variable probes, a regression test before the fix, graded root-cause tiers and fix verdicts. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"

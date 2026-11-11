@@ -16,6 +16,10 @@ Write these fields down before you build any loop. Fill each one from what you c
 8. The reporter's own theories, kept apart from the facts.
 9. The problem type and the deliverable, as `SKILL.md` Phase 0 defines them.
 
+## Evidence that will not last
+
+Before you analyze anything, ask what a retry, a restart or a cleanup would destroy: a container and its logs, a job's workspace, a rotating host log, a process that is still hung. Copy what you can reach to a fresh `mktemp` path, and for the rest ask the person who can reach it to capture it before anyone retries. This one request does not wait for the "Ask once" round below. Say in the record what was already gone.
+
 ## Facts and theories
 
 1. Split every statement in the report into what someone saw and why they think it happened. "The export button does nothing since Tuesday" holds a fact (no visible result), a time window (since Tuesday) and an implied theory (something changed on Tuesday).

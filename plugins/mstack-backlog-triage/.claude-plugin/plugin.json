@@ -1,6 +1,6 @@
 {
   "name": "mstack-backlog-triage",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Triage a tracker's open issues into now, next and defer with evidence: read every issue in full, classify each (bug with or without a reproduction, feature, chore, duplicate, not actionable), require a duplicate search before anything goes in the current batch, route items to mstack-write-specs or mstack-diagnose, and output a table the mstack review workflows accept. Drafts comments and label changes, and posts only text the user approved word for word. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"

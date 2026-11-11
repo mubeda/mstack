@@ -90,7 +90,7 @@ check "Codex plugin for Claude Code"              "command -v node >/dev/null &&
 check "codex CLI logged in"                       "command -v codex >/dev/null && codex login status >/dev/null 2>&1"
 check "ponytail (Codex side)"                     "has_codex_skill ponytail"
 check "mstack-diagnose (Codex side)"              "has_codex_skill mstack-diagnose"
-check "mstack-best-model-for (Codex side)"       "has_codex_skill mstack-best-model-for"  # mstack-diagnose requires it in the developer's sessions
+check "mstack-best-model-for (Codex side)"       "has_codex_skill mstack-best-model-for"  # mstack-diagnose takes its subagents' models from it in the developer's sessions
 check "mstack-receive-review (Codex side)"        "has_codex_skill mstack-receive-review"  # the developer processes findings with it
 warn  "codex skill (skill-codex plugin)"          "has_skill_codex" "the Codex review uses the plain codex exec command"
 

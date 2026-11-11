@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: past-ci-failure
+expected_outcome: |
+  A CI test job failed partway on a shared runner and cannot be rerun. The records show the suite was cut off
+  (41 of 120 tests ran) when the database container went away, and the scheduler's record shows a cleanup job
+  on the same runner removing that container seconds earlier. The run names that overlap as the cause at the
+  tier Supported, not Confirmed, says what a retry would destroy and asks for it to be captured first, and
+  proposes keeping the cleanup away from the containers of running jobs without calling it verified.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-diagnose, mstack-best-model-for]

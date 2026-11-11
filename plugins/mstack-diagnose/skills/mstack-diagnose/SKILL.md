@@ -31,27 +31,27 @@ Without a subagent tool, do the delegated steps yourself, one after another. Ref
 3. **Leave the system as you found it.** Diagnosis reads. Machine-wide changes (core handler, ptrace settings, CPU governor, registry keys, packages) are offered to the user with their undo command, never applied unasked. Records the system made (core dumps, crash reports, logs) belong to the user. Delete only your own copies.
 4. **Treat crash data as secret.** A core, a minidump or a runtime crash report is a copy of process memory or environment, and it can hold passwords, tokens and private documents. Extract it only to a fresh `mktemp` path, delete it when done, and quote only the lines that carry the signal, with secrets replaced by `<REDACTED>`.
 5. **Symbol lookups go over the network.** A debuginfod or symbol-server lookup can send the binary's build ID and the user's IP address. Tell the user before the first lookup, and skip it for proprietary binaries unless they agree.
-6. **Ask only after trying.** Exhaust every route you can run yourself before asking the user for access, an artifact or a manual step. Then ask once, with the reason, using your question tool.
+6. **Ask only after trying.** Exhaust every route you can run yourself before asking the user for access, an artifact or a manual step. Then ask once, with the reason, using your question tool. The one exception is evidence that a retry, a restart or a cleanup would destroy: ask for it to be captured at once, before your own routes are exhausted, because waiting loses it.
 7. **Quote names from crash records.** A program or file name taken from a crash record can contain a quote character, so always quote it in shell commands. Match processes by their exact name or binary path (`pgrep -x <name>`), never with `pkill -f <text>`, which can match your own shell. Confirm a PID before you signal it.
 
 ## Phase 0. Intake and classify
 
-**Required skill, first.** Before any other step, check `mstack-best-model-for`, which this skill calls for its subagents' models.
+**The model skill, first.** Before any other step, check `mstack-best-model-for`, which this skill calls for its subagents' models.
 
 1. It is in this session's skill list (as `mstack-best-model-for` or `<plugin>:mstack-best-model-for`): continue.
 2. Its folder exists on disk (in the user skill folders the host table names) but the session has not loaded it: say that a new session is needed, and stop.
-3. Otherwise print this and stop, with no other step and no subagent started:
+3. Otherwise it is not installed. Print this once, then continue without subagents: do every delegated step yourself, one after another, start no subagent in this run, and say so in the report.
 
    ```text
-   mstack-diagnose needs mstack-best-model-for, which is not installed.
+   mstack-diagnose runs without subagents, because mstack-best-model-for is not installed. To install it:
    Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-best-model-for@mstack
    Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-best-model-for@mstack
    Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex> -y
    Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
-   Then start a new session.
+   A new session picks it up.
    ```
 
-There is no built-in fallback. Inside a workflow lane, whose brief carries the model and effort answers for the tiers `cheap`, `standard` and `most capable`, skip this step and the call in the host section above, use the brief's answers, and say so in the report.
+No subagent starts without that skill's answer, because it would run on the session's model, the most expensive choice. Inside a workflow lane, whose brief carries the model and effort answers for the tiers `cheap`, `standard` and `most capable`, skip this step and the call in the host section above, use the brief's answers, and say so in the report.
 
 Record these before anything else. Read `references/intake.md` for the full checklist and for what to do when the problem cannot be reproduced here.
 
@@ -60,7 +60,7 @@ Record these before anything else. Read `references/intake.md` for the full chec
 3. The exact steps, the versions (commit, runtime, OS, lockfile), and what differs from an environment where it works.
 4. The last known good version or commit, if there is one. It makes a regression bisectable.
 5. The reporter's own theories, kept apart from the facts, as hypothesis candidates for Phase 3.
-6. The problem type, which picks the branch below: crash, regression, flaky failure, performance, hang or leak, or no repro yet.
+6. The problem type, which picks the branch below: crash, regression, flaky failure, performance, hang or leak, a past CI failure that cannot be rerun, or no repro yet.
 7. The deliverable: diagnosis only, or diagnosis plus fix. When the user did not say, a "why" question gets a diagnosis and a "fix it" request gets both.
 
 Gate: the record exists, one problem type is chosen, and the deliverable is chosen.
@@ -72,9 +72,9 @@ Follow `references/codegraph.md` before reading the code under suspicion. Inside
 A signal is one of two things.
 
 - **A live loop.** One command that drives the real code path and fails on the user's exact symptom. Build it from whatever reaches the bug fastest, such as a failing test at the right seam, a script, a CLI run compared to a snapshot, a browser script, a replayed request, a throwaway harness, a property or fuzz loop, or `git bisect run` for a regression. Then tighten it on three levers. Make it fast (cache setup, skip unrelated startup, narrow the scope). Make it sharp, so it asserts the exact symptom rather than "did not crash". Make it deterministic (pin time, seed randomness, isolate the filesystem, stub the network). For a flaky failure, the loop's output is a measured rate.
-- **A saved record.** For something that already happened and cannot be replayed on demand, the record it left: a core dump, a crash report, a minidump, a runtime fatal-error log, a profile or a trace. Treat it as a fixed dataset and read it. Do not re-run the event to "see it again".
+- **A saved record.** For something that already happened and cannot be replayed on demand, the record it left: a core dump, a crash report, a minidump, a runtime fatal-error log, a profile or a trace, or for a CI job its log, its test-result files and the scheduler's record of the run. Treat it as a fixed dataset and read it. Do not re-run the event to "see it again". Secure a record that will not last before you analyze anything: a retry by someone else can recreate a container and take its logs with it, so copy what you can reach, and ask for the rest, before anyone retries.
 
-Gate for a live loop: you have run the command, its redacted failing output is in front of you, it asserts the exact symptom (not a nearby one), it gives the same verdict every run (or a measured rate for a flake), it finishes in seconds and it runs unattended. Gate for a saved record: the record is found, loaded with the right tool, and its symbol status is written down (fully, partly or not symbolized).
+Gate for a live loop: you have run the command, its redacted failing output is in front of you, it asserts the exact symptom (not a nearby one), it gives the same verdict every run (or a measured rate for a flake), it finishes in seconds and it runs unattended. Gate for a saved record: the record is found, its format is identified and it is loaded with the right tool, and its completeness is written down: for a crash record its symbol status (fully, partly or not symbolized), for logs and result files whether they are whole, cut off (and where) or missing.
 
 No signal, no Phase 2. When you cannot get one, stop and report what you tried and what would unblock it (`references/intake.md` lists the routes in order).
 
@@ -85,7 +85,7 @@ Run the loop several times and confirm it shows the reported failure. Then remov
 - When the failure crosses several components (CI to build to deploy, client to API to service to database), log what enters and leaves each boundary first, including environment and configuration values, and run once. The layer where good input turns into bad output is where you dig.
 - When the signal is a stack trace or a log, read all of it. Follow every "Caused by" or chained exception to the innermost one, read the log lines just before the first failure, and treat framework and wrapper frames as transport, not as the cause.
 
-Gate: the failure repeats (or its rate is measured as failures out of runs), and removing any remaining element makes it pass. For a saved record, the record is reduced to one finding, such as the faulting thread and frame, the hot path, or the chain that keeps leaked memory alive.
+Gate: the failure repeats (or its rate is measured as failures out of runs), and removing any remaining element makes it pass. For a saved record, the record is reduced to one finding, such as the faulting thread and frame, the hot path, the chain that keeps leaked memory alive, or the first bad line of a job log with what overlapped it.
 
 ## Phase 3. Hypothesize
 
@@ -105,7 +105,7 @@ Test one prediction per probe and change one variable at a time.
 6. When two fixes that rest on one premise have failed the same check, write that premise as one sentence and test it directly before trying anything else. After three failed fixes in total, stop. The design itself may be wrong, so take that question to the user with your question tool, with the evidence from each attempt, before a fourth fix.
 7. Independent hypotheses can be tested in parallel with your subagent tool, one subagent per hypothesis, each a standard subagent (see the table at the top, and its one exception) in its own worktree, with a brief that names the commit and the loop command. Rerun the deciding command yourself before you accept any subagent's verdict. A missing result is a gap, not a pass.
 
-Gate: one prediction is confirmed by a probe that flipped the outcome, at least one independent check agrees with it (or one record is decisive on its own, such as a symbolized stack trace that ends at the faulting line), the others are refuted or marked untested, and the mechanism is mapped to `file:symbol:line` at the first wrong decision. A diagnosis-only run goes to Phase 6 from here.
+Gate: one prediction is confirmed by a probe that flipped the outcome, at least one independent check agrees with it (or one record is decisive on its own, such as a symbolized stack trace that ends at the faulting line), the others are refuted or marked untested, and the mechanism is mapped to `file:symbol:line` at the first wrong decision. For a saved record that cannot be replayed, no probe can flip the outcome, so the gate is instead: the records point at one cause, each other hypothesis is refuted by a record or marked untested, nothing in the records contradicts the cause, and the tier is Supported at most. A diagnosis-only run goes to Phase 6 from here.
 
 ## Phase 5. Fix and add a regression test
 
@@ -137,6 +137,7 @@ Read the file for the branch you chose in Phase 0, and the platform file when th
 | Flaky failure | `references/flaky.md` | Phase 1 measures the failure rate. "Fixed" needs a run count chosen in advance |
 | Performance problem | `references/performance.md` | Every claim is a measured number with its spread. Fix the cheapest cause first |
 | Hang, deadlock, memory leak | `references/hang-leak.md` | Phase 1 is two or three stack dumps or a sanitizer report |
+| A CI job that already failed and cannot be rerun | `references/ci-failure.md` | Secure what a retry destroys first. Phase 1 is the job log, the test-result files and the scheduler's record. List what else ran on the same runner or host at the time. Supported is the highest tier it can reach |
 | Production incident (users affected now) | `references/incident.md` | Mitigate first, diagnose second. Severity sets the pace. A blameless postmortem follows the fix |
 | No repro, vague report | `references/intake.md` | Phase 0 turns it into one of the branches above, or stops with what would unblock it |
 
@@ -151,7 +152,7 @@ Every root cause gets one tier, and every fix gets one verdict.
 | Root-cause tier | What it takes |
 |---|---|
 | Confirmed | Reproduced on the symptom's own surface, and a one-variable probe flipped the outcome as predicted (or a before and after record differs as predicted). Mapped to `file:symbol:line`. For a bisected regression, reverting the first bad commit on top of the current code makes the loop pass |
-| Supported | A real record (a symbolized core, a trace, a bisect result) points at the location and nothing contradicts it, but no probe flipped it. The best a past crash that cannot be reproduced can reach |
+| Supported | A real record (a symbolized core, a trace, a bisect result, a CI job's log with the scheduler's record) points at the location and nothing contradicts it, but no probe flipped it. The best a past crash or a past CI failure that cannot be reproduced can reach |
 | Inferred | A chain of reasoning from the code or the timeline, walked step by step but not run. Write it as "Given A and B, C is likely because D" |
 | Speculative | It fits the evidence, but so do other explanations. List it as a competing hypothesis with the evidence for and against |
 | Unknown | You looked and found nothing. List what you searched |
@@ -175,7 +176,7 @@ Diagnosis: <problem type>. <One sentence that answers the user's question.>
 Root cause: <tier>. Fix: <VERIFIED, NOT VERIFIED, INCONCLUSIVE, or not attempted>.
 
 Symptom (verbatim, redacted): ...
-Signal: <loop command, or record path, format and symbol status>. Failing output: ...
+Signal: <loop command, or record path, format and symbol status or completeness>. Failing output: ...
 Rate or baseline: <k of N runs failed> or <median, range, run count, what limits it>
 Proximate cause: <where the failure surfaced, such as the crashing frame or the failing assertion>
 Root cause: <file:symbol:line>, the first wrong decision. <The mechanism in two sentences.>
