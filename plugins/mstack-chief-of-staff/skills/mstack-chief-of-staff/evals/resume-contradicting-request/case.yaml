@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: resume-contradicting-request
+expected_outcome: |
+  The wiki records the user's 2026-11-03 decision to keep the export behind EXPORT_V2 until the load test passes.
+  The run reads the goal page, the index and the flag page first, notices the batch-size commit made after the newest claim,
+  names the recorded decision and asks which holds, and leaves the flag in place.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-chief-of-staff]

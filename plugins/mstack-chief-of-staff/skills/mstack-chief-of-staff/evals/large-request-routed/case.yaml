@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: large-request-routed
+expected_outcome: |
+  A large new module is requested during an owned goal.
+  The run reads the wiki, routes the work to mstack-write-specs and enters its procedure, names mstack-plan as the next step,
+  and writes no implementation.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-chief-of-staff, mstack-write-specs, mstack-best-model-for]

@@ -147,6 +147,18 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Development"
+    },
+    {
+      "name": "mstack-chief-of-staff",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-chief-of-staff"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
     }
   ]
 }

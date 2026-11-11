@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: ingest-changed-decision
+expected_outcome: |
+  The user changed the flag decision and removed the flag in the last commit; a subagent reported the load test passed, with no output.
+  The run adds a new dated claim that cites shop@<the last commit>, marks the old decision superseded without changing its text,
+  updates the goal page too, leaves the load-test criterion unproven, commits nothing, and the wiki still passes lint-wiki.mjs.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-chief-of-staff]
