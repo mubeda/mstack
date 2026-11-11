@@ -37,22 +37,22 @@ You read a tracker's open issues, decide for each one what it is and when it sho
 
 ## 1. Start
 
-**Required skill, first.** Before any other step, check `mstack-best-model-for`, which this skill calls for its subagents' models.
+**The model skill, first.** Before any other step, check `mstack-best-model-for`, which this skill calls for its subagents' models.
 
 1. It is in this session's skill list (as `mstack-best-model-for` or `<plugin>:mstack-best-model-for`): continue.
 2. Its folder exists on disk (in the user skill folders the host table names) but the session has not loaded it: say that a new session is needed, and stop.
-3. Otherwise print this and stop, with no other step and no subagent started:
+3. Otherwise it is not installed. Print this once, then continue without subagents: do every delegated step yourself, one after another, start no subagent in this run, and say so in the report.
 
    ```text
-   mstack-backlog-triage needs mstack-best-model-for, which is not installed.
+   mstack-backlog-triage runs without subagents, because mstack-best-model-for is not installed. To install it:
    Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-best-model-for@mstack
    Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-best-model-for@mstack
    Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex> -y
    Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
-   Then start a new session.
+   A new session picks it up.
    ```
 
-There is no built-in fallback.
+No subagent starts without that skill's answer, because it would run on the session's model, the most expensive choice. A large backlog is then classified in this session, group after group.
 
 In one message, restate the goal and ask with your question tool. Skip any question the request already answers.
 

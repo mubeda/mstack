@@ -138,7 +138,7 @@ test('an unknown option exits 2', () => {
   assert.equal(r.status, 2, r.out);
 });
 
-test('mstack-best-model-for only on the Claude side: exit 1, because mstack-diagnose needs it on the Codex side', () => {
+test('mstack-best-model-for only on the Claude side: exit 1, because mstack-diagnose takes the models of its subagents from it on the Codex side', () => {
   const r = check({ noCodexModel: true });
   assert.equal(r.status, 1, r.out);
   assert.match(r.out, /^MISSING {2}mstack-best-model-for \(Codex side\)/m);

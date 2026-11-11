@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: missing-model-skill
+expected_outcome: |
+  mstack-best-model-for is not installed: the run says so, gives both install routes and mstack-setup, and then
+  diagnoses the flaky tests itself, starting no subagent.
+context:
+  scaffold_script: place-files.sh

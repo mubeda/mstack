@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite name="pytest" tests="41" errors="2" failures="0" skipped="0" time="528.31" timestamp="2026-11-10T10:33:12">
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_0" time="11.2"/>
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_1" time="11.2"/>
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_2" time="11.2"/>
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_3" time="11.2"/>
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_4" time="11.2"/>
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_5" time="11.2"/>
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_6" time="11.2"/>
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_7" time="11.2"/>
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_8" time="11.2"/>
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_9" time="11.2"/>
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_10" time="11.2"/>
+  <testcase classname="tests.integration.test_accounts" name="test_accounts_11" time="11.2"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_0" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_1" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_2" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_3" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_4" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_5" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_6" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_7" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_8" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_9" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_10" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_11" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_12" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_13" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_14" time="12.0"/>
+  <testcase classname="tests.integration.test_billing" name="test_billing_15" time="12.0"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_0" time="16.5"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_1" time="16.5"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_2" time="16.5"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_3" time="16.5"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_4" time="16.5"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_5" time="16.5"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_6" time="16.5"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_7" time="16.5"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_8" time="16.5"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_9" time="16.5"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_10" time="16.5"/>
+  <testcase classname="tests.integration.test_orders" name="test_orders_export" time="0.1"><error message="psycopg.OperationalError: connection to server at &quot;localhost&quot; (127.0.0.1), port 5432 failed: Connection refused"/></testcase>
+  <testcase classname="tests.integration.test_orders" name="test_orders_refund" time="0.1"><error message="psycopg.OperationalError: connection to server at &quot;localhost&quot; (127.0.0.1), port 5432 failed: Connection refused"/></testcase>
+</testsuite>

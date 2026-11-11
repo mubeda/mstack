@@ -1,0 +1,20 @@
+2026-11-10T10:31:02Z job 4812 pipeline=shop/integration commit=9c1e7ab runner=runner-07
+2026-11-10T10:31:02Z step 1/4 checkout: ok
+2026-11-10T10:31:40Z step 2/4 start services: docker run -d --name it-postgres -p 5432:5432 postgres:16
+2026-11-10T10:31:47Z step 2/4 start services: it-postgres is ready
+2026-11-10T10:32:05Z step 3/4 install: ok
+2026-11-10T10:33:10Z step 4/4 test: pytest tests/integration --junitxml=results.xml
+2026-11-10T10:33:12Z collected 120 items
+2026-11-10T10:35:30Z tests/integration/test_accounts.py ............ [ 10%]
+2026-11-10T10:38:44Z tests/integration/test_billing.py ................ [ 23%]
+2026-11-10T10:41:49Z tests/integration/test_orders.py ...........
+2026-11-10T10:41:55Z tests/integration/test_orders.py::test_orders_export ERROR
+2026-11-10T10:41:55Z E   psycopg.OperationalError: connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused
+2026-11-10T10:41:56Z tests/integration/test_orders.py::test_orders_refund ERROR
+2026-11-10T10:41:56Z E   psycopg.OperationalError: connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused
+2026-11-10T10:41:58Z !!!!!!!!!!!!!!!!!!! stopping after 2 errors (--maxfail=2) !!!!!!!!!!!!!!!!!!!
+2026-11-10T10:41:58Z 39 passed, 2 errors in 528.31s
+2026-11-10T10:41:59Z step 4/4 test: exit code 1
+2026-11-10T10:42:00Z post: docker rm -f it-postgres
+2026-11-10T10:42:00Z post: Error response from daemon: No such container: it-postgres
+2026-11-10T10:42:01Z job 4812 failed

@@ -1,0 +1,6 @@
+2026-11-10T10:41:30Z job 4810 pipeline=infra/nightly-cleanup commit=0d4c5f2 runner=runner-07
+2026-11-10T10:41:31Z step 1/2 checkout: ok
+2026-11-10T10:41:50Z step 2/2 cleanup: removing containers older than 10 minutes
+2026-11-10T10:41:52Z removed it-postgres (created 2026-11-10T10:31:40Z)
+2026-11-10T10:41:53Z removed 0 dangling images
+2026-11-10T10:42:20Z job 4810 passed

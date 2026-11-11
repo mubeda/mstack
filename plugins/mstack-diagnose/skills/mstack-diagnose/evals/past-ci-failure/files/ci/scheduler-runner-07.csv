@@ -1,0 +1,6 @@
+job,pipeline,commit,runner,started,finished,status
+4805,docs/build,3fa2210,runner-07,2026-11-10T10:12:40Z,2026-11-10T10:19:03Z,passed
+4809,web/unit,b71d9e4,runner-07,2026-11-10T10:28:15Z,2026-11-10T10:36:50Z,passed
+4810,infra/nightly-cleanup,0d4c5f2,runner-07,2026-11-10T10:41:30Z,2026-11-10T10:42:20Z,passed
+4812,shop/integration,9c1e7ab,runner-07,2026-11-10T10:31:02Z,2026-11-10T10:42:01Z,failed
+4813,web/unit,b71d9e4,runner-07,2026-11-10T10:44:02Z,2026-11-10T10:52:31Z,passed

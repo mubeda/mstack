@@ -121,7 +121,7 @@ Run the checker from the repository root. Add `--github` when the items are GitH
 bash <skill-dir>/scripts/check-required-skills.sh [--github] [--web-ui]
 ```
 
-It prints one line per item, `ok`, `MISSING` or `WARN`. The Codex-side lines (`ponytail`, `mstack-diagnose`, `mstack-best-model-for`, which `mstack-diagnose` requires, `mstack-receive-review`, and `ui-ux-pro-max`) are the skills the developer loads in its own sessions, so the Claude-side copies do not count.
+It prints one line per item, `ok`, `MISSING` or `WARN`. The Codex-side lines (`ponytail`, `mstack-diagnose`, `mstack-best-model-for`, which gives `mstack-diagnose` its subagents' models, `mstack-receive-review`, and `ui-ux-pro-max`) are the skills the developer loads in its own sessions, so the Claude-side copies do not count.
 
 1. A `MISSING` line: tell the user exactly which items are missing, say that `mstack-setup` installs missing skills and plugins at user scope after one yes and lists the rest (`gh`, Python 3, logins) as steps for the user, and stop. For a line that ends in "(Codex side)", say also that `mstack-setup` run in Claude Code covers the Claude side only: the user accepts its offer to check the other host, or runs `mstack-setup` in Codex, or installs that skill for Codex directly (`codex plugin add <skill>@mstack`, and for `ponytail` its own marketplace). Stop, because without them the code style and diagnosis this workflow promises would silently not happen. No developer run starts.
 2. The `WARN` line for the `codex` skill: continue. The Codex review then runs with the same `codex exec` command, without the skill's helpers.
