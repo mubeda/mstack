@@ -1,0 +1,7 @@
+# Checkout request flow
+
+When a customer submits the checkout form, the browser sends the order to the API gateway, which authenticates the session against the identity service before anything else happens; an unauthenticated request is rejected at this point with a 401 and goes no further. Once the session is confirmed, the gateway forwards the order to the order service, which is responsible for validating the basket and reserving stock, and which does so by calling the inventory service synchronously, because an order for which stock cannot be reserved must fail immediately and visibly.
+
+With stock reserved, the order service calls the payment service, which in turn talks to the external card processor. There is a branch here: if the processor declines the card, the payment service reports the decline to the order service, which releases the reserved stock through the inventory service and returns a 402 to the customer. If the charge succeeds, the order service marks the order as paid and publishes an order-paid event to the message queue.
+
+Two consumers read that event independently. The notification service sends the confirmation email, and the fulfilment service creates the shipment. Neither of them is on the request path, so a failure in either does not affect the response the customer sees, which is returned by the gateway as soon as the order service has marked the order as paid.

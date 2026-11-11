@@ -85,6 +85,7 @@ Run these procedures through their mstack skill instead of doing them yourself. 
 | A session ending with work left | `mstack-handoff`, after the wiki is up to date |
 | A skill for a job | `mstack-find-skills` |
 | A new skill | `mstack-skill-creator` |
+| An answer or report the user cannot follow | `mstack-explain-me-better` |
 | A missing skill or tool | `mstack-setup` |
 
 When a route's skill is not in this session's skill list, or stops at its own preflight, tell the user which skill is missing and that `mstack-setup` installs it. Skip only that route and keep owning the goal.

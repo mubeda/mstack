@@ -159,6 +159,18 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity"
+    },
+    {
+      "name": "mstack-explain-me-better",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-explain-me-better"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
     }
   ]
 }
