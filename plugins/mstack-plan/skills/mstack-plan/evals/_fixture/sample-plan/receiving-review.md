@@ -73,6 +73,7 @@ A review of a plan (not of code) follows the same pattern, with two outcomes for
 1. The cross-vendor review is strictly read-only, so it cannot prove its own findings.
 2. Before you accept a cross-vendor finding, reproduce it against the real code with a failing test, a run, or a traced code path. The coordinator does this during triage, and the lane does it again before fixing. Reject a finding nobody could reproduce with that reason, or send the reviewer a narrower question (rule 2).
 3. When the cross-vendor reviewer is missing and a fresh same-vendor subagent reviews instead, its findings get exactly the same treatment, and every record of that review calls it a same-vendor review.
+4. A review is same-vendor when the reviewer's vendor wrote the code under review. In a workflow where another vendor's model writes the code (for example Codex writes and Claude coordinates), that vendor's read-only review is the same-vendor one, and every record says so; a fallback review by the coordinator's own vendor is recorded as a fallback review, not as a same-vendor review. Where the writer and the fallback reviewer are of one vendor, rule 3 applies as written.
 
 ## Coordinator duties
 

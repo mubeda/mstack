@@ -135,8 +135,8 @@ const progressStatus = progress.match(new RegExp(`^Plan status: ${STATUS}`, 'm')
 if (!progressStatus) fail('progress.md: Plan status line must be "Draft" or "Approved <yyyy-mm-dd>"');
 else if (planStatus && progressStatus !== planStatus) fail(`progress.md: Plan status "${progressStatus}" differs from plan.md Status "${planStatus}"; the executor reads progress.md`);
 const executor = progress.match(/^Executor:[ \t]*(.*)$/m)?.[1].trim();
-if (executor !== undefined && !['none', 'inline', 'mstack-codex-review-workflow', 'mstack-claude-review-workflow'].includes(executor)) {
-  fail(`progress.md: Executor "${executor}" must be none, inline, mstack-codex-review-workflow or mstack-claude-review-workflow`);
+if (executor !== undefined && !['none', 'inline', 'mstack-codex-review-workflow', 'mstack-claude-review-workflow', 'mstack-claude-pm-codex-dev'].includes(executor)) {
+  fail(`progress.md: Executor "${executor}" must be none, inline, mstack-codex-review-workflow, mstack-claude-review-workflow or mstack-claude-pm-codex-dev`);
 }
 const seenRows = new Set();
 for (const [id, st, rest] of rows) {

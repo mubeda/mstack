@@ -1,6 +1,6 @@
 # Plan format
 
-This file is the contract between `mstack-plan`, which writes a plan, and the agents that execute it: inline execution from `execute-plan.md`, `mstack-codex-review-workflow` in Claude Code, and `mstack-claude-review-workflow` in Codex. All three plugins ship an identical copy. Change all three copies in the same change, and handle plans written by the previous version (see "Format changes").
+This file is the contract between `mstack-plan`, which writes a plan, and the agents that execute it: inline execution from `execute-plan.md`, `mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex, and `mstack-claude-pm-codex-dev` in Claude Code (Codex writes each phase, Claude reviews and commits it). All four plugins ship an identical copy. Change all four copies in the same change, and handle plans written by the previous version (see "Format changes").
 
 ## Folder layout
 
@@ -145,7 +145,7 @@ Steps
 3. **Files.** Exact paths. A path that exists today was checked. A new path follows the repository's conventions.
 4. **Interfaces.** Exact names, parameters and return types. An executor sees only its own task, so this is how it learns its neighbors' names.
 5. **Skills.** Each skill by its bare name, the name in its SKILL.md without a plugin prefix (`test-driven-development`, not `superpowers:test-driven-development`), with a reason in six to twelve words that says what the skill does for this task. "none" is allowed. A skill that is not installed is marked "(not installed)". Never list a cross-vendor review skill here, because the reviewer depends on the host that executes the plan. The executor resolves each name on its own host (see Resume and staleness, rule 7).
-6. **Tier.** A model tier, never a model name. The executor maps tiers to the models its host offers: a workflow puts the task's lane on that row of its model table, and an inline executor, which runs every task on its own session's model, uses the tier for the helpers it starts.
+6. **Tier.** A model tier, never a model name. The executor maps tiers to the models its host offers: a workflow puts the task's lane on that row of its model table, and an inline executor, which runs every task on its own session's model, uses the tier for the helpers it starts. A workflow with one developer model for every phase uses the tier to set that developer's effort.
 7. **TDD.** Code tasks are red-green. "exempt" is only for work with no behavior to test (documentation, configuration with no logic, research, a pure command run), and the reason says which.
 8. **Done when.** A command and its expected result, or an observable result with how to observe it. A task without one is not scoped yet.
 9. **Steps.** Each step is one action with a checkable result. Every command step has an `Expected:` line. Steps name signatures and exact values, not full code bodies, except where the exact text is the deliverable.
@@ -159,7 +159,7 @@ Plan: plan.md
 Spec: spec.md (sha256 <first 12 hex digits>)
 Plan status: Draft | Approved <yyyy-mm-dd>
 Plan review: <reviewer and model>, round <n>, <outcome>
-Executor: none | inline | mstack-codex-review-workflow | mstack-claude-review-workflow
+Executor: none | inline | mstack-codex-review-workflow | mstack-claude-review-workflow | mstack-claude-pm-codex-dev
 Branch: <working branch, once execution starts>
 
 | Task | Title | Phase | State | Owner | Note |
@@ -206,3 +206,5 @@ A dropped task needs the user's recorded decision in the log. A dropped or remov
 ## Format changes
 
 When a later version of this format changes what a field or a file means, the skill that reads a plan written by the earlier version says what it does with each old value. An old value is never consent to new, wider behavior. Ask the user once instead.
+
+A plan written before `mstack-claude-pm-codex-dev` was an executor value keeps the executor its `progress.md` records, and its `execute-plan.md` offers two ways to run; the new workflow runs such a plan only when the user asks for it.

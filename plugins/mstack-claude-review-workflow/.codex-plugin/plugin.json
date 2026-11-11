@@ -1,6 +1,6 @@
 {
   "name": "mstack-claude-review-workflow",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Codex-led coordinator workflow for any task in a repository, from a list of issues (GitHub or another tracker), an execution plan, or one larger task. Codex leads and implements in conflict-free lanes (parallel codex exec lanes in git worktrees, or one agent in sequence), tracks each item as open, in progress or closed, has Claude review every lane read-only through the agent-bridges claude-review skill, integrates, and delivers one pull request with CI run one at a time. Codex only.",
   "author": {
     "name": "mubeda"

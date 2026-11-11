@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: missing-required-skill
+expected_outcome: |
+  The run stops before any brainstorm question because mstack-best-model-for is not installed: it names the missing
+  skill, gives the plugin commands for both hosts and the skills CLI command, names mstack-setup, and changes no file.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-brainstorm]

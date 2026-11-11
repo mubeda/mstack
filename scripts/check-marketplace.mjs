@@ -62,25 +62,29 @@ for (const name of folders) {
   }
 }
 
-// The two workflows ship the same reference files and notices; each install copies only its own plugin folder.
-const shared = ['mstack-codex-review-workflow', 'mstack-claude-review-workflow'];
+// The three workflows ship the same reference files and notices; each install copies only its own plugin folder.
+const shared = ['mstack-codex-review-workflow', 'mstack-claude-review-workflow', 'mstack-claude-pm-codex-dev'];
 const sharedFiles = ['skills/<skill>/THIRD_PARTY_NOTICES.md', ...readdirSync(resolve(root, 'plugins', shared[0], 'skills', shared[0], 'references'))
   .map((file) => `skills/<skill>/references/${file}`)];
 for (const file of sharedFiles) {
-  const [a, b] = shared.map((name) => read(`plugins/${name}/${file.replace('<skill>', name)}`));
-  assert.equal(a, b, `${file} differs between ${shared.join(' and ')}; edit both copies`);
-}
-
-// mstack-plan writes plans in the format the two workflows read, and all three process reviews the same way,
-// so these files ship identically in all three plugins.
-for (const file of ['plan-format.md', 'receiving-review.md']) {
-  const path = (name) => `plugins/${name}/skills/${name}/references/${file}`;
-  for (const name of shared) {
-    assert.equal(read(path(name)), read(path('mstack-plan')), `${file} differs between mstack-plan and ${name}; edit all three copies`);
+  const first = read(`plugins/${shared[0]}/${file.replace('<skill>', shared[0])}`);
+  for (const name of shared.slice(1)) {
+    const path = `plugins/${name}/${file.replace('<skill>', name)}`;
+    assert(existsSync(resolve(root, path)), `${file} is missing in ${name}; copy ${shared[0]}'s`);
+    assert.equal(read(path), first, `${file} differs between ${shared[0]} and ${name}; edit every copy (${shared.join(', ')})`);
   }
 }
 
-// The six skills that read code ship the same codegraph steps; each install copies only its own folder.
+// mstack-plan writes plans in the format the three workflows read, and all four process reviews the same way,
+// so these files ship identically in all four plugins.
+for (const file of ['plan-format.md', 'receiving-review.md']) {
+  const path = (name) => `plugins/${name}/skills/${name}/references/${file}`;
+  for (const name of shared) {
+    assert.equal(read(path(name)), read(path('mstack-plan')), `${file} differs between mstack-plan and ${name}; edit all four copies`);
+  }
+}
+
+// The seven skills that read code ship the same codegraph steps; each install copies only its own folder.
 for (const name of ['mstack-write-specs', 'mstack-diagnose', 'mstack-backlog-triage', ...shared]) {
   const path = (n) => `plugins/${n}/skills/${n}/references/codegraph.md`;
   assert(existsSync(resolve(root, path(name))), `${name}: references/codegraph.md is missing; copy mstack-plan's`);
@@ -112,5 +116,12 @@ assert.equal(lint.status, 0, `check-plan.mjs rejects evals/_fixture/sample-plan:
 // plan-format.md says a plan folder's receiving-review.md is copied unchanged from the skill.
 assert.equal(readFileSync(resolve(planSkill, 'evals/_fixture/sample-plan/receiving-review.md'), 'utf8'), readFileSync(resolve(planSkill, 'references/receiving-review.md'), 'utf8'),
   'mstack-plan: evals/_fixture/sample-plan/receiving-review.md differs from references/receiving-review.md; copy it again');
+
+// mstack-claude-pm-codex-dev's test cases run a plan folder too, so it must pass the linter and carry the same review rules.
+const pmPlan = resolve(root, 'plugins/mstack-claude-pm-codex-dev/skills/mstack-claude-pm-codex-dev/evals/_fixture/plan');
+const pmLint = spawnSync(process.execPath, [resolve(planSkill, 'scripts/check-plan.mjs'), pmPlan], { encoding: 'utf8' });
+assert.equal(pmLint.status, 0, `check-plan.mjs rejects mstack-claude-pm-codex-dev's evals/_fixture/plan:\n${pmLint.stdout}${pmLint.stderr}`);
+assert.equal(readFileSync(resolve(pmPlan, 'receiving-review.md'), 'utf8'), readFileSync(resolve(planSkill, 'references/receiving-review.md'), 'utf8'),
+  "mstack-claude-pm-codex-dev: evals/_fixture/plan/receiving-review.md differs from mstack-plan's references/receiving-review.md; copy it again");
 
 console.log(`Marketplace checks passed: ${claude.length} Claude plugins, ${codex.length} Codex plugins`);

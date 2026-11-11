@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: called-unformed-idea
+expected_outcome: |
+  One result section for item 1.1, whose goal is an unformed idea: mstack-brainstorm is the first entry under Skills,
+  before the broader brainstorming skill; no question asked; the closing line says the online search did not run.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-find-skills]

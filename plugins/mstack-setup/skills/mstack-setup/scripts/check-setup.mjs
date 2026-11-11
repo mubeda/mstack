@@ -133,7 +133,9 @@ add('ui-ux-pro-max', 'optional', hasSkill('ui-ux-pro-max'), 'UI design skill');
 add('gh', 'optional', which('gh'), 'GitHub command-line tool');
 add('python3', 'optional', which('python3') || (win && (which('python') || which('py'))), 'Python 3');
 const workflow = host === 'claude' ? 'mstack-codex-review-workflow' : 'mstack-claude-review-workflow';
-for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', workflow]) {
+if (host === 'claude') add('codex-plugin', 'optional', pluginInstalled('codex'), 'OpenAI Codex plugin (Codex as developer in mstack-claude-pm-codex-dev)');
+const pmWorkflow = host === 'claude' ? ['mstack-claude-pm-codex-dev'] : [];
+for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', workflow, ...pmWorkflow]) {
   add(s, 'optional', hasSkill(s), 'mstack skill');
 }
 

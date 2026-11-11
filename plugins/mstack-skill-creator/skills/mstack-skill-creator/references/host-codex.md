@@ -48,4 +48,4 @@ Claude, through the `claude-review` skill of the agent-bridges `claude` plugin, 
 
 ## mstack skills supported here
 
-Ten of the eleven mstack skills, as of 2026-11-10: `mstack-write-specs`, `mstack-plan`, `mstack-claude-review-workflow`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup`, and this skill. `mstack-codex-review-workflow` drives Claude Code tools and does not run here.
+Eleven of the thirteen mstack skills, as of 2026-11-10: `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-claude-review-workflow`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup`, and this skill. `mstack-codex-review-workflow` and `mstack-claude-pm-codex-dev` drive Claude Code tools and do not run here.

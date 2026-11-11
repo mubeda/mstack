@@ -38,6 +38,7 @@ Before any other work, ask the user these questions in one message, using the ho
 1. How should the plan be executed?
    (a) Inline. This session implements every task in order, red-green, then gets one cross-vendor review of the whole branch.
    (b) Workflow. In Claude Code, the `mstack-codex-review-workflow` skill (Codex reviews). In Codex, the `mstack-claude-review-workflow` skill (Claude reviews). Parallel writer lanes, a cross-vendor review per lane, one integrated branch.
+   (c) Codex develops. In Claude Code only, the `mstack-claude-pm-codex-dev` skill: Codex writes each phase, and Claude reviews, validates and commits it.
    I recommend (<a | b>), because <the reason above>.
 2. Which reviewer model and effort? I recommend <the recorded model and effort when this host's reviewer is the same vendor as the plan review, otherwise `gpt-6.1-sol` and `high` for Codex reviewers, `opus` and `medium` for Claude reviewers>.
 3. May this run commit each finished task to the branch in `progress.md`'s `Branch` line, or, when there is none, create the branch `plan/<slug>` from `<base>` and commit to it? Pushing and opening a pull request happen only when the user asks.
@@ -48,8 +49,9 @@ Before any other work, ask the user these questions in one message, using the ho
    - Claude Code: `claude plugin marketplace add mubeda/mstack`, then `claude plugin install mstack-codex-review-workflow@mstack`, then start a new session.
    - Codex: `codex plugin marketplace add mubeda/mstack`, then `codex plugin add mstack-claude-review-workflow@mstack`, then start a new session.
    - Either host, with the skills CLI: ask the user the scope (global or this repository), the method (symlink or copy) and the agents, then run `npx skills add mubeda/mstack --skill <workflow> -a <claude-code | codex> -y`, adding `-g` for global and `--copy` for copy.
+   - Choice (c), Claude Code only: `claude plugin marketplace add mubeda/mstack`, then `claude plugin install mstack-claude-pm-codex-dev@mstack`, then start a new session; or with the skills CLI, after the same three questions, `npx skills add mubeda/mstack --skill mstack-claude-pm-codex-dev -a claude-code -y`. It also needs the OpenAI Codex plugin for Claude Code; `mstack-setup` reports and installs it.
 2. Give the workflow this plan folder as its work items, and tell it that every review is processed with its `receiving-review.md` without asking the user. It reads the folder as an `mstack-plan` plan: every task is a work item, `progress.md` is its status file, and each task's Skills, Read first and Done when go into the lane brief.
-3. The answers to questions 2 and 3 above answer the workflow's own model, effort and commit questions. The workflow still asks its execution mode question, and Workflow mode is recommended when a round has more than one phase.
+3. The answers to questions 2 and 3 above answer the workflow's own model, effort and commit questions. The workflow still asks its execution mode question, and Workflow mode is recommended when a round has more than one phase. For choice (c), the same two answers answer its reviewer and commit questions; it still asks which developer model and effort to use.
 
 ## 4. Inline execution
 

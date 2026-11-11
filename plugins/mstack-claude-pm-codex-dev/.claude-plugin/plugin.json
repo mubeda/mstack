@@ -1,0 +1,9 @@
+{
+  "name": "mstack-claude-pm-codex-dev",
+  "version": "0.1.0",
+  "description": "Claude-led workflow in which Codex writes the code: Claude briefs one Codex developer per phase through the OpenAI Codex plugin, reads each diff, reruns the validation, gets the advisor's and a read-only Codex review, sends findings back to the same Codex thread, and commits each accepted phase to one integration branch delivered as one pull request. Claude Code only.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0"
+}

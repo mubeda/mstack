@@ -193,3 +193,36 @@ test('(m) CLAUDE_CONFIG_DIR replaces ~/.claude', () => {
   const plain = run(m, ['--host', 'claude', '--platform', 'linux']);
   assert.equal(plain.state('ponytail'), 'MISSING', plain.out);
 });
+
+// The Codex plugin (Codex as developer in mstack-claude-pm-codex-dev) and the two newer mstack skills.
+test('claude: the Codex plugin in the install record is an ok optional codex-plugin row', () => {
+  const m = machine().file('.claude/plugins/installed_plugins.json', JSON.stringify({ version: 2, plugins: { 'codex@openai-codex': [{}] } }));
+  const r = run(m, ['--host', 'claude']);
+  const row = r.json.items.find((i) => i.id === 'codex-plugin');
+  assert.deepEqual([row?.state, row?.tier], ['ok', 'optional'], r.out);
+});
+
+test('claude: without the Codex plugin the codex-plugin row is MISSING and optional', () => {
+  const m = machine().file('.claude/plugins/installed_plugins.json', JSON.stringify({ version: 2, plugins: {} }));
+  const r = run(m, ['--host', 'claude']);
+  const row = r.json.items.find((i) => i.id === 'codex-plugin');
+  assert.deepEqual([row?.state, row?.tier], ['MISSING', 'optional'], r.out);
+});
+
+test('codex: no codex-plugin row and no mstack-claude-pm-codex-dev row', () => {
+  const r = run(machine(), ['--host', 'codex']);
+  assert.equal(r.json.items.some((i) => i.id === 'codex-plugin' || i.id === 'mstack-claude-pm-codex-dev'), false, r.out);
+});
+
+test('claude: a missing mstack-claude-pm-codex-dev is an optional MISSING row', () => {
+  const r = run(machine(), ['--host', 'claude']);
+  const row = r.json.items.find((i) => i.id === 'mstack-claude-pm-codex-dev');
+  assert.deepEqual([row?.state, row?.tier], ['MISSING', 'optional'], r.out);
+});
+
+for (const host of ['claude', 'codex']) {
+  test(`${host}: mstack-brainstorm is an optional row`, () => {
+    const r = run(machine(), ['--host', host]);
+    assert.equal(r.json.items.find((i) => i.id === 'mstack-brainstorm')?.tier, 'optional', r.out);
+  });
+}

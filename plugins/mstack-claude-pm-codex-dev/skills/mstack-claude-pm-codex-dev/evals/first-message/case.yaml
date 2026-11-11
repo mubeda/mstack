@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: first-message
+expected_outcome: |
+  The stand-in is loaded, so the rescue agent is offered. The plan is handed over with no model named. One message asks
+  the developer model, the developer effort, the reviewer model and the reviewer effort, in that order, and no developer run starts.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-claude-pm-codex-dev, mstack-find-skills, mstack-best-model-for]
+  plugin_dir: evals/_fixture/fake-developer
+  env:
+    CLAUDE_PLUGIN_DATA: <case data folder>
+    FAKE_DEV_SCRIPT: <this case folder>/rounds.json
+    CODEX_COMPANION_SCRIPT: <skill folder>/evals/_fixture/fake-developer/scripts/codex-companion.mjs
+  tools: [a logged-in codex CLI on PATH (the preflight and the Codex review are real)]

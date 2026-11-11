@@ -30,10 +30,10 @@ Set the model on every subagent, because one started without it runs on this ses
 
 | File | When |
 |---|---|
-| `references/plan-format.md` | Phases 3 and 5. The plan's file layout, fields, states and resume rules. The mstack review workflows ship the same file |
+| `references/plan-format.md` | Phases 3 and 5. The plan's file layout, fields, states and resume rules. The three mstack workflows that execute plans (`mstack-codex-review-workflow`, `mstack-claude-review-workflow`, `mstack-claude-pm-codex-dev`) ship the same file |
 | `references/codegraph.md` | Phase 1, before reading the code |
 | `references/plan-review.md` | Phase 7 |
-| `references/receiving-review.md` | Phase 7, and copied into every plan folder for the executor. The mstack review workflows ship the same file |
+| `references/receiving-review.md` | Phase 7, and copied into every plan folder for the executor. The three mstack workflows that execute plans ship the same file |
 | `references/execute-plan-template.md` | Phase 5 |
 | `scripts/check-required-skills.sh` | Preflight |
 | `scripts/check-plan.mjs` | Phases 6 and 7 |
@@ -166,6 +166,6 @@ Report in this order:
 2. Phases with their rounds as a small dependency graph, and the task count.
 3. The skills named per phase, the installs the user accepted, and the gaps left.
 4. The review: reviewer, model, verdict, findings fixed, deferred and rejected.
-5. How to start: "Open a new session in the repository and say: execute `<plan-folder>/execute-plan.md`." That file first asks whether to run inline or with the mstack review workflow for that host, and recommends one. Say which and why.
+5. How to start: "Open a new session in the repository and say: execute `<plan-folder>/execute-plan.md`." That file first asks which of three ways to run it: inline, with the mstack review workflow for that host, or, in Claude Code, with `mstack-claude-pm-codex-dev` (Codex writes each phase, Claude reviews and commits it). It recommends inline or the review workflow. Say which and why.
 
 Do not start execution in this session unless the user asks. A fresh session starts with a clean context and the plan as its only memory, which is what the plan was written for.

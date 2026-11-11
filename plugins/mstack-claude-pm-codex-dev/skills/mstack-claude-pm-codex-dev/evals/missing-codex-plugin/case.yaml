@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: missing-codex-plugin
+expected_outcome: |
+  The session has the two shared skills but no Codex plugin, so codex:codex-rescue is not offered. The run stops before
+  any start question: it names the Codex plugin, its install commands and mstack-setup, and changes no file.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-claude-pm-codex-dev, mstack-find-skills, mstack-best-model-for]
+  plugin_dir: none
