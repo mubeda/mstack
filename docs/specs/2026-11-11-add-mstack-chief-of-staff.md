@@ -1,6 +1,6 @@
 # Add mstack-chief-of-staff, a skill for owning a long-running goal
 
-Status: Approved 2026-11-11 (approved in chat by the user)
+Status: Approved 2026-11-12 (approved in chat by the user; edited that day: copyright names moved to the notices file only)
 Size: full    Mode: gated    Type: feature
 Source: https://github.com/mubeda/mstack/issues/9, and conversation 2026-11-11. Adapts the `chief-of-staff` skill of https://github.com/mattpocock/skills (MIT). Research: `reports/Long running goal agent skills.md` (local, not committed).
 
@@ -238,7 +238,7 @@ The `mstack-find-skills` table of preferred mstack skills SHALL list `mstack-chi
 
 ## Constraints and assumptions
 
-- The adapted source is `mattpocock/skills`, MIT, "Copyright (c) 2026 Matt Pocock" (license file read 2026-11-11). Its rules are rewritten in this project's words, and the notices file carries the copyright line and the MIT text, as `AGENTS.md` requires.
+- The adapted source is `mattpocock/skills`, MIT (license file read 2026-11-11). Its rules are rewritten in this project's words, and the notices file carries the copyright line and the MIT text, as `AGENTS.md` requires.
 - The ingest, query and lint idea comes from a gist with no license (read 2026-11-11 by a research subagent). No text from it is used.
 - `AGENTS.md`: model names appear only in `mstack-best-model-for`; every instruction must work against the real tool; no personal or company data.
 - Claude Code names a subagent tool and Codex documents none (host documentation, 2026-11-11), so the skill speaks of roles and carries a host table only where a step needs a host tool.

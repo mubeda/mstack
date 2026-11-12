@@ -1,6 +1,6 @@
 # Add mstack-brainstorm, a skill that turns an unformed idea into an approved design brief
 
-Status: Approved 2026-11-10 (approved in chat by the user)
+Status: Approved 2026-11-12 (approved in chat by the user; edited that day: copyright names moved to the notices file only)
 Size: full    Mode: gated    Type: feature
 Source: conversation 2026-11-10. The user asked for a brainstorming skill built on the superpowers `brainstorming` skill, combined with other brainstorming skills found through `mstack-find-skills` and with whatever pstack offers that is licensed and fits.
 
@@ -288,7 +288,7 @@ The mstack repository SHALL ship the brainstorm skill as one plugin for Claude C
 ## Constraints and assumptions
 
 - Hosts: Claude Code and Codex. Topics: any, software or not.
-- Sources and licenses, read 2026-11-10: superpowers `brainstorming` 7.0.2, MIT, `Copyright (c) 2025 Jesse Vincent`; pstack upstream in `cursor/plugins`, MIT, `Copyright (c) 2026 Lauren Tan`; Anthropic `product-brainstorming` in `anthropics/knowledge-work-plugins`, Apache-2.0, whose license file holds only the unfilled copyright template and which has no notice file; BMad `bmad-brainstorming` in `bmad-code-org/bmad-method`, MIT, `Copyright (c) 2025 BMad Code, LLC`, with a trademark notice.
+- Sources and licenses, read 2026-11-10: superpowers `brainstorming` 7.0.2, MIT; pstack upstream in `cursor/plugins`, MIT; Anthropic `product-brainstorming` in `anthropics/knowledge-work-plugins`, Apache-2.0, whose license file holds only the unfilled copyright template and which has no notice file; BMad `bmad-brainstorming` in `bmad-code-org/bmad-method`, MIT, with a trademark notice. The copyright lines are in the skill's notices file only.
 - The names of the sources' products and personas are never used as names of this skill's files, modes or steps. They appear only in the notices file.
 - The repository's rules apply: no personal or company data, a skill never points outside its own folder, no commit without a request, and model names appear only in `mstack-best-model-for`'s table.
 - Headless test runs have no question tool, so a test case that needs the user's answer supplies it as a second turn (the repository's existing practice for its setup cases).

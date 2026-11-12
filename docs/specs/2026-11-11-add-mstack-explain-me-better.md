@@ -1,6 +1,6 @@
 # Add mstack-explain-me-better, a mode that explains AI answers in simple language
 
-Status: Approved 2026-11-11 (approved in chat by the user)
+Status: Approved 2026-11-12 (approved in chat by the user; edited that day: lines aligned with the shipped skill, and copyright names moved to the notices file only)
 Size: full    Mode: gated    Type: feature
 Source: conversation 2026-11-11. The user asked for a skill named `mstack-explain-me-better` that combines the installed terse-voice skill, the `i-have-adhd` skill and any other skill with the same purpose, to explain AI answers and reports in common, simple language.
 
@@ -54,11 +54,11 @@ The skill's description SHALL start with "Use when" and name the situations of n
 - THEN the skill loads without the user typing its name
 
 ### R2. Explain the thing in front of the reader first  [Must]
-WHEN the mode starts, the skill SHALL explain the original the user points at (the previous answer when none is named, otherwise the pasted text or the named file) under the rules below, SHALL then keep the mode on, and SHALL end that first answer with one line saying that the simple style is on and which word turns it off. Loading the skill is what starts the mode; a plain question about the meaning of one word is not a reason to load it.
+WHEN the mode starts, the skill SHALL explain the original the user points at (the previous answer when none is named, otherwise the pasted text or the named file) under the rules below, SHALL then keep the mode on, and SHALL close that first answer with one line saying that the simple style is on and which word turns it off. Loading the skill is what starts the mode; a plain question about the meaning of one word is not a reason to load it.
 #### Scenario: started after a long answer
 - GIVEN the previous answer was a long report
 - WHEN the user starts the mode and names nothing
-- THEN the next answer is that report explained again, not a description of the mode, and its last line says the simple style is on and how to stop it
+- THEN the next answer is that report explained again, not a description of the mode, and one closing line says the simple style is on and how to stop it
 #### Scenario: nothing to explain
 - GIVEN a conversation with no earlier answer and no text named
 - WHEN the user starts the mode
@@ -119,7 +119,7 @@ WHEN an answer leaves out part of the original, the skill SHALL end with one lin
 #### Scenario: alternatives dropped
 - GIVEN a report with three rejected alternatives the reader does not need
 - WHEN the skill explains it without them
-- THEN the last line says the alternatives were left out
+- THEN a closing line says the alternatives were left out
 #### Scenario: nothing left out
 - GIVEN an explanation that covers everything in the original
 - WHEN it ends
@@ -149,7 +149,7 @@ WHILE the mode is on, the skill SHALL apply its rules to everything it says to t
 ### R11. Short follow-ups work  [Should]
 WHILE the mode is on, the skill SHALL treat "simpler", "shorter", "more detail" and "give me an example" as requests about its last answer.
 #### Scenario: more detail
-- GIVEN an explanation whose last line named what was left out
+- GIVEN an explanation with a closing line that named what was left out
 - WHEN the user writes "more detail"
 - THEN the next answer adds the left-out part, in the same style
 
@@ -189,11 +189,11 @@ The skill SHALL work in full without any other skill, SHALL name no other skill 
 - THEN only `archify` is found
 
 ### R21. Offer a diagram when it helps  [Must]
-WHILE the mode is on, WHEN an explanation has structure a picture shows better (four or more steps in a flow, several parts that connect, an exchange between systems, states that change, or a timeline) and `archify` is in the session's skill list, the skill SHALL end the explanation with one question asking whether the reader wants a diagram of it, at most once per explanation.
+WHILE the mode is on, WHEN an explanation has structure a picture shows better (four or more steps in a flow, several parts that connect, an exchange between systems, states that change, or a timeline) and `archify` is in the session's skill list, the skill SHALL make one question asking whether the reader wants a diagram of it the last line of the answer, after every other closing line and as plain text in the chat, at most once per explanation.
 #### Scenario: a flow of six steps
 - GIVEN the mode is on, `archify` is installed, and the original describes a request passing through six services
 - WHEN the skill explains it
-- THEN the explanation ends with one question offering a diagram, and no diagram file exists yet
+- THEN the last line of the answer is one question offering a diagram, after every other closing line, and no diagram file exists yet
 #### Scenario: a single fact
 - GIVEN the same session
 - WHEN the answer is two sentences about one setting
@@ -240,15 +240,15 @@ The repository SHALL update every text and list that counts or lists the mstack 
 
 ## Constraints and assumptions
 
-- Adapted sources, all rewritten and credited in the skill's notices file as the repository's rules require: the terse-voice project at https://github.com/juliusbrussee/caveman (Apache-2.0; its NOTICE reads "Caveman / Copyright 2026 Julius Brussee", and it claims its name, which is used only to identify the source); `i-have-adhd` at https://github.com/ayghri/i-have-adhd (MIT, "Copyright (c) 2026 Ayoub Ghriss"). Both are already credited this way in `mstack-codex-review-workflow`'s notices (read 2026-11-11).
-- `mstack-codex-review-workflow`'s `references/writing.md` already holds this project's own rewording of rules from those two sources and from pstack (MIT, "Copyright (c) 2026 Lauren Tan"). Rules taken from that file carry the same credits. (agent's call: reuse the repository's own wording where it fits)
+- Adapted sources, all rewritten and credited in the skill's notices file as the repository's rules require: the terse-voice project at https://github.com/juliusbrussee/caveman (Apache-2.0, with a NOTICE file; it claims its name, which is used only to identify the source); `i-have-adhd` at https://github.com/ayghri/i-have-adhd (MIT). The copyright lines are in the notices file only. Both are already credited this way in `mstack-codex-review-workflow`'s notices (read 2026-11-11).
+- `mstack-codex-review-workflow`'s `references/writing.md` already holds this project's own rewording of rules from those two sources and from pstack (MIT). Rules taken from that file carry the same credits. (agent's call: reuse the repository's own wording where it fits)
 - The terse-voice project's skill text was MIT before its version 3.0.0 and Apache-2.0 after (its licensing notes, read 2026-11-11 by the research), so the notices file carries both its Apache-2.0 NOTICE lines with a statement that the rules were changed, and its MIT notice.
 - Research on 2026-11-11 (`reports/Plain explanation skill research.md`, local and not committed) found that the US Federal Plain Language Guidelines, GOV.UK's content guidance and the W3C cognitive-accessibility patterns agree on the rules this spec uses: the most important information first, one idea per sentence, common words, the active voice, lists and numbered steps, and a specialist term explained on first use. Their numeric limits (sentences of 20 to 25 words, short paragraphs) are conventions, not research findings, so the skill states them as guides. These sources are used as ideas only; no text is taken from them.
 - The same research found that none of the existing skills protects caveats, uncertainty or risks when shortening, and one of them removes hedging. R5 and R19 add that protection. The only verified way to test understanding, paraphrase testing, needs human readers; R19 is what an agent can do in its place.
 - A skill named `eli5` contributes one idea ("simplify the wording, never the claims"); its upstream license was not established, so no text is taken from it.
 - Any further source is used only when it has a license, and is then credited; a source without a license contributes ideas only.
 - `AGENTS.md`: no personal or company data; model names only in `mstack-best-model-for`; every instruction must work against the real tool.
-- The diagram offer needs two host tools, a question to the user and loading another skill, so the skill carries a small host table for those two roles and names roles outside it.
+- The diagram offer needs one host tool, loading another skill, so the skill carries a small host table for that role and names roles outside it. The diagram question is plain text in the chat, so the explanation stays on screen while the reader decides.
 - `archify` is https://github.com/tt-a1i/archify, Apache-2.0, a skill that makes diagrams as one standalone HTML file and needs Node. Its own install file gives one command for every agent: `npx -y skills@latest add https://archify.si --skill archify --agent <agent> --global --copy --yes`, with the agent ids `claude-code` and `codex` (its `llms.txt`, read 2026-11-11). Nothing of its text is copied; it is named and loaded, so it needs no entry in the notices file.
 - The line limit rises from 120 to 130 for the host table and the diagram rules. (agent's call)
 - New plugin version `0.1.0`. Marketplace `0.6.2` rises to `0.7.0`, because a plugin is added. `mstack-skill-creator` 0.3.1 to 0.3.2, `mstack-find-skills` 0.2.1 to 0.2.2 and `mstack-setup` 0.2.2 to 0.2.3, because they list the mstack skills. `mstack-chief-of-staff` 0.1.0 to 0.1.1, because its route table lists the other mstack skills.
@@ -274,7 +274,7 @@ D15. At most five points in the middle part. Alternative: no cap. Decided by: ag
 D16. Nothing is added to the original, and a contradiction is named, not resolved. Decided by: agent's call. Source: the goal of a faithful explanation.
 D17. Security warnings, confirmations before irreversible actions and questions with options are written in full. Decided by: agent's call. Source: both source skills make these exceptions.
 D18. `mstack-find-skills` and `mstack-setup` list the new skill, as they list the others. Decided by: agent's call.
-D20. Loading the skill starts the mode, the description leaves out single-word questions, and the first answer ends with one line on how to stop. Alternative: ask before turning the mode on, which adds a question to the moment the reader is already lost. Decided by: agent's call. Source: independent read, and D2.
+D20. Loading the skill starts the mode, the description leaves out single-word questions, and the first answer closes with one line on how to stop. Alternative: ask before turning the mode on, which adds a question to the moment the reader is already lost. Decided by: agent's call. Source: independent read, and D2.
 D21. The five-point cap never removes a warning, risk or decision. Decided by: agent's call. Source: independent read, and D7.
 D22. A format that another skill or the repository requires keeps its shape; the mode changes only the words inside. Decided by: agent's call. Source: independent read.
 D23. Before answering, the draft is compared with the original for numbers, warnings, risks, decisions, negations and stated uncertainty. Alternative: trust the rewrite. Decided by: agent's call. Source: research 2026-11-11 (no existing skill protects caveats; no automated fidelity check was verified).
