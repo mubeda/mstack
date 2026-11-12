@@ -234,6 +234,12 @@ for (const host of ['claude', 'codex']) {
     const r = run(machine(), ['--host', host]);
     assert.equal(r.json.items.find((i) => i.id === 'mstack-explain-me-better')?.tier, 'optional', r.out);
   });
+  for (const skill of ['mstack-product-plan', 'mstack-epic']) {
+    test(`${host}: ${skill} is an optional row`, () => {
+      const r = run(machine(), ['--host', host]);
+      assert.equal(r.json.items.find((i) => i.id === skill)?.tier, 'optional', r.out);
+    });
+  }
   test(`${host}: archify is an optional row, MISSING without it and ok with it, and never fails the run alone`, () => {
     const complete = host === 'claude' ? completeClaude(machine()) : null;
     const bare = run(machine(), ['--host', host]);

@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: epic-stale-properties
+expected_outcome: |
+  The Status line alone decides: an Approved epic with a stale properties block is settled, a missing part is
+  asked, and the size stays context.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

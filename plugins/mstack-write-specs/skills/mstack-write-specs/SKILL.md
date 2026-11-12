@@ -57,7 +57,7 @@ Each phase ends at a gate. Do not start the next phase before the gate holds.
 | Phase | Work | Gate |
 |---|---|---|
 | 0. Intake and size | Restate the goal, the problem and the smallest change that meets it. Classify the input (feature, bug class, refactor, vague idea). Size it and pick a mode (below) | The restatement, size and mode are stated to the user. If the evidence already rules the request out, show the evidence and stop |
-| 1. Ground | Read the repository's instructions, existing specs and docs, the linked issue (in full, even when it arrives as a row of an `mstack-backlog-triage` table, whose reason and acceptance hint are a starting point, not decisions), a design brief given as the source (see "A brief as the source"), and the code the change touches, after following `references/codegraph.md` | You can explain how the relevant parts work today and what the change touches, with citations |
+| 1. Ground | Read the repository's instructions, existing specs and docs, the linked issue (in full, even when it arrives as a row of an `mstack-backlog-triage` table, whose reason and acceptance hint are a starting point, not decisions), a design brief or a product epic given as the source (see "A brief as the source" and "An epic as the source"), and the code the change touches, after following `references/codegraph.md` | You can explain how the relevant parts work today and what the change touches, with citations |
 | 2. Interview | Grilling rounds over the design tree (below) | The frontier is empty and the user confirms the shared understanding |
 | 3. Approaches | Two or three structurally different approaches, in a message of their own, with trade-offs and a recommendation | The user picks one, or hands you the choice and you record it as your call |
 | 4. Draft | Write the spec from `references/spec-template.md` at its final path (below) | The file exists |
@@ -83,6 +83,8 @@ If the request grows during the interview, say so and step up a size.
 - **Refactor.** No user stories. Requirements are invariants on observable behavior, and Phase 3 (the approach) comes before most requirements.
 - **Vague idea.** When `mstack-brainstorm` is in this session's skill list, name it as the better start, because it works out the goal and the reason before any spec, and ask once whether to switch; on a no, continue here. Otherwise spend longer in Phase 2 on the why, the goals and the anti-goals (results that would count as failure even if everything technically works).
 - **A design brief.** A source file whose first heading starts with `# Design brief:` is a brief, usually from `mstack-brainstorm`. See "A brief as the source" below.
+- **A product epic.** A source file whose first heading starts with `# Epic:` is an epic, usually from `mstack-epic`, written by a product person. See "An epic as the source" below.
+- **A product plan.** A source file whose first heading starts with `# Product plan:` is not a spec source. See the last paragraph of "An epic as the source".
 
 ## A brief as the source
 
@@ -94,6 +96,24 @@ Whatever its Status, name the brief's path as the source in your first message a
 
 When its `Status:` line says Draft, read it as context only. Its decisions are not settled: say that the brief is not approved yet, and ask its decisions like any other open decision (or offer to finish it with `mstack-brainstorm` first).
 
+## An epic as the source
+
+An epic is one piece of an initiative, written by a product person: what it is for and how anyone will know it worked, with no code. `references/product-format.md` gives its lines and headings. Whatever its Status, name the epic's path as the source in your first message and in the spec's Source line.
+
+Only the `Status:` line under its title decides whether it is settled. An epic kept in an Obsidian vault also has a properties block above the title; when that block's `status` differs from the `Status:` line, tell the user in one line that the two differ, and go by the `Status:` line.
+
+When the `Status:` line says Approved:
+
+1. Its outcome, who it is for, what is in and out, its acceptance statements, its measurable result and its fixed limits are settled. Never ask them again; record each in the interview record as decided in the epic, with the epic's path. Turn the acceptance statements into requirements and scenarios through your own interview and drafting; nothing is copied over mechanically.
+2. Its open questions for developers join the open items of the interview. Sort them like any other: look up the ones the code answers, and ask the rest when they are ready.
+3. Its size is context only. It never becomes a requirement or a limit.
+4. A line under "Ideas the team already has" is one option for Phase 3, not a decision.
+5. Before your first round, hold the epic's headings against the list in `references/product-format.md`, one by one. A part the format requires that is missing has not been decided: name it to the user and ask it as soon as it is ready, in the first round when nothing blocks it. A heading the format does not know is context.
+
+When the `Status:` line says Draft, read the epic as context only: say that it is not approved yet, and ask its decisions like any other open decision (or offer to finish it with `mstack-epic` first).
+
+A product plan (first heading `# Product plan:`) holds several epics in short form and is not a spec source. Say that a spec starts from one epic, name `mstack-epic` as the skill that details one, and ask which epic the user means. Continue only with that one epic section, as context that is not settled. Never write one spec for a whole product plan.
+
 ## The interview
 
 Model the subject as a design tree, where each decision branches into the decisions that depend on it. The frontier is every decision whose prerequisites are already settled.
@@ -104,7 +124,7 @@ Model the subject as a design tree, where each decision branches into the decisi
    - **Process call.** Where the file goes, how to show something, whether to look further. Make the call yourself and say what you chose.
    - **Decision.** Ask the user, with a recommendation.
 2. Use the coverage list in `references/coverage.md` privately, to find branches you would otherwise miss. Never read it out as a questionnaire, and mark branches that do not apply instead of asking about them.
-3. Ask the whole frontier in one round, leaving out what an approved brief already settled (see "A brief as the source"). Number the questions. Give a recommendation for each and word the question so a plain "yes" accepts it. A question that depends on another open question in the same round waits for a later round.
+3. Ask the whole frontier in one round, leaving out what an approved brief or an approved epic already settled (see "A brief as the source" and "An epic as the source"). Number the questions. Give a recommendation for each and word the question so a plain "yes" accepts it. A question that depends on another open question in the same round waits for a later round.
 4. Open each round with a short playback of what the last answers settled. Present anything you filled in as your proposal with your reason, never as the user's words.
 5. Wait for the answers. Then recompute the frontier from scratch, because settled answers unblock new decisions. If a later answer changes an earlier one, reopen that branch in the next round.
 6. When the user's words contradict the code, ask about the contradiction directly ("Your code cancels whole orders, but you said partial cancellation is possible. Which is right?").

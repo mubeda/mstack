@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: scope-change
+expected_outcome: |
+  When the interview changes the epic's scope, the difference is listed in the epic and the product plan file is
+  left byte for byte unchanged.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

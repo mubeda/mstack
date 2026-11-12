@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: vault
+expected_outcome: |
+  Inside an Obsidian vault the plan starts with a properties block, keeps its title as the first heading, links
+  each epic, and both status places agree.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

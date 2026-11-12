@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: unformed-idea
+expected_outcome: |
+  For a request with no stated reason, the first reply asks exactly one open question with no options, and
+  starts no numbered round.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

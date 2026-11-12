@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: alone-no-repository
+expected_outcome: |
+  With no repository and no helper skill, the run still writes a complete product plan in the current folder,
+  records a same-vendor review, never asks for an install, and asks for approval.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

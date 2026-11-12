@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: eleven-epics
+expected_outcome: |
+  With eleven epics the skill proposes a split into two product plans before writing, and writes all eleven into
+  one plan only after the user refuses.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

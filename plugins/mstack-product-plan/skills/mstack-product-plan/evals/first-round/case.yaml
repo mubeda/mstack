@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: first-round
+expected_outcome: |
+  The first reply says what was read, asks once for further sources, and asks numbered product questions with
+  recommendations, none of them technical and none already answered by the vision note.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]
