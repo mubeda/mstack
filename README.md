@@ -2,7 +2,7 @@
 
 Daily-driver agent skills, packaged as a plugin marketplace that **Claude Code** and **OpenAI Codex CLI** both read natively.
 
-One marketplace, one canonical `SKILL.md` per skill, two manifest types per plugin.
+One marketplace, one canonical `SKILL.md` per skill, one manifest per host a plugin supports.
 
 The repository is [`github.com/mubeda/mstack`](https://github.com/mubeda/mstack).
 
@@ -41,7 +41,7 @@ The skills that read code (`mstack-plan`, `mstack-write-specs`, `mstack-diagnose
 
 `mstack-claude-review-workflow` carries the same reference files. It needs `ponytail`, `mstack-diagnose`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `node`, plus `gh` for GitHub work and `ui-ux-pro-max` with Python 3 for web UI work, and recommends the `claude-review` skill from the `claude` plugin of [agent-bridges](https://github.com/mubeda/agent-bridges) with a logged-in `claude` CLI. Codex's sandbox blocks some of its commands (git writes, and network for lanes and reviews), so the run asks you to approve them.
 
-`mstack-claude-pm-codex-dev` carries the same reference files too. It needs the [OpenAI Codex plugin for Claude Code](https://github.com/openai/codex-plugin-cc) (its `codex:codex-rescue` agent is the developer channel) with a logged-in `codex` CLI, `ponytail`, `mstack-diagnose`, `mstack-best-model-for` and `mstack-receive-review` on the Codex side (the developer loads them), and `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review` on the Claude side, plus `gh` for GitHub work and `ui-ux-pro-max` on the Codex side for web UI work. Its preflight checks them and names `mstack-setup` for whatever is missing. It runs one developer at a time in your checkout, and it commits only phases it reviewed.
+`mstack-claude-pm-codex-dev` carries the same reference files too. It needs the [OpenAI Codex plugin for Claude Code](https://github.com/openai/codex-plugin-cc) (its `codex:codex-rescue` agent is the developer channel) with a logged-in `codex` CLI, `ponytail`, `mstack-diagnose`, `mstack-best-model-for` and `mstack-receive-review` on the Codex side (the developer loads them), and `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review` on the Claude side, `node`, plus `gh` for GitHub work and `ui-ux-pro-max` on the Codex side for web UI work. Its preflight checks them and names `mstack-setup` for whatever is missing. It runs one developer at a time in your checkout, and it commits only phases it reviewed.
 
 When a skill's cross-vendor reviewer is not installed, the skill warns you and runs the same review with a fresh, read-only subagent of the AI you are using. That same-vendor review tends to miss more, so every report marks it.
 
@@ -84,7 +84,7 @@ Run `/plugin`, open the **Marketplaces** tab, select `mstack` and enable auto-up
 /reload-plugins
 ```
 
-From marketplace version 0.4.0 `mstack-plan`, the three workflows and `mstack-skill-creator` require the shared skills `mstack-find-skills` and `mstack-best-model-for`, and stop until they are installed. From marketplace version 0.6.1, `mstack-diagnose`, `mstack-write-specs`, `mstack-brainstorm` and `mstack-backlog-triage` no longer stop without `mstack-best-model-for`: they work without subagents (`mstack-chief-of-staff` requires none: it names a missing skill and goes on). Install them with the lines above, or install `mstack-setup` and run it, which installs everything missing after one yes. From marketplace version 0.5.0, `mstack-plan` and the three workflows also require `mstack-receive-review`.
+From marketplace version 0.4.0 `mstack-plan`, the three workflows and `mstack-skill-creator` require the shared skills `mstack-find-skills` and `mstack-best-model-for`, and stop until they are installed. From marketplace version 0.6.1, `mstack-diagnose`, `mstack-write-specs`, `mstack-brainstorm` and `mstack-backlog-triage` no longer stop without `mstack-best-model-for`: they work without subagents (`mstack-chief-of-staff` requires none: it names a missing skill and goes on). Install them with the lines above, or install `mstack-setup` and run it, which installs what is missing after one yes (`node`, `git`, `gh`, Python and logins stay steps for you). From marketplace version 0.5.0, `mstack-plan` and the three workflows also require `mstack-receive-review`.
 
 ## Install in Codex CLI
 
@@ -115,7 +115,7 @@ codex plugin marketplace add https://github.com/mubeda/agent-bridges.git
 codex plugin add claude@agent-bridges
 ```
 
-Or launch `codex` and browse with `/plugins`. Codex has no auto-update; refresh with `codex plugin marketplace upgrade mstack`, then run `codex plugin add` again for each plugin you use. From marketplace version 0.4.0 `mstack-plan`, `mstack-claude-review-workflow` and `mstack-skill-creator` require `mstack-find-skills` and `mstack-best-model-for` (`mstack-diagnose`, `mstack-write-specs`, `mstack-brainstorm` and `mstack-backlog-triage` work without subagents when `mstack-best-model-for` is missing, and `mstack-chief-of-staff` requires none), and from 0.5.0 `mstack-plan` and `mstack-claude-review-workflow` also require `mstack-receive-review`; `mstack-setup` installs whatever is missing.
+Or launch `codex` and browse with `/plugins`. Codex has no auto-update; refresh with `codex plugin marketplace upgrade mstack`, then run `codex plugin add` again for each plugin you use. From marketplace version 0.4.0 `mstack-plan`, `mstack-claude-review-workflow` and `mstack-skill-creator` require `mstack-find-skills` and `mstack-best-model-for` (`mstack-diagnose`, `mstack-write-specs`, `mstack-brainstorm` and `mstack-backlog-triage` work without subagents when `mstack-best-model-for` is missing, and `mstack-chief-of-staff` requires none), and from 0.5.0 `mstack-plan` and `mstack-claude-review-workflow` also require `mstack-receive-review`; `mstack-setup` installs what it can of whatever is missing.
 
 `mstack-codex-review-workflow` and `mstack-claude-pm-codex-dev` are not published for Codex, because they drive Claude Code's subagent tools (the second also drives the Codex plugin for Claude Code). Codex users install `mstack-claude-review-workflow` instead.
 
@@ -159,7 +159,7 @@ Keep skills current with `npx skills update`, list them with `npx skills ls`, an
 
 Install the workflow that matches the agent: `mstack-codex-review-workflow` or `mstack-claude-pm-codex-dev` for Claude Code, `mstack-claude-review-workflow` for Codex. The Codex workflow's Claude reviewer, the agent-bridges `claude` plugin, has to be installed as a plugin, because its skill runs a script from the plugin's root folder.
 
-When a skill finds a missing dependency, it names `mstack-setup`, which installs everything at user scope after one yes. The one exception is `archify`, the optional diagram skill of `mstack-explain-me-better`: when it is missing, no diagram is offered and nothing is said about it. `mstack-find-skills` installs a skill it found only after asking whether to install it as a plugin or with the skills CLI, and for the skills CLI the scope, the method and the agents.
+When a skill finds a missing dependency, it names `mstack-setup`, which installs skills, plugins and their command-line tools at user scope after one yes, and lists `node`, `git`, `gh`, Python and logins as steps for you. The one exception is `archify`, the optional diagram skill of `mstack-explain-me-better`: when it is missing, no diagram is offered and nothing is said about it. `mstack-find-skills` installs a skill it found only after asking whether to install it as a plugin or with the skills CLI, and for the skills CLI the scope, the method and the agents.
 
 ## Repository layout
 
@@ -191,10 +191,35 @@ mstack/
 
 1. Put the skill at `plugins/<plugin>/skills/<skill>/SKILL.md`, with a copy of the root `LICENSE` and a `THIRD_PARTY_NOTICES.md` next to it. Keep everything the skill needs inside that folder, because the skills CLI installs only the folder, and name any `SKILL.md` used as test data `SKILL.md.fixture`.
 2. Create `plugins/<plugin>/.claude-plugin/plugin.json`, and `plugins/<plugin>/.codex-plugin/plugin.json` (with `"skills": "./skills/"` and an `interface` block) if it works in Codex.
-3. Register it in `.claude-plugin/marketplace.json` and, for Codex, `.agents/plugins/marketplace.json` (`version`, `source: {source: "local", path: ...}`, `policy`, `category`), and add a row to the table above.
+3. Register it in `.claude-plugin/marketplace.json` and, for Codex, `.agents/plugins/marketplace.json` (`version`, `source: {source: "local", path: ...}`, `policy`, `category`), and add a row to the table above and, for an adapted source, to Credits below.
 4. Run the checks listed in [`AGENTS.md`](./AGENTS.md) › Before every commit.
 
 Skills here are for anyone: no personal names, machine paths, company or project data. See `AGENTS.md`.
+
+## Credits
+
+Many of these skills build on other open-source projects. Their rules are rewritten in this project's words (the one exception is `mstack-skill-creator`, which ships three of Anthropic's benchmark files unchanged), and each skill's `THIRD_PARTY_NOTICES.md` says what it took from where, with the copyright lines and license texts those projects require. That file is the record; this list is a thank-you.
+
+| Project | License | Used by |
+|---|---|---|
+| [superpowers](https://github.com/obra/superpowers) | MIT | `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-diagnose`, `mstack-handoff`, `mstack-receive-review`, `mstack-skill-creator`, the three workflows |
+| [pstack](https://github.com/cursor/plugins/tree/main/pstack) | MIT | `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-diagnose`, `mstack-handoff`, `mstack-receive-review`, `mstack-explain-me-better`, the three workflows |
+| [mattpocock/skills](https://github.com/mattpocock/skills) | MIT | `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-diagnose`, `mstack-handoff`, `mstack-backlog-triage`, `mstack-chief-of-staff`, the three workflows |
+| [juliusbrussee/caveman](https://github.com/juliusbrussee/caveman) | Apache-2.0 (MIT before its version 3.0.0) | `mstack-explain-me-better`, the three workflows |
+| [i-have-adhd](https://github.com/ayghri/i-have-adhd) | MIT | `mstack-explain-me-better`, the three workflows |
+| [spec-kit](https://github.com/github/spec-kit) | MIT | `mstack-write-specs`, `mstack-plan` |
+| [OpenSpec](https://github.com/Fission-AI/OpenSpec) | MIT | `mstack-write-specs` |
+| [Anthropic knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins) | Apache-2.0 | `mstack-brainstorm`, `mstack-write-specs`, `mstack-diagnose` |
+| [BMad Method](https://github.com/bmad-code-org/bmad-method) | MIT | `mstack-brainstorm` |
+| [Omarchy](https://github.com/omacom/omarchy), [awesome-copilot](https://github.com/github/awesome-copilot), [wshobson/agents](https://github.com/wshobson/agents) | MIT | `mstack-diagnose` |
+| [chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) | Apache-2.0 | `mstack-diagnose` |
+| [beagle](https://github.com/existential-birds/beagle), [streamlit](https://github.com/streamlit/streamlit) | Apache-2.0 | `mstack-receive-review` |
+| [archify](https://github.com/tt-a1i/archify), the Atlassian `triage-issue` skill | Apache-2.0 | `mstack-backlog-triage` |
+| [Anthropic skills](https://github.com/anthropics/skills) and [OpenAI skills](https://github.com/openai/skills) (their `skill-creator`) | Apache-2.0 | `mstack-skill-creator` |
+| [SkillForge](https://github.com/tripleyak/SkillForge) | MIT | `mstack-skill-creator` (an idea only) |
+| [ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | MIT | the three workflows (usage notes only) |
+
+The skills also use, without copying from them: [codegraph](https://github.com/colbymchenry/codegraph), [ponytail](https://github.com/DietrichGebert/ponytail), [skill-codex](https://github.com/skills-directory/skill-codex), [agent-bridges](https://github.com/mubeda/agent-bridges), the [OpenAI Codex plugin for Claude Code](https://github.com/openai/codex-plugin-cc), the [skills CLI](https://github.com/vercel-labs/skills) and [archify](https://github.com/tt-a1i/archify). `mstack-setup` installs them, except the skills CLI.
 
 ## License
 
