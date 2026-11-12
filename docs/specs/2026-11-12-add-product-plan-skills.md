@@ -1,6 +1,6 @@
 # Add mstack-product-plan and mstack-epic, planning skills for product people
 
-Status: Approved 2026-11-12 (approved in chat by the user)
+Status: Draft (approved 2026-11-12; edited that day after the build: R10 and R33 aligned with decisions D26 and D34, one wording change in Success metrics, one constraint added; awaiting approval of this text)
 Size: full    Mode: gated    Type: feature
 Source: the approved design brief `docs/briefs/2026-11-12-product-plan-skills.md`, and conversation 2026-11-12.
 
@@ -129,7 +129,7 @@ WHEN the document is written, the skill SHALL have it reviewed read-only before 
 - THEN a fresh read by the same vendor's model reviews it (a subagent where the host has one, otherwise the skill's own second read against the checklist), and the `Review:` line records that the review was same-vendor
 
 ### R10. The review checks usability, not the product  [Must]
-The review SHALL check whether a developer could write a spec from the document (every section filled, acceptance and a measurable result per epic, no prescribed solution, no development content, no two parts that contradict, a reason for the order) and SHALL NOT judge whether the initiative or its priorities are right.
+The review SHALL check whether a developer could write a spec from the document (every section filled; a measurable result and an in-and-out line for each epic section of a product plan; acceptance statements and a measurable result in a detailed epic; no prescribed solution, no development content, no two parts that contradict, a reason for the order) and SHALL NOT judge whether the initiative or its priorities are right.
 #### Scenario: an epic without acceptance
 - GIVEN an epic with no acceptance statement
 - WHEN the review runs
@@ -322,7 +322,7 @@ WHILE the document is saved in a vault, the skill SHALL write the links between 
 - THEN each epic section carries an Obsidian link to the note its detailed epic will have
 
 ### R33. Properties inside a vault  [Must]
-WHILE the document is saved in a vault, the skill SHALL start it with a properties block that holds its type, status, and for an epic its order and size, SHALL write that block and the `Status:` line together with the same status, and SHALL keep the title line as the first heading.
+WHILE the document is saved in a vault, the skill SHALL start it with a properties block that holds its type and status, for an epic its size, and for an epic that comes from a product plan its order and a link to that plan, SHALL write that block and the `Status:` line together with the same status, and SHALL keep the title line as the first heading.
 #### Scenario: approval in a vault
 - GIVEN a Draft document in a vault
 - WHEN the user approves it
@@ -371,13 +371,14 @@ The change SHALL update every place that lists the mstack skills or states a rul
 
 ## Success metrics
 
-- Metric: a product person reaches an approved product plan without help. Target: the user's manager does so on first use. Threshold: one run in Claude Code or Codex and one in a desktop app. Measured by: the user's report. Checked: after the first use following the merge.
+- Metric: a product person reaches an approved product plan without help. Target: a product person does so on first use. Threshold: one run in Claude Code or Codex and one in a desktop app. Measured by: the user's report. Checked: after the first use following the merge.
 - Metric: a spec started from an approved epic asks no product decision again. Target: zero repeated questions in the eval case. Measured by: the eval's grader. Checked: before the merge.
 
 ## Constraints and assumptions
 
 - Claude desktop custom skills: the skill folder is the root of the uploaded ZIP and has the skill's name; `name` is at most 64 characters of lowercase letters, numbers and hyphens and contains neither "claude" nor "anthropic"; code execution must be on (Anthropic's help article "Using skills in Claude" and its platform overview of agent skills, read 2026-11-12 by a lookup). Those two pages disagree on the description limit, 200 or 1,024 characters, so the descriptions stay within 200.
 - ChatGPT desktop: a skill needs `SKILL.md` with `name` and `description`; an `agents/openai.yaml` file is optional (OpenAI's "build skills" page, read 2026-11-12 by a lookup). The upload steps come from search snippets only, because the help article refused the lookup.
+- The question about further sources is asked in the first message, except when the reason for the initiative is not known yet: then the first message holds only the open question of R5, and the sources question comes with the first numbered round. (agent's call, after the comparison test showed two questions in one message)
 - No vendor page confirmed that a skill in either desktop app can read attachments, save a file or call another skill. R14 and R15 cover both outcomes.
 - Licenses read 2026-11-12: Anthropic's `write-spec` in `anthropics/knowledge-work-plugins`, Apache-2.0; BMAD Method in `bmad-code-org/BMAD-METHOD`, MIT, with a trademark notice on its names; `prd-development` in `deanpeters/Product-Manager-Skills`, CC BY-NC-SA 4.0, which does not fit this repository, so no text is taken from it. Shape Up and opportunity solution trees are used as ideas only, in this project's words.
 - The research's interview findings come from preprints with simulated users; the skills use them as guidance (several rounds, a list of interviewer mistakes, a checklist review, visible open questions).

@@ -4,4 +4,4 @@ focus: outcome
 weight: 1
 ---
 
-The question comes with no list of options and no example answers.
+An open question about the idea comes with no list of options and no example answers. (An offer to switch to a brainstorm skill is a pass.)

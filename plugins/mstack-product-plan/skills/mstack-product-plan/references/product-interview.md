@@ -31,7 +31,7 @@ No numbered round starts before the reason is known.
 ## Sort every open item
 
 1. **A fact** a source can answer: look it up. Never ask it.
-2. **A process call** (where the file goes, how to show something): decide it and say what you chose.
+2. **A process call** (where the file goes, how to show something): decide it and say what you chose. The one exception is the folder inside an Obsidian vault, which you ask.
 3. **A product decision**: ask the user, with your recommendation.
 4. **An unknown the user cannot settle**: an open question for developers.
 

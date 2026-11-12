@@ -45,7 +45,7 @@ This file is the same on every host. It names roles, and this table says what pl
 4. **Count the epics** as soon as the user names them, not at the end. With more than nine, your next message proposes splitting the initiative into two product plans and names which epics would go into which, before any further question. When the user refuses, continue with all of them.
 5. **Write** the product plan by `references/product-format.md`, with `Status: Draft`, at the place that file gives. Tell the user the path, or that it was not saved.
 6. **Review** it by `references/product-review.md`, without asking whether to review.
-7. **Ask for approval** of the written document: the path, a short summary, every call you made yourself, and the reviewer's product notes. On an explicit yes, set the Status line (and the `status` property in a vault) to approved.
+7. **Ask for approval** of the written document: the path (or, when nothing was saved, the text you printed), a short summary, every call you made yourself, and the reviewer's product notes. On an explicit yes, set the Status line (and the `status` property in a vault) to approved.
 8. **Offer the next step** and take it only when the user says so: detail one epic with `mstack-epic`, or stop. With a single epic, say that `mstack-epic` alone would have been enough next time.
 
 ## Running the reviewer

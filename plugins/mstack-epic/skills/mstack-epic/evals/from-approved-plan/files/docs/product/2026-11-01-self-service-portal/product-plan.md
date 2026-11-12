@@ -1,7 +1,7 @@
 # Product plan: Customer self-service portal
 
 Status: Approved 2026-11-01 (approved in chat by the user)
-Review: same-vendor, round 1, Ready
+Review: a fresh read by the same model, same-vendor, round 1, Ready
 Source: conversation 2026-10-28
 
 ## Problem and evidence

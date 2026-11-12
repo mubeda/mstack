@@ -1,7 +1,7 @@
 {
   "name": "mstack-product-plan",
   "version": "0.1.0",
-  "description": "Product-level planning for product and management people. Interviews in numbered rounds until every product decision is settled, then writes a product plan: the initiative (problem and evidence, who it is for, outcome and measure, what is out, fixed limits, risks) and up to nine epics ordered as now, next and later, each with a measurable result and a rough size. No code and no development steps. Works with no repository and no other skill, reads and writes an Obsidian vault, and has the plan reviewed before approval. One skill for Claude Code and Codex.",
+  "description": "Product-level planning for product and management people. Interviews in numbered rounds until every product decision is settled, then writes a product plan: the initiative (problem and evidence, who it is for, outcome and measure, what is out, fixed limits, risks) and its epics ordered as now, next and later (above nine it proposes a split), each with a measurable result and a rough size. No code and no development steps. Works with no repository and no other skill, reads and writes an Obsidian vault, and has the plan reviewed before approval. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"
   },

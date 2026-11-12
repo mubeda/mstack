@@ -106,7 +106,7 @@ When the `Status:` line says Approved:
 
 1. Its outcome, who it is for, what is in and out, its acceptance statements, its measurable result and its fixed limits are settled. Never ask them again; record each in the interview record as decided in the epic, with the epic's path. Turn the acceptance statements into requirements and scenarios through your own interview and drafting; nothing is copied over mechanically.
 2. Its open questions for developers join the open items of the interview. Sort them like any other: look up the ones the code answers, and ask the rest when they are ready.
-3. Its size is context only. It never becomes a requirement or a limit.
+3. Its size is context only. It never becomes a requirement or a limit. The spec's own size (small or full) is decided by this skill's rules, never taken from the epic's size.
 4. A line under "Ideas the team already has" is one option for Phase 3, not a decision.
 5. Before your first round, hold the epic's headings against the list in `references/product-format.md`, one by one. A part the format requires that is missing has not been decided: name it to the user and ask it as soon as it is ready, in the first round when nothing blocks it. A heading the format does not know is context.
 

@@ -18,7 +18,7 @@ Before the review starts, tell the user in one line who will read the document. 
 
 Write the prompt to a scratch folder outside the document's folder. (For your own second read there is no prompt file: use the instructions below as your checklist, on the text in the chat when nothing was saved.) It has three parts.
 
-1. **Reading list.** The document's path, and the sources it names (the product plan for an epic, a brief, notes that were read). Then paste the format the document has to follow: from `references/product-format.md`, the parts "Opening lines", "The product plan" or "The epic", and "Rules for every part". The reviewer cannot read this skill's folder.
+1. **Reading list.** The document's path, and the sources it names (the product plan for an epic, a brief, notes that were read). Then paste the whole of `references/product-format.md` into the prompt, because the reviewer cannot read this skill's folder and the epic's rules build on the product plan's.
 2. **Instructions.**
 
    ```text
@@ -34,7 +34,7 @@ Write the prompt to a scratch folder outside the document's folder. (For your ow
       reason), an in-and-out line, a size with a reason, and a place under now, next or
       later with a reason.
    3. An epic: it has acceptance statements, each a plain sentence someone can check, and
-      a measurable result.
+      a measurable result (or "not measurable yet" with a reason).
    4. No solution is prescribed outside the ideas part. No code, technical design, task
       list or estimate in hours or days.
    5. No two parts contradict each other.
@@ -71,4 +71,4 @@ These rules apply on every host. When a review-processing skill is installed, lo
 
 ## Not an approval
 
-The review is never the user's approval, even when it says "Ready". After it, show the user the path, a short summary, your own calls and the product notes, and ask for an explicit yes to the written document.
+The review is never the user's approval, even when it says "Ready". After it, show the user the path (or, when nothing was saved, say so and point at the text you printed), a short summary, your own calls and the product notes, and ask for an explicit yes to the written document.

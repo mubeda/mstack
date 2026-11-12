@@ -3,12 +3,13 @@ type: epic
 status: approved
 order: now
 size: large
+plan: "[[product-plan]]"
 ---
 # Epic: Invoices
 
 Status: Draft
-Review: same-vendor, round 1, Ready
-Source: docs/product/2026-11-01-self-service-portal/product-plan.md (approved), epic 2
+Review: a fresh read by the same model, same-vendor, round 1, Ready
+Source: docs/product/2026-11-01-self-service-portal/product-plan.md [[product-plan]] (approved), epic 2
 
 ## Differences from the product plan
 - Export of the invoice list moved out of this epic.
@@ -32,7 +33,7 @@ In: list, search and download of invoices. Out: paying an invoice, and export of
 60% of invoice requests to support stop within three months of launch.
 
 ## Size
-Large, it removes most of the support work.
+large, it removes most of the support work.
 
 ## Fixed limits
 - Live before the price change on 2027-03-01.
