@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: from-approved-plan
+expected_outcome: |
+  From an approved plan the epic is written beside it, with plain acceptance statements and a Source line naming
+  the plan, and nothing the plan settled is asked again.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

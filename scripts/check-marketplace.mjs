@@ -102,6 +102,20 @@ for (const name of ['mstack-write-specs', 'mstack-diagnose', 'mstack-backlog-tri
   assert.equal(read(path(name)), read(path('mstack-plan')), `${name}: references/codegraph.md differs from mstack-plan's copy`);
 }
 
+// The product documents have one format: mstack-product-plan and mstack-epic write it and mstack-write-specs reads it.
+// The two writers also share their interview and review rules. Each install copies only its own folder, so the copies must match.
+for (const [file, names] of [
+  ['product-format.md', ['mstack-epic', 'mstack-write-specs']],
+  ['product-interview.md', ['mstack-epic']],
+  ['product-review.md', ['mstack-epic']],
+]) {
+  const path = (n) => `plugins/${n}/skills/${n}/references/${file}`;
+  for (const name of names) {
+    assert(existsSync(resolve(root, path(name))), `${name}: references/${file} is missing; copy mstack-product-plan's`);
+    assert.equal(read(path(name)), read(path('mstack-product-plan')), `${file} differs between mstack-product-plan and ${name}; edit every copy`);
+  }
+}
+
 // The skills CLI (npx skills) installs only a skill's own folder, so each one carries its license and notices,
 // and no other SKILL.md may sit inside it (an eval fixture's would install as a second skill).
 assert.deepEqual(json('skills.sh.json').paths, ['./plugins'], 'skills.sh.json must point the skills CLI at ./plugins');

@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: epic-approved
+expected_outcome: |
+  An approved epic is a settled source: scope and acceptance are not asked again, and its open question for
+  developers is in the first round.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

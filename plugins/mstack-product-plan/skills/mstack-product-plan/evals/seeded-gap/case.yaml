@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: seeded-gap
+expected_outcome: |
+  Processing a review: the real gap is closed or asked, the false finding is rejected with the line that
+  disproves it, the order stays, and the document stays a Draft.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: epic-draft
+expected_outcome: |
+  A Draft epic is context only, even when its properties block says approved.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

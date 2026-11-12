@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: from-chat
+expected_outcome: |
+  An epic described in chat with no product plan gets a first round of numbered product questions, with no
+  demand for a product plan.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

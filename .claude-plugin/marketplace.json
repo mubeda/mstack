@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Daily-driver agent skills for Claude Code and Codex CLI, packaged as independently installable plugins.",
-    "version": "0.7.1"
+    "version": "0.8.0"
   },
   "plugins": [
     {
@@ -51,7 +51,7 @@
     {
       "name": "mstack-write-specs",
       "description": "Turn an idea, feature, bug class or refactor into an approved, testable specification: grilling interview rounds that settle every decision, approaches before drafting, EARS requirements with SHALL and a scenario each, a quality checklist, an independent read, and explicit approval before any build. One skill for Claude Code and Codex.",
-      "version": "0.3.3",
+      "version": "0.4.0",
       "author": {
         "name": "mubeda"
       },
@@ -91,7 +91,7 @@
     {
       "name": "mstack-skill-creator",
       "description": "Create or improve agent skills (SKILL.md folders) that Claude Code, Codex, OpenCode and Cursor all load: an interview, a check for an existing skill, writing by portable rules, a static check, a comparison test against a baseline, and for an mstack-style repository the full plugin packaging and cross-vendor review. Uses the other mstack skills when they are installed. Never commits or publishes on its own.",
-      "version": "0.3.3",
+      "version": "0.3.4",
       "author": {
         "name": "mubeda"
       },
@@ -111,7 +111,7 @@
     {
       "name": "mstack-find-skills",
       "description": "Find the skills that fit a job: the installed skills scored per task, then vetted public candidates from skills.sh for the gaps only (audits, installs, license and the skill's own text), installed only after the user's yes. Called by the other mstack skills for their tasks. One skill for Claude Code and Codex.",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "author": {
         "name": "mubeda"
       },
@@ -121,7 +121,7 @@
     {
       "name": "mstack-setup",
       "description": "Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: a status script for the host, then one list of install commands (codegraph, ponytail, the cross-vendor reviewer, the mstack skills) that runs only after one yes, and a final check. One skill for Claude Code and Codex.",
-      "version": "0.2.4",
+      "version": "0.2.5",
       "author": {
         "name": "mubeda"
       },
@@ -141,7 +141,7 @@
     {
       "name": "mstack-chief-of-staff",
       "description": "Own a long-running goal across many sessions: a release, a backlog, a multi-step project. Keeps the goal, its done criteria and every decision in a wiki of dated claims that the next session starts from, cites a commit for every claim about code, marks changed claims superseded instead of rewriting them, lints the wiki with a script, delegates substantial work to subagents through briefs that point at files, improves the environment after each task, and runs every procedure through the other mstack skills. One skill for Claude Code and Codex.",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "author": {
         "name": "mubeda"
       },
@@ -156,6 +156,26 @@
         "name": "mubeda"
       },
       "source": "./plugins/mstack-explain-me-better",
+      "category": "workflow"
+    },
+    {
+      "name": "mstack-product-plan",
+      "description": "Product-level planning for product and management people. Interviews in numbered rounds until every product decision is settled, then writes a product plan: the initiative (problem and evidence, who it is for, outcome and measure, what is out, fixed limits, risks) and its epics ordered as now, next and later (above nine it proposes a split), each with a measurable result and a rough size. No code and no development steps. Works with no repository and no other skill, reads and writes an Obsidian vault, and has the plan reviewed before approval. One skill for Claude Code and Codex.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-product-plan",
+      "category": "workflow"
+    },
+    {
+      "name": "mstack-epic",
+      "description": "Details one epic for product and management people, from an approved product plan or from a description in chat. Interviews only what the detailed epic adds, then writes one document: outcome, who it is for, what is in and out, acceptance as plain statements, a measurable result, size, fixed limits, user stories and open questions for developers. It never edits the product plan and lists what changed. No code and no development steps. mstack-write-specs accepts the approved epic as its source. One skill for Claude Code and Codex.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-epic",
       "category": "workflow"
     }
   ]

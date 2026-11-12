@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: vault-links
+expected_outcome: |
+  In a vault the epic starts with a properties block, links back to its plan, and the plan file is unchanged.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

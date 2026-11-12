@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: product-plan-as-source
+expected_outcome: |
+  A whole product plan is not a spec source: the skill asks for one epic and names the skill that details it.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

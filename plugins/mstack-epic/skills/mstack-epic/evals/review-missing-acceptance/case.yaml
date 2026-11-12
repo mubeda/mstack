@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: review-missing-acceptance
+expected_outcome: |
+  Processing a review of an epic: missing acceptance is asked or filled, the priority note changes nothing and
+  goes to the user, and the epic stays a Draft.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

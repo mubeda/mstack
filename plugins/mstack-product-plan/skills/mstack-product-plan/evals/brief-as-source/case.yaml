@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: brief-as-source
+expected_outcome: |
+  An approved design brief given as the source is treated as settled: its user decisions are not asked again.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

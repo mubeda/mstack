@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: draft-plan
+expected_outcome: |
+  A product plan that is not approved needs one yes before any interview question, and no epic is written before
+  it.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

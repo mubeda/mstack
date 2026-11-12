@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: repository-sources
+expected_outcome: |
+  In a repository the plan uses what the documents say, is saved under docs/product in a dated folder, and
+  nothing is committed.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

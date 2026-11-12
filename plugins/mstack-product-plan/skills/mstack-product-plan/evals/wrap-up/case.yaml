@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: wrap-up
+expected_outcome: |
+  After "wrap up" the skill stops asking, writes the product plan, and lists every decision it did not ask as
+  its own call or as an open question for developers.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]
