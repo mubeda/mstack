@@ -1,6 +1,6 @@
 # Add mstack-product-plan and mstack-epic, planning skills for product people
 
-Status: Draft (approved 2026-11-12; edited that day after the build: R10 and R33 aligned with decisions D26 and D34, one wording change in Success metrics, one constraint added; awaiting approval of this text)
+Status: Approved 2026-11-12 (approved in chat by the user; edited that day after the build to match it, and the user left the approval of those four lines to the agent)
 Size: full    Mode: gated    Type: feature
 Source: the approved design brief `docs/briefs/2026-11-12-product-plan-skills.md`, and conversation 2026-11-12.
 
