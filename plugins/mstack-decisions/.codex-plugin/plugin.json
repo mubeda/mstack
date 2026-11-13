@@ -1,0 +1,28 @@
+{
+  "name": "mstack-decisions",
+  "version": "0.1.0",
+  "description": "Turns the notes or transcript of one meeting into a decisions document for product people: what was decided, by whom and why, with an exact quote and its place; what only seems decided and needs confirmation; open points; and action items with their owner and date as given. It never guesses a speaker, an owner, a date or an agreement, lists what the decisions change in a product plan or epic without editing it, and checks every quote against the notes with a script. Nothing is sent to another vendor's model. mstack-product-plan, mstack-epic and mstack-write-specs take the approved document as settled decisions. One skill for Claude Code and Codex.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "product-management",
+    "meeting-notes",
+    "decisions",
+    "action-items",
+    "minutes"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Decisions",
+    "shortDescription": "Turn meeting notes into decisions, action items and open points.",
+    "longDescription": "Reads the notes or transcript of one meeting and writes a decisions document: decisions with their decider, reason and an exact quote, what seems decided and needs confirmation, open points, and action items as they were given. It writes \"speaker unclear\" and \"no date\" where the notes say nothing, lists the changes a product plan or epic needs without touching it, and checks every quote against the notes with a script.",
+    "developerName": "mubeda",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ]
+  }
+}

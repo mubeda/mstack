@@ -84,6 +84,7 @@ If the request grows during the interview, say so and step up a size.
 - **Vague idea.** When `mstack-brainstorm` is in this session's skill list, name it as the better start, because it works out the goal and the reason before any spec, and ask once whether to switch; on a no, continue here. Otherwise spend longer in Phase 2 on the why, the goals and the anti-goals (results that would count as failure even if everything technically works).
 - **A design brief.** A source file whose first heading starts with `# Design brief:` is a brief, usually from `mstack-brainstorm`. See "A brief as the source" below.
 - **A product epic.** A source file whose first heading starts with `# Epic:` is an epic, usually from `mstack-epic`, written by a product person. See "An epic as the source" below.
+- **An evidence or a decisions document.** A source file whose first heading starts with `# Evidence:` or `# Decisions:` comes from `mstack-evidence` or `mstack-decisions`. See "Evidence and decisions as sources" below.
 - **A product plan.** A source file whose first heading starts with `# Product plan:` is not a spec source. See the last paragraph of "An epic as the source".
 
 ## A brief as the source
@@ -113,6 +114,14 @@ When the `Status:` line says Approved:
 When the `Status:` line says Draft, read the epic as context only: say that it is not approved yet, and ask its decisions like any other open decision (or offer to finish it with `mstack-epic` first).
 
 A product plan (first heading `# Product plan:`) holds several epics in short form and is not a spec source. Say that a spec starts from one epic, name `mstack-epic` as the skill that details one, and ask which epic the user means. Continue only with that one epic section, as context that is not settled. Never write one spec for a whole product plan.
+
+## Evidence and decisions as sources
+
+Both are product documents; `references/product-format.md` gives their opening lines and parts. Either can come beside an epic or a brief, and you name each one's path in your first message and in the spec's Source line. Only the `Status:` line decides whether one is settled.
+
+1. An Approved evidence document feeds the spec's Problem part: state the problem with a count from it, and cite its path. Do not ask for the evidence again, and do not copy the document.
+2. An Approved decisions document settles what is under its `## Decisions` part. Never ask those again; record each in the interview record as decided in that document, with its path. What is under `## Seems decided, please confirm` and `## Open points` joins the open items of the interview.
+3. A Draft of either is context only: say that it is not approved yet, and treat nothing in it as settled.
 
 ## The interview
 

@@ -4,7 +4,7 @@
     "displayName": "mstack"
   },
   "metadata": {
-    "version": "0.8.0"
+    "version": "0.9.0"
   },
   "plugins": [
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "mstack-brainstorm",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-brainstorm"
@@ -48,7 +48,7 @@
     },
     {
       "name": "mstack-write-specs",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-write-specs"
@@ -100,7 +100,7 @@
     },
     {
       "name": "mstack-skill-creator",
-      "version": "0.3.4",
+      "version": "0.3.5",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-skill-creator"
@@ -126,7 +126,7 @@
     },
     {
       "name": "mstack-find-skills",
-      "version": "0.2.4",
+      "version": "0.2.5",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-find-skills"
@@ -139,7 +139,7 @@
     },
     {
       "name": "mstack-setup",
-      "version": "0.2.5",
+      "version": "0.2.6",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-setup"
@@ -165,7 +165,7 @@
     },
     {
       "name": "mstack-chief-of-staff",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-chief-of-staff"
@@ -191,7 +191,7 @@
     },
     {
       "name": "mstack-product-plan",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-product-plan"
@@ -204,10 +204,36 @@
     },
     {
       "name": "mstack-epic",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-epic"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "mstack-evidence",
+      "version": "0.1.0",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-evidence"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "mstack-decisions",
+      "version": "0.1.0",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-decisions"
       },
       "policy": {
         "installation": "AVAILABLE",

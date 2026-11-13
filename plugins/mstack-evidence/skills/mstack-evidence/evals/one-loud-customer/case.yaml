@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: one-loud-customer
+expected_outcome: |
+  Eight tickets from one customer are one voice: the problem says 8 items from 1 customer and is rated weak.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

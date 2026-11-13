@@ -56,7 +56,7 @@ No subagent starts without that skill's answer, because it would run on the sess
 
 ### 1. Read before you ask
 
-In a repository, or with material the user pointed at (a file, a spec, an issue, earlier conversation), read what they referred to and what it connects to before your first message. Read on until you could explain the parts involved, how they behave now, and which of them the request would change. Never ask what that material answers, such as the language or the test command a project's instructions name.
+In a repository, or with material the user pointed at (a file, a spec, an issue, earlier conversation), read what they referred to and what it connects to before your first message. Read on until you could explain the parts involved, how they behave now, and which of them the request would change. Never ask what that material answers, such as the language or the test command a project's instructions name. An evidence document from `mstack-evidence` (its first heading starts with `# Evidence:`) is such material: say in your first message what it shows, with its counts, and do not ask what problem the customers have.
 
 ### 2. The first message
 

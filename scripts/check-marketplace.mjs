@@ -102,10 +102,11 @@ for (const name of ['mstack-write-specs', 'mstack-diagnose', 'mstack-backlog-tri
   assert.equal(read(path(name)), read(path('mstack-plan')), `${name}: references/codegraph.md differs from mstack-plan's copy`);
 }
 
-// The product documents have one format: mstack-product-plan and mstack-epic write it and mstack-write-specs reads it.
-// The two writers also share their interview and review rules. Each install copies only its own folder, so the copies must match.
+// The product documents have one format file: mstack-product-plan, mstack-epic, mstack-evidence and mstack-decisions each
+// write one kind of document in it, and mstack-write-specs reads them.
+// mstack-product-plan and mstack-epic also share their interview and review rules. Each install copies only its own folder, so the copies must match.
 for (const [file, names] of [
-  ['product-format.md', ['mstack-epic', 'mstack-write-specs']],
+  ['product-format.md', ['mstack-epic', 'mstack-write-specs', 'mstack-evidence', 'mstack-decisions']],
   ['product-interview.md', ['mstack-epic']],
   ['product-review.md', ['mstack-epic']],
 ]) {

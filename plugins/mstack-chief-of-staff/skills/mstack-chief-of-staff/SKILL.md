@@ -88,6 +88,8 @@ Run these procedures through their mstack skill instead of doing them yourself. 
 | An answer or report the user cannot follow | `mstack-explain-me-better` |
 | A product-level plan for an initiative, split into ordered epics | `mstack-product-plan` |
 | One epic detailed for developers | `mstack-epic` |
+| Customer feedback to turn into evidence | `mstack-evidence` |
+| A meeting happened and its notes exist | `mstack-decisions`, then the decisions go into the wiki |
 | A missing skill or tool | `mstack-setup` |
 
 When a route's skill is not in this session's skill list, or stops at its own preflight, tell the user which skill is missing and that `mstack-setup` installs it. Skip only that route and keep owning the goal.

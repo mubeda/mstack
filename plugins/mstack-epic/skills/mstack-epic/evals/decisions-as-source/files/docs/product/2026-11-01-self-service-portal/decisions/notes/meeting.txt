@@ -1,0 +1,4 @@
+00:02:30 Ana (product lead): the audit needs the invoice list first, so we go with option B, the export waits until next quarter
+00:03:00 Ana (product lead): online payment is out of the portal, it needs its own legal review
+00:05:45 Ben (engineering): the small tier could keep twelve months, or all of it, I do not know what is cheaper
+00:10:45 Ben (engineering): I will check the invoice export with the billing team

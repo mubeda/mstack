@@ -12,13 +12,15 @@ Use the first that this host has:
 
 A same-vendor review tends to miss more than a cross-vendor one, which is why the line says which kind ran.
 
+One case skips the first choice. When an evidence document or a decisions document is among the document's sources, never use the cross-vendor reviewer. The same holds for an epic whose product plan rests on one (the plan's `Source:` line names it, or its `Review:` line ends with the reason below), because the epic's review reads that plan. In both cases start at the second choice, say so in the one line before the review, and end the `Review:` line with "same-vendor, because a source holds customer feedback or meeting notes". Those sources hold what customers and colleagues said, the product plan or epic carries counts and quotes from them, and a reviewer that runs in the same folder can open any path it sees. Their own skills never send them to another company, and this review does not either.
+
 Before the review starts, tell the user in one line who will read the document. The document goes to that reviewer and nowhere else.
 
 ## The prompt
 
 Write the prompt to a scratch folder outside the document's folder. (For your own second read there is no prompt file: use the instructions below as your checklist, on the text in the chat when nothing was saved.) It has three parts.
 
-1. **Reading list.** The document's path, and the sources it names (the product plan for an epic, a brief, notes that were read). Then paste the whole of `references/product-format.md` into the prompt, because the reviewer cannot read this skill's folder and the epic's rules build on the product plan's.
+1. **Reading list.** The document's path, and the sources it names (the product plan for an epic, a brief, notes that were read). An evidence document or a decisions document among the sources goes on the list too, because its review is always a same-vendor one (see Who reviews). Then paste the whole of `references/product-format.md` into the prompt, because the reviewer cannot read this skill's folder and the epic's rules build on the product plan's.
 2. **Instructions.**
 
    ```text

@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: evidence-as-source
+expected_outcome: |
+  An approved evidence document is the source of the problem: its counts are used and the evidence is not asked
+  for again.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

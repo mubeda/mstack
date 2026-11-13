@@ -43,13 +43,15 @@ This file is the same on every host. It names roles, and this table says what pl
 1. **Find the epic.** When the user names an epic of a product plan, read that plan by `references/product-format.md`. When the user describes an epic and there is no product plan, go to step 3 and interview it from the start; do not ask for a product plan as a condition.
 2. **Check the plan's status.** When its Status line does not say Approved, tell the user and ask once whether to go on. On a no, stop and write nothing. On a yes, go on, and say on the epic's `Source:` line that the plan was not approved.
 3. **Read and ask for sources**, as `references/product-interview.md` › Read first says. Say what you read and whether you found a Git repository or an Obsidian vault. In a vault, also ask in which folder the epic goes, unless it goes beside its product plan.
-4. **The interview.** Everything the plan's epic section already says is settled: do not ask it again. Ask in numbered rounds only what the detailed epic adds: acceptance, fixed limits, user stories, what it depends on, and what the developers have to find out. Then play the understanding back and wait for the user to confirm it.
+4. **The interview.** Everything the plan's epic section already says is settled: do not ask it again. The one exception is an Approved decisions document that is newer than the plan: where it changes the epic, the decision is what is settled, and the change goes under the differences. Ask in numbered rounds only what the detailed epic adds: acceptance, fixed limits, user stories, what it depends on, and what the developers have to find out. Then play the understanding back and wait for the user to confirm it.
 5. **Write** the epic by `references/product-format.md`, with `Status: Draft`, at the place that file gives. Under `## Differences from the product plan`, list every point where the interview changed what the plan says about this epic. Carry the plan's open questions for developers over in their own words, unless the user answered or changed one. In a vault, link back to the plan when there is one.
 6. **Review** it by `references/product-review.md`, without asking whether to review.
 7. **Ask for approval** of the written document: the path (or, when nothing was saved, the text you printed), a short summary, the differences from the plan, every call you made yourself, and the reviewer's product notes. On an explicit yes, set the Status line (and the `status` property in a vault) to approved.
 8. **Offer the next step** and take it only when the user says so: a developer starts `mstack-write-specs` with the epic's path as its source, or stop. When the epic differs from the plan, add that the user can bring the plan up to date with `mstack-product-plan`.
 
 ## Running the reviewer
+
+This part is for the cross-vendor reviewer only. When an evidence document or a decisions document is among the sources, or among the sources of the product plan an epic is built from, skip it: `references/product-review.md` › Who reviews gives the same-vendor read that runs instead.
 
 1. `<scratch>` is a folder outside the document's folder: the session's scratch folder when the host has one, otherwise a new folder under the system's temporary folder. `<working folder>` is the repository root inside a Git repository, and the document's folder otherwise.
 2. Write the prompt of `references/product-review.md` to `<scratch>/review-prompt.md`, then run the reviewer command of your host from the table. Give it at least ten minutes.
@@ -66,5 +68,7 @@ Each of these makes one step better. None is required. When one is not installed
 | `mstack-brainstorm` | Finds the reason behind an epic that has none yet | Your own open questions, one per message. Say: "I am using my own short version of the brainstorm." |
 | `mstack-receive-review` | Processes the review's findings | The rules in `references/product-review.md` › Handle the findings. Say: "I am processing the review with my own rules." |
 | `mstack-best-model-for` | Gives the model and effort of the reviewer and of a subagent | The host's default model. Say: "The review runs on the default model." |
+| `mstack-evidence` | Builds the evidence the epic's problem rests on, from customer feedback | Take the evidence the user tells you |
+| `mstack-decisions` | Turns meeting notes into decisions this epic takes as settled | The user tells you the decisions in the interview |
 | `mstack-product-plan` | Writes the product plan an epic comes from | Interview the epic from the start |
 | `mstack-write-specs` | Turns the approved epic into a specification | Tell the user the epic is the result, and that a developer writes the specification from it |

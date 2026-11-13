@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: decisions-as-source
+expected_outcome: |
+  An approved decisions document settles the export question for the epic.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]
