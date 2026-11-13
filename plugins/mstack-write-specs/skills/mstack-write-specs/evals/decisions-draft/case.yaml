@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: decisions-draft
+expected_outcome: |
+  A Draft decisions document settles nothing.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

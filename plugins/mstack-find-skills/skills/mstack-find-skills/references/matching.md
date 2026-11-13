@@ -32,6 +32,8 @@ When a skill from the mstack marketplace or from the agent-bridges marketplace f
 | An answer or report the user could not follow | `mstack-explain-me-better` |
 | A product-level plan for an initiative, split into ordered epics, with no code | `mstack-product-plan` |
 | One epic detailed for developers by a product person | `mstack-epic` |
+| Customer feedback (tickets, interviews, surveys) to turn into evidence with counts and quotes | `mstack-evidence` |
+| Meeting notes or a transcript to turn into decisions, action items and open points | `mstack-decisions` |
 | A second opinion from another model on a design or diff | the agent-bridges `claude`, `cursor` or `opencode` review skills, whichever is installed and is not the current host's vendor |
 
 ## 3. Score each skill against each work item

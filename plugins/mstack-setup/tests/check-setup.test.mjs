@@ -234,7 +234,7 @@ for (const host of ['claude', 'codex']) {
     const r = run(machine(), ['--host', host]);
     assert.equal(r.json.items.find((i) => i.id === 'mstack-explain-me-better')?.tier, 'optional', r.out);
   });
-  for (const skill of ['mstack-product-plan', 'mstack-epic']) {
+  for (const skill of ['mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions']) {
     test(`${host}: ${skill} is an optional row`, () => {
       const r = run(machine(), ['--host', host]);
       assert.equal(r.json.items.find((i) => i.id === skill)?.tier, 'optional', r.out);

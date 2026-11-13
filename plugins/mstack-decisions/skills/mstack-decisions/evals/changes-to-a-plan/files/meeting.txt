@@ -1,0 +1,28 @@
+00:00:20 Ana (product lead): thanks for joining, three topics today: the invoice export, the mobile view and pricing
+00:00:45 Ben (engineering): I would like to start with the export, it blocks my planning
+00:01:10 Cy (support lead): support still gets export questions every week
+00:01:40 Ben (engineering): we have two options, A is to ship the export with the invoice list, B is to ship the list first
+00:02:05 Cy (support lead): option A would please the bigger customers
+00:02:30 Ana (product lead): the audit needs the invoice list first, so we go with option B, the export waits until next quarter
+00:02:50 Ben (engineering): understood, list first
+00:03:15 Ana (product lead): next topic, the mobile view
+00:03:40 Ben (engineering): maybe we should drop the mobile view for now, nobody on my team has time for it
+00:04:05 Cy (support lead): moving on, I have a customer story about pricing
+00:04:30 Cy (support lead): Dana Reyes from the customer Northwind called twice about the new price tiers
+00:04:55 Ana (product lead): what did she want to know
+00:05:20 Cy (support lead): whether the small tier keeps the invoice history
+00:05:45 Ben (engineering): the small tier could keep twelve months, or all of it, I do not know what is cheaper
+00:06:10 Ana (product lead): I am not sure either, twelve months sounds short
+00:06:35 Cy (support lead): customers compare us with others who keep everything
+00:07:00 Ben (engineering): storage is not the problem, support load might be
+00:07:25 Ana (product lead): we should look at the numbers before we say anything
+00:07:50 Cy (support lead): I can pull the ticket counts by tier
+00:08:15 Ana (product lead): good, but pricing stays open today
+00:08:40 Ben (engineering): one more thing on the list, the launch date
+00:09:05 fine, we ship in March then
+00:09:30 Cy (support lead): I thought April was the plan
+00:09:55 Ben (engineering): I could do the first of March if nothing slips
+00:10:20 Ana (product lead): let us not fix that today
+00:10:45 Ben (engineering): I will check the invoice export with the billing team
+00:11:10 Cy (support lead): and I will send Ana the ticket counts by tier by Friday
+00:11:35 Ana (product lead): thanks both, that is all

@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: keep-names
+expected_outcome: |
+  When the user asks to keep names, the personal data stays in its quote and the document says so.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

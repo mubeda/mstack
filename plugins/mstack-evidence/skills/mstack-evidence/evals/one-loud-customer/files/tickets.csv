@@ -1,0 +1,11 @@
+id,customer,date,text
+T001,northwind,2026-10-01,"The usage export takes over ten minutes and then fails."
+T002,northwind,2026-10-02,"Export failed again today after a long wait."
+T003,northwind,2026-10-03,"The export never finishes for our account."
+T004,northwind,2026-10-04,"Export timed out, third time this week."
+T005,northwind,2026-10-05,"Still waiting on the usage export, it has been twenty minutes."
+T006,northwind,2026-10-06,"The export of usage data is unusable for us."
+T007,northwind,2026-10-07,"Export broke again, we need this for our report."
+T008,northwind,2026-10-08,"Usage export failed with a timeout once more."
+T009,pine,2026-10-09,"Could you add a dark mode?"
+T010,quay,2026-10-10,"Thanks for the fast answer."

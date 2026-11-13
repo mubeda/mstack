@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: transcript
+expected_outcome: |
+  From one transcript the skill keeps the single clear decision apart from a suggestion nobody answered, a line
+  with no speaker and an open discussion, and copies action items as given.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

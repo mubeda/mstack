@@ -50,6 +50,8 @@ This file is the same on every host. It names roles, and this table says what pl
 
 ## Running the reviewer
 
+This part is for the cross-vendor reviewer only. When an evidence document or a decisions document is among the sources, or among the sources of the product plan an epic is built from, skip it: `references/product-review.md` › Who reviews gives the same-vendor read that runs instead.
+
 1. `<scratch>` is a folder outside the document's folder: the session's scratch folder when the host has one, otherwise a new folder under the system's temporary folder. `<working folder>` is the repository root inside a Git repository, and the document's folder otherwise.
 2. Write the prompt of `references/product-review.md` to `<scratch>/review-prompt.md`, then run the reviewer command of your host from the table. Give it at least ten minutes.
 3. In Claude Code, add the reviewer's model and effort to the command when `mstack-best-model-for` gave them (ask it for the other vendor and the tier `most capable`); without them the reviewer uses its own default. Outside a Git repository, also add `--skip-git-repo-check` to that command. Never add it inside one.
@@ -65,4 +67,6 @@ Each of these makes one step better. None is required. When one is not installed
 | `mstack-brainstorm` | Finds the reason behind an unformed idea | Your own open questions, one per message. Say: "I am using my own short version of the brainstorm." |
 | `mstack-receive-review` | Processes the review's findings | The rules in `references/product-review.md` › Handle the findings. Say: "I am processing the review with my own rules." |
 | `mstack-best-model-for` | Gives the model and effort of the reviewer and of a subagent | The host's default model. Say: "The review runs on the default model." |
+| `mstack-evidence` | Builds the evidence the plan's problem rests on, from customer feedback | Take the evidence the user tells you, or write "no evidence yet" |
+| `mstack-decisions` | Turns meeting notes into decisions this plan takes as settled | The user tells you the decisions in the interview |
 | `mstack-epic` | Details one epic after this skill ends | Tell the user the product plan is the result, and that `mstack-epic` would detail an epic |

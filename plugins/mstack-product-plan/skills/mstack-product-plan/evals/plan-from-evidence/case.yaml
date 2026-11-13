@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: plan-from-evidence
+expected_outcome: |
+  The written product plan summarizes the evidence document and points at it, without copying it.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

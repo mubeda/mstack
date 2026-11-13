@@ -1,0 +1,9 @@
+{
+  "name": "mstack-evidence",
+  "version": "0.1.0",
+  "description": "Turns customer feedback (support tickets, interview notes, survey answers) into evidence for product people: the problems people have, each with a count whose items are listed, exact quotes with their place, and a strength by a written rule. It records what people asked for without recommending a solution, says what the sample cannot show, replaces customers' personal data with roles, and checks every quote and count against the sources with a script before showing anything. Nothing is sent to another vendor's model. mstack-product-plan, mstack-epic and mstack-write-specs take the approved document as a source. One skill for Claude Code and Codex.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0"
+}

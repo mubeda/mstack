@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: changes-to-a-plan
+expected_outcome: |
+  With a product plan named, the skill lists what the decision changes in it and leaves the plan file byte for
+  byte unchanged.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: evidence-and-decisions
+expected_outcome: |
+  An epic, an evidence document and a decisions document, all approved, are all named as sources, and no
+  decision is asked again.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]

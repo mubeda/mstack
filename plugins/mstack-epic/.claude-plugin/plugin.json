@@ -1,6 +1,6 @@
 {
   "name": "mstack-epic",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Details one epic for product and management people, from an approved product plan or from a description in chat. Interviews only what the detailed epic adds, then writes one document: outcome, who it is for, what is in and out, acceptance as plain statements, a measurable result, size, fixed limits, user stories and open questions for developers. It never edits the product plan and lists what changed. No code and no development steps. mstack-write-specs accepts the approved epic as its source. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"

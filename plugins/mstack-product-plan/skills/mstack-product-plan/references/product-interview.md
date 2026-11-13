@@ -19,6 +19,14 @@ When the user offers a solution ("we should build it with a queue"), record it a
 
 A design brief given as the source (its first heading starts with `# Design brief:`) is settled when its Status line says Approved: do not ask its user decisions again, and list its agent's calls again at approval. A Draft brief is context only.
 
+Two more documents can be sources. `product-format.md` says how to read them.
+
+- An evidence document (its first heading starts with `# Evidence:`) whose Status line says Approved gives the problem and its evidence. Name its problems with their counts, keep at most one quote per problem, point at the document, and do not ask for the evidence again. What customers asked for stays what customers asked for: it is not an idea the team has, and not a requirement.
+- A decisions document (its first heading starts with `# Decisions:`) whose Status line says Approved settles what is under its Decisions part. Do not ask those decisions again, also when an older product plan says something else: the later decision stands, and you write the difference down. What it lists as seeming decided, and its open points, are open items for your rounds.
+- A Draft of either is context only: say that it is not approved, and settle nothing from it.
+
+When the user has no evidence for the problem, say once that an evidence skill (`mstack-evidence`) can build it from support tickets, interview notes or survey answers, and go on.
+
 ## The reason first
 
 When the request does not say why the initiative matters or for whom:

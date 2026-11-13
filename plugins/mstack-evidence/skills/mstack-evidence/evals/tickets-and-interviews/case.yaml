@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: tickets-and-interviews
+expected_outcome: |
+  From 40 tickets and two interview notes the skill writes an evidence document whose quotes and counts pass its
+  own check script, with one strong problem, kept contradictions, replaced personal data and no recommendation.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]
