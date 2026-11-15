@@ -43,7 +43,7 @@ In Claude Code and Codex, before the first subagent or fresh-session run, load `
 1. **Confirm the target before you write.** No file of the created skill exists until the user confirmed where it goes.
 2. **Evidence before "finished".** A skill is finished only after the static check passed and a comparison test ran and its result was shown. Otherwise call it untested.
 3. **Use what is installed.** When an mstack skill covers a step and the host file lists it as supported here, run it. Otherwise use the fallback in `references/workflow-steps.md`, and say so.
-4. **Self-contained.** Everything the created skill uses sits in its own folder. Other skills are named, never pointed at by path.
+4. **Self-contained.** Everything the created skill uses sits in its own folder. Other skills are named, never pointed at by path. The one exception is an agent definition of a plugin skill, which Claude Code loads only from the plugin's `agents/` folder: the skill names it by its listed type and states what it does without it.
 5. **Copy nothing unlicensed.** Adapted text is rewritten and credited inside the created skill's folder.
 6. **No private data in a public repository.** Names of people and companies, home paths, private hosts and credentials stay out.
 7. **Never overwrite without a yes.** An existing folder at the target location is shown to the user first.
@@ -75,7 +75,7 @@ In Claude Code and Codex, before the first subagent or fresh-session run, load `
 
 ### 0. Start
 
-1. Read the host file for this host. In Claude Code and Codex, then check the two shared skills this skill calls, `mstack-find-skills` and `mstack-best-model-for`, as `references/workflow-steps.md` › Required shared skills says. A missing one stops the run there. In OpenCode and Cursor this check does not apply.
+1. Read the host file for this host. In Claude Code and Codex, then check the three shared skills this skill calls, `mstack-find-skills`, `mstack-best-model-for` and `mstack-research`, as `references/workflow-steps.md` › Required shared skills says. A missing one stops the run there. In OpenCode and Cursor this check does not apply.
 2. Detect the target as `references/plugin-packaging.md` describes: a plugin target (both registries exist) or a local target.
 3. Ask in one round with your question tool, skipping what the user already said:
    - Create a new skill, or improve an existing one (which)?
@@ -100,7 +100,7 @@ In Claude Code and Codex, load `mstack-find-skills` in called mode: say that `ms
 1. For an improvement, copy the current version to a snapshot outside its folder before the first edit (`references/testing.md` › The baseline).
 2. Choose the location. A local skill goes to `.agents/skills/<name>/` at the chosen scope, which Codex, OpenCode and Cursor load, plus a link from `.claude/skills/<name>` when Claude Code is one of the hosts. A plugin skill goes in `<plugin>/skills/<name>/`. Details are in each host file.
 3. If a folder with that name already exists there, show what is in it and ask. Never overwrite it without a yes.
-4. Write the files by `references/writing-rules.md`: two frontmatter fields by default, a "Use when" description with triggers first and no step summary, a host table only when a step needs a host tool, everything inside the folder, adapted text rewritten and credited.
+4. Write the files by `references/writing-rules.md`: two frontmatter fields by default, a "Use when" description with triggers first and no step summary, a host table only when a step needs a host tool, everything inside the folder (ground rule 4 names the one exception), adapted text rewritten and credited.
 
 ### 4. Check
 

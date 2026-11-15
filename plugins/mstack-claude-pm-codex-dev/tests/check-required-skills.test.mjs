@@ -23,7 +23,7 @@ function machine(o = {}) {
   writeFileSync(join(bin, 'gh'), '#!/bin/sh\nexit 0\n');
   for (const t of ['codex', 'gh']) chmodSync(join(bin, t), 0o755);
 
-  for (const s of ['mstack-find-skills', 'mstack-best-model-for', ...(o.noReceiveReview ? [] : ['mstack-receive-review'])]) {
+  for (const s of ['mstack-find-skills', 'mstack-best-model-for', ...(o.noReceiveReview ? [] : ['mstack-receive-review']), ...(o.noResearch ? [] : ['mstack-research'])]) {
     if (o.claudeCache === s) continue;
     put(join(claude, 'skills', s));
   }
@@ -65,7 +65,7 @@ test('every item present: exit 0, no MISSING line, items in order', () => {
   assert.equal(r.status, 0, r.out);
   assert.doesNotMatch(r.out, /MISSING/);
   const labels = r.out.trim().split('\n').map((l) => l.replace(/^\S+\s+/, '').replace(/ is missing.*$/, ''));
-  assert.deepEqual(labels, ['node on PATH', 'mstack-find-skills (Claude side)', 'mstack-best-model-for (Claude side)', 'mstack-receive-review (Claude side)', 'Codex plugin for Claude Code', 'codex CLI logged in', 'ponytail (Codex side)', 'mstack-diagnose (Codex side)', 'mstack-best-model-for (Codex side)', 'mstack-receive-review (Codex side)', 'codex skill (skill-codex plugin)']);
+  assert.deepEqual(labels, ['node on PATH', 'mstack-find-skills (Claude side)', 'mstack-best-model-for (Claude side)', 'mstack-receive-review (Claude side)', 'mstack-research (Claude side)', 'Codex plugin for Claude Code', 'codex CLI logged in', 'ponytail (Codex side)', 'mstack-diagnose (Codex side)', 'mstack-best-model-for (Codex side)', 'mstack-receive-review (Codex side)', 'codex skill (skill-codex plugin)']);
 });
 
 test('no Codex plugin in the install record: exit 1', () => {
@@ -149,6 +149,13 @@ test('a missing mstack-receive-review is reported on both sides: exit 1', () => 
   assert.equal(r.status, 1, r.out);
   assert.match(r.out, /^MISSING {2}mstack-receive-review \(Claude side\)/m);
   assert.match(r.out, /^MISSING {2}mstack-receive-review \(Codex side\)/m);
+});
+
+test('a missing mstack-research is reported on the Claude side only, because the coordinator does the broad research: exit 1', () => {
+  const r = check({ noResearch: true });
+  assert.equal(r.status, 1, r.out);
+  assert.match(r.out, /^MISSING {2}mstack-research \(Claude side\)/m);
+  assert.doesNotMatch(r.out, /mstack-research \(Codex side\)/);
 });
 
 test('a Claude-side skill found only in a leftover cache clone is MISSING', () => {

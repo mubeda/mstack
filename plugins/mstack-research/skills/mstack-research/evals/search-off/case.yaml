@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: search-off
+expected_outcome: |
+  A called request that says the network is off: the reply returns the block with the item not researched and
+  `Search: not run`, states no rate limit as a fact, and does not claim that nothing was found.
+context:
+  scaffold_script: place-files.sh

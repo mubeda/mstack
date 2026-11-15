@@ -1,4 +1,4 @@
-// Tests for scripts/check-required-skills.sh: the two shared skills are hard requirements on both hosts.
+// Tests for scripts/check-required-skills.sh: the shared skills are hard requirements on both hosts.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -44,6 +44,14 @@ for (const host of ['claude', 'codex']) {
   });
 }
 
+for (const host of ['claude', 'codex']) {
+  test(`${host}: a missing mstack-research is reported and fails the check`, () => {
+    const r = run(host, ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review']);
+    assert.equal(r.status, 1, r.out);
+    assert.match(r.out, /MISSING {2}mstack-research/);
+  });
+}
+
 // A skill in the plugin cache counts only when the host records its plugin as installed.
 function runCache(host, { record, where = 'mstack' }) {
   const root = mkdtempSync(join(tmpdir(), 'plan-req-'));
@@ -52,10 +60,10 @@ function runCache(host, { record, where = 'mstack' }) {
   for (const t of ['node', 'git']) { writeFileSync(join(bin, t), '#!/bin/sh\nexit 0\n'); chmodSync(join(bin, t), 0o755); }
   const dir = join(home, host === 'claude' ? '.claude' : '.codex');
   const put = (p, text = 'x') => { mkdirSync(dirname(p), { recursive: true }); writeFileSync(p, text); };
-  for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review']) {
+  for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research']) {
     put(where === 'mstack' ? join(dir, 'plugins', 'cache', 'mstack', s, '0.1.0', 'skills', s, 'SKILL.md') : join(dir, 'plugins', 'cache', 'temp_git_1', 'plugins', s, 'skills', s, 'SKILL.md'));
   }
-  const names = ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review'];
+  const names = ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research'];
   if (host === 'claude') put(join(dir, 'plugins', 'installed_plugins.json'), JSON.stringify({ version: 2, plugins: record ? Object.fromEntries(names.map((n) => [`${n}@mstack`, [{}]])) : {} }));
   else put(join(dir, 'config.toml'), record ? names.map((n) => `[plugins."${n}@mstack"]\n${record}\n`).join('\n') : '');
   const r = spawnSync(bash, [script, '--host', host], { encoding: 'utf8', cwd: root, env: { HOME: home, PATH: `${bin}:/usr/bin:/bin` } });
@@ -73,7 +81,7 @@ for (const host of ['claude', 'codex']) {
   });
   test(`${host}: a cached skill of a recorded plugin is not MISSING`, () => {
     const r = runCache(host, { record: host === 'claude' ? true : 'enabled = true' });
-    assert.doesNotMatch(r.out, /MISSING {2}mstack-(find-skills|best-model-for|receive-review)/, r.out);
+    assert.doesNotMatch(r.out, /MISSING {2}mstack-(find-skills|best-model-for|receive-review|research)/, r.out);
   });
 }
 test('codex: a cached skill whose plugin is switched off is MISSING', () => {

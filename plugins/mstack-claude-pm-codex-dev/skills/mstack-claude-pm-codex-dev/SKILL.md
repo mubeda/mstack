@@ -81,7 +81,7 @@ Print the whole table at the end of intake, and again, whole, in every message w
 
 **Session-visible dependencies, first.** Before anything else, check these in this session's own lists:
 
-1. `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review` in the skill list (as `<name>` or `<plugin>:<name>`).
+1. `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `mstack-research` in the skill list (as `<name>` or `<plugin>:<name>`). `mstack-research` is needed on the Claude side only: you do the broad research, and the developer follows the lane rule of `external-facts.md`.
 2. The agent type `codex:codex-rescue` in the list of agent types the subagent tool offers.
 
 For a missing skill: when `bash <skill-dir>/scripts/check-required-skills.sh` reports it `ok` on disk, it was installed after this session started, so say that a new session is needed and stop. Otherwise print this and stop, with no question asked:

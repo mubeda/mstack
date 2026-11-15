@@ -30,6 +30,8 @@ When a skill from the mstack marketplace or from the agent-bridges marketplace f
 | Acting on review feedback (reviewer output, review bots, pull-request comments) | `mstack-receive-review` |
 | Owning a long-running goal across sessions (a release, a backlog, a multi-step project) | `mstack-chief-of-staff` |
 | An answer or report the user could not follow | `mstack-explain-me-better` |
+| A job handed to mstack as a whole, with no skill named | `mstack-auto` |
+| A question to answer from the web, forums or official documentation, or a package's documentation, changes and known fixes | `mstack-research` |
 | A product-level plan for an initiative, split into ordered epics, with no code | `mstack-product-plan` |
 | One epic detailed for developers by a product person | `mstack-epic` |
 | Customer feedback (tickets, interviews, surveys) to turn into evidence with counts and quotes | `mstack-evidence` |

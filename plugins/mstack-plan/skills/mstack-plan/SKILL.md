@@ -49,7 +49,7 @@ Set the model on every subagent, because one started without it runs on this ses
 
 ## 0. Start
 
-**Required skills, first.** Before any question or other work, check the three shared skills this skill calls: `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review`. For each one:
+**Required skills, first.** Before any question or other work, check the four shared skills this skill calls: `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `mstack-research`. For each one:
 
 1. It is in this session's skill list (as `<name>` or `<plugin>:<name>`): continue.
 2. It is not in the list, but `scripts/check-required-skills.sh` (Preflight) reports it `ok` on disk: it was installed after this session started. Say that a new session is needed, and stop.
@@ -81,7 +81,7 @@ When the folder already holds a plan (`plan.md` and `progress.md`), read both an
 bash <skill-folder>/scripts/check-required-skills.sh --host <host>
 ```
 
-It checks `node`, `git` and the three shared skills, warns when the cross-vendor reviewer is missing, and notes the recommended mstack skills. Also confirm the reviewer skill appears in this session's skill list, because a skill installed mid-session loads only in a new session.
+It checks `node`, `git` and the four shared skills, warns when the cross-vendor reviewer is missing, and notes the recommended mstack skills. Also confirm the reviewer skill appears in this session's skill list, because a skill installed mid-session loads only in a new session.
 
 If `node` or `git` is missing (a `MISSING` line), tell the user and stop until it is installed, because no fallback replaces them. A `MISSING` shared skill is handled by the required-skills step of section 0. If the checker warns that the cross-vendor reviewer is missing (a `WARN` line), tell the user that `mstack-setup` installs it (the login stays a step for the user), and continue without waiting. Warn the user that the plan review will run as a same-vendor review by a fresh subagent, which tends to miss more than a review by another vendor, and continue with the fallback in `references/plan-review.md` › When the run fails. The plan says so.
 
@@ -98,8 +98,31 @@ Read before you ask. Send broad searches to your subagent tool and ask it for fi
    - Search them case-insensitively for the spec's nouns: requirement names, components, entities, endpoints, screens. One hit is enough to read the file.
    - Keep each doc that constrains or explains the work, with its path and one line on why it matters. Earlier plans and specs in the repository show its conventions.
    - Each relevant doc goes into `plan.md` › Sources and into the Read first line of every phase and task it affects.
-4. **External sources.** Read each source the user gave, with whatever tool the session has (a web fetch, a connected tool, `gh`). Keep only what bears on the plan and cite it. When a source cannot be reached (a login, no connector), ask the user to paste the part that matters, and record it as "not reachable: <reason>" until they do.
+4. **External sources.** Read each source the user gave, with whatever tool the session has (a web fetch, a connected tool, `gh`). These are the sources somebody handed you; facts nobody gave are step 6's. Keep only what bears on the plan and cite it. When a source cannot be reached (a login, no connector), ask the user to paste the part that matters, and record it as "not reachable: <reason>" until they do.
 5. **The code.** Follow `references/codegraph.md` before reading code. Then map the entry points, the conventions, the test layout, and every existing file the spec touches. Take the build, test, lint and format commands from CI config, a Makefile, a package manifest or a repository rule, and run the test command once to confirm it works (skip and say so when it needs services or takes very long).
+
+6. **Research what the repository cannot answer.** After the code is read, list two kinds of item:
+   - every package, SDK or external API that the spec's work adds, upgrades or uses in a way the repository does not use yet;
+   - every name, signature, command, flag, limit or behavior of something outside the repository that a task's steps would state, and that the spec, the repository and the user's sources do not give.
+
+   With no item, write "Research: none needed" under `plan.md` › Sources and continue. Otherwise load `mstack-research` with a message in exactly this form, at most 8 items per call and a second call for more:
+
+   ```text
+   Called by: mstack-plan
+   Project: <path of the repository>
+   Online search: off (<reason>)        (only when the user or the session says the network is off)
+   Depth: quick                         (only when every item is a single package fact)
+
+   <ID>: <question>
+   Package: <name>                      (under each item about a package)
+   ```
+
+   Read its result block, which ends with a `Search:` line:
+   - Each claim goes under `plan.md` › Sources with its link, the version it holds for and the date, and into the Read first line of every phase and task it affects. For a package, the `Version:` line of the block (the version in use and the file it was read from) goes into Global constraints.
+   - A conflict, or a "Not found" that changes a task, becomes a question of phase 2, with the evidence.
+   - When the block says `Search: not run`, continue, write "Research: not run (<reason>)" under Sources, and name it in the approval summary of phase 8.
+
+   Never state a call, a flag or a default of an external package in a task when neither the repository nor a claim of the block supports it.
 
 ## 2. Questions
 
@@ -155,7 +178,7 @@ Follow `references/plan-review.md`, and process the review with `mstack-receive-
 
 ## 8. Approval
 
-Give the user the plan folder's path, a five-line summary (goal, phases and rounds, task count, the review verdict, open gaps), and the review findings the run did not apply: each one kept for approval with your recommendation, and each one rejected because it contradicted a decision already made. Then ask for an explicit yes to the written plan, with any of those findings the user wants applied. On yes, set `Status: Approved <yyyy-mm-dd> (approved in chat by the user)` in `plan.md` and `Plan status: Approved <yyyy-mm-dd>` in `progress.md`, and run `check-plan.mjs` once more. Any later edit sets both back to Draft.
+Give the user the plan folder's path, a five-line summary (goal, phases and rounds, task count, the review verdict, open gaps, with research that did not run named among the gaps), and the review findings the run did not apply: each one kept for approval with your recommendation, and each one rejected because it contradicted a decision already made. Then ask for an explicit yes to the written plan, with any of those findings the user wants applied. On yes, set `Status: Approved <yyyy-mm-dd> (approved in chat by the user)` in `plan.md` and `Plan status: Approved <yyyy-mm-dd>` in `progress.md`, and run `check-plan.mjs` once more. Any later edit sets both back to Draft.
 
 ## 9. Hand-off
 
@@ -163,7 +186,7 @@ Report in this order:
 
 1. The goal and the outcome in one line, with the plan folder's path.
 2. Phases with their rounds as a small dependency graph, and the task count.
-3. The skills named per phase, the installs the user accepted, and the gaps left.
+3. The skills named per phase, the installs the user accepted, and the gaps left. What `mstack-research` was asked, in one line, or that nothing external was needed, or that it did not run.
 4. The review: reviewer, model, verdict, findings fixed, deferred and rejected.
 5. How to start: "Open a new session in the repository and say: execute `<plan-folder>/execute-plan.md`." That file first asks which of three ways to run it: inline, with the mstack review workflow for that host, or, in Claude Code, with `mstack-claude-pm-codex-dev` (Codex writes each phase, Claude reviews and commits it). It recommends inline or the review workflow. Say which and why.
 

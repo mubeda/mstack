@@ -86,6 +86,7 @@ check "node on PATH"                              "command -v node >/dev/null"
 check "mstack-find-skills (Claude side)"          "has_claude_skill mstack-find-skills"
 check "mstack-best-model-for (Claude side)"       "has_claude_skill mstack-best-model-for"
 check "mstack-receive-review (Claude side)"        "has_claude_skill mstack-receive-review"
+check "mstack-research (Claude side)"              "has_claude_skill mstack-research"  # the coordinator's broad research goes through it
 check "Codex plugin for Claude Code"              "command -v node >/dev/null && node \"$here/codex-dev.mjs\" locate >/dev/null 2>&1"
 check "codex CLI logged in"                       "command -v codex >/dev/null && codex login status >/dev/null 2>&1"
 check "ponytail (Codex side)"                     "has_codex_skill ponytail"

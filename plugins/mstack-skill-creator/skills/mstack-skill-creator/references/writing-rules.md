@@ -59,7 +59,7 @@ The check reads only `SKILL.md`, and only for the names `AskUserQuestion`, `code
 
 ## Self-contained folders
 
-1. Everything the skill uses is inside its own folder. An install copies only that folder. (checked: a link or code path that climbs out of the folder fails)
+1. Everything the skill uses is inside its own folder. An install copies only that folder. (checked: a link or code path that climbs out of the folder fails) The one exception is an agent definition of a plugin skill: Claude Code loads it only from the plugin's `agents/` folder, so the skill names it by its listed type, never by path, and says what it does when the agent is not there.
 2. Every `references/<file>` and `scripts/<file>` the text names exists. (checked) Write an example path that is not a real file with a placeholder in front, such as `<skill>/scripts/x.py`, which the check skips.
 3. Another skill is named, never pointed at by path, and the text says what to do when it is not installed.
 4. No second `SKILL.md` anywhere inside the folder. A skill file used as test data is named `SKILL.md.fixture`, and the test renames it. (checked)
@@ -75,6 +75,6 @@ The check reads only `SKILL.md`, and only for the names `AskUserQuestion`, `code
 1. The description starts with "Use when", leads with triggers, and lists no steps.
 2. Every host-only field was asked for, and the user was told which hosts ignore it.
 3. Every step names its observable result.
-4. Nothing in the folder points outside it, and every named file exists.
+4. Nothing in the folder points outside it, and every named file exists. A plugin skill that uses an agent definition says what it does without it.
 5. Every adapted passage is rewritten and credited, and nothing comes from an unlicensed source.
 6. No name of a person, company, customer or internal product, no home path, private host or credential, unless the user wrote the skill for their own private use and said so.

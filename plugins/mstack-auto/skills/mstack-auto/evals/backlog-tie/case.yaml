@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: backlog-tie
+expected_outcome: |
+  The prompt fits sorting the backlog and delivering it, which are not links of one chain: the router asks one
+  question that offers both skills and loads nothing before the answer.
+context:
+  scaffold_script: place-files.sh

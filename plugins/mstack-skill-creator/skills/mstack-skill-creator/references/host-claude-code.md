@@ -7,7 +7,7 @@ Read this in Phase 0 when the session runs in Claude Code, and whenever a later 
 - Question tool: `AskUserQuestion` for short choices, a numbered round in chat for longer ones.
 - Subagent tool: `Agent`, with a fresh context. Set `model` and `effort` on every call, from `mstack-best-model-for`'s answer for the task's tier, because a subagent without them runs on the session's model.
 - Loading a skill: the Skill tool, by its listed name (`<plugin>:<name>` for a plugin skill, `<name>` otherwise).
-- Research: the multi-agent research workflow when the session lists one, otherwise web search and fetch.
+- Research: the `mstack-research` skill, in called mode.
 
 ## Where skills load from
 
@@ -53,4 +53,4 @@ Codex, through the `codex` skill of the skill-codex plugin, or `codex exec --san
 
 ## mstack skills supported here
 
-Nineteen of the twenty mstack skills, as of 2026-11-12: `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-codex-review-workflow`, `mstack-claude-pm-codex-dev`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup`, and this skill. `mstack-claude-review-workflow` is the Codex workflow and does not run here.
+Twenty-one of the twenty-two mstack skills, as of 2026-11-15: `mstack-auto`, `mstack-research`, `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-codex-review-workflow`, `mstack-claude-pm-codex-dev`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup`, and this skill. `mstack-claude-review-workflow` is the Codex workflow and does not run here.

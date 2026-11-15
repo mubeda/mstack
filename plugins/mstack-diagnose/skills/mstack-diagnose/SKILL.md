@@ -91,6 +91,27 @@ Gate: the failure repeats (or its rate is measured as failures out of runs), and
 
 Write 3 to 5 ranked hypotheses before testing any of them. Seed them from the reduced finding, from a comparison with similar code in the same codebase that works (list every difference, however small), from the code structure around it, from the change history (`git log -S '<string>' -- <file>`, `git log -G '<regex>' -- <file>`, `git blame -L <a>,<b> <file>`), and from the reporter's theories. Each one states a prediction in the form "If X is the cause, then changing Y makes the failure go away." A hypothesis with no prediction is sharpened or dropped.
 
+When a hypothesis rests on something outside the repository (a known bug of a library, a default that changed between versions, an issue that a later release fixed), get the facts from `mstack-research` when it is in this session's skill list (as `mstack-research` or `<plugin>:mstack-research`). Take the version in use from the reproduction's lockfile, and load the skill with a message in this form:
+
+```text
+Called by: mstack-diagnose
+Project: <path of the repository>
+
+<ID>: <question, with the fixed text of the error and no paths, names or tokens>
+Package: <name>
+```
+
+Its result block ends with `Search: ran` or `Search: not run (<reason>)`. A claim from it is evidence of what is known upstream, never proof that it is this failure's cause: Phase 4 still tests the hypothesis. Ground rule 5 applies to this call too. When `mstack-research` is not in the skill list, print this once and do the lookup yourself:
+
+```text
+mstack-diagnose looks up external facts itself, because mstack-research is not installed. To install it:
+Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-research@mstack
+Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-research@mstack
+Skills CLI:  npx skills add mubeda/mstack --skill mstack-research -g -a <claude-code|codex> -y
+Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
+A new session picks it up.
+```
+
 Gate: the ranked list and every prediction are written down.
 
 ## Phase 4. Eliminate and prove
