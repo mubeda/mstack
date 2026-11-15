@@ -18,11 +18,20 @@ This file sets how you establish a fact the repository cannot answer. Every lane
 Use this only when a decision that spans several lanes rests on a broad external question, such as choosing between two libraries or matching one standard across packages. A narrow fact belongs to the lane rule above.
 
 1. Ask the user only the questions whose answers would change what you look into or how you weigh it. Skip the rest.
-2. Cut the question into subtopics that do not overlap, so no two helpers search the same ground.
-3. Run one read-only helper agent per subtopic, all in parallel. Give each a brief that stands on its own, with its question, the versions in play, what is out of scope, and a cap on tool calls.
-4. Each helper reads primary sources before secondary ones and attaches a URL to every claim it returns. A claim without a URL goes on its list of open gaps.
-5. After the first pass, run at most one more round, aimed only at the gaps that affect the decision.
-6. Merge the findings yourself in a single pass. Resolve or flag contradictions, and keep each claim tied to its source.
-7. Keep every note in the session scratchpad, never in the repository or a worktree.
-8. Hand lanes the outcome as cited facts inside their briefs, not as a document to read.
-9. Put the evidence for every external fact the shipped change depends on in the Verification section of the pull request body, with the source or command, the result and the date.
+2. Load the `mstack-research` skill with a message in exactly this form. The first line makes it work in called mode: it asks nothing and ends with a result block.
+
+   ```text
+   Called by: <this workflow's skill name>
+   Project: <path of the repository>
+   Depth: standard
+
+   <ID>: <one part of the question, with the versions in play>
+   <ID>: <the next part>
+   ```
+
+   Use `Depth: quick` for one narrow part, and at most 8 parts in a call. Add the line `Online search: off (<reason>)` after `Project:` when the network is off.
+3. Read its result block. Each part has an answer, its claims with a source, a version, a date and a confidence, the conflicts, and what was not found. The block ends with `Search: ran` or `Search: not run (<reason>)`.
+4. A claim marked low, a conflict that bears on the decision, or a block that says search did not run goes to the user as a question, with each option and its evidence. Never fill such a gap from memory.
+5. Keep every note in the session scratchpad, never in the repository or a worktree.
+6. Hand lanes the outcome as cited facts inside their briefs, not as a document to read.
+7. Put the evidence for every external fact the shipped change depends on in the Verification section of the pull request body, with the source or command, the result and the date.

@@ -149,4 +149,26 @@ for (const name of readdirSync(resolve(root, 'plugins'))) {
 const pmPlan = resolve(root, 'plugins/mstack-claude-pm-codex-dev/skills/mstack-claude-pm-codex-dev/evals/_fixture/plan');
 const pmLint = spawnSync(process.execPath, [resolve(planSkill, 'scripts/check-plan.mjs'), pmPlan], { encoding: 'utf8' });
 assert.equal(pmLint.status, 0, `check-plan.mjs rejects mstack-claude-pm-codex-dev's evals/_fixture/plan:\n${pmLint.stdout}${pmLint.stderr}`);
+// mstack-auto routes a prompt to the fitting skill from its own table, so the table has one row per plugin:
+// a skill added without a row would never be chosen, and a row for a removed skill would route to nothing.
+const routing = 'plugins/mstack-auto/skills/mstack-auto/SKILL.md';
+const table = `\n${read(routing)}`.split(/\n## Routing table[ \t]*\r?\n/)[1]?.split(/\n## /)[0];
+assert(table, `${routing}: no "## Routing table" section; mstack-auto's routing table must sit under that heading`);
+const rows = table.split('\n').map((line) => line.trim()).filter((line) => line.startsWith('|'));
+assert.equal(rows[0]?.split('|')[2]?.trim(), 'Skill', `${routing}: the second column of mstack-auto's routing table must be headed "Skill"`);
+const routed = rows.slice(2).map((row) => {
+  const skills = row.split('|')[2].match(/`[^`]+`/g) ?? [];
+  assert.equal(skills.length, 1, `mstack-auto's routing table: the Skill cell must hold exactly one name in backticks: ${row}`);
+  return skills[0].slice(1, -1);
+});
+assert(routed.length, `${routing}: mstack-auto's routing table has no rows`);
+assert.equal(new Set(routed).size, routed.length, `mstack-auto's routing table names a skill twice: ${routed.sort().join(', ')}`);
+const routable = [...new Set([...names(claude), ...names(codex)])].filter((name) => name !== 'mstack-auto');
+for (const name of routable) {
+  assert(routed.includes(name), `${name}: no row in mstack-auto's routing table (${routing})`);
+}
+for (const name of routed) {
+  assert(routable.includes(name), `${name}: mstack-auto's routing table has a row for a skill no registry has`);
+}
+
 console.log(`Marketplace checks passed: ${claude.length} Claude plugins, ${codex.length} Codex plugins`);

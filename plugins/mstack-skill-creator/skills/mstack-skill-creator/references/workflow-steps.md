@@ -6,7 +6,7 @@ Read this in Phase 0 (the required shared skills and the optional steps), Phase 
 
 | Step | mstack skill |
 |---|---|
-| Research on the web | none; the research tool in the host file, or plain search |
+| Research on the web (Claude Code and Codex) | `mstack-research`; in OpenCode and Cursor the built-in step below |
 | A written spec | `mstack-write-specs` |
 | A step-by-step plan | `mstack-plan` |
 | Building with reviews | `mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex |
@@ -21,7 +21,7 @@ Use the mstack skill when it is installed and the "mstack skills supported here"
 
 ## Required shared skills
 
-In Claude Code and Codex, `mstack-find-skills` and `mstack-best-model-for` are required. For each one: when it is in the session's skill list, continue. When its folder exists on disk (the skill folders in the host file) but the session has not loaded it, say that a new session is needed, and stop. Otherwise print this and stop, with nothing written:
+In Claude Code and Codex, `mstack-find-skills`, `mstack-best-model-for` and `mstack-research` are required. For each one: when it is in the session's skill list, continue. When its folder exists on disk (the skill folders in the host file) but the session has not loaded it, say that a new session is needed, and stop. Otherwise print this and stop, with nothing written:
 
 ```text
 mstack-skill-creator needs <name>, which is not installed.
@@ -55,7 +55,15 @@ A skill installed during a session usually loads only in a new one. When the use
 
 ## Built-in fallbacks
 
-- Research. Search for existing skills and documentation on the subject, read the two or three best primary sources, and note the facts the skill will rely on with their links and the date.
+- Research, in OpenCode and Cursor only. Search for existing skills and documentation on the subject, read the two or three best primary sources, and note the facts the skill will rely on with their links and the date. In Claude Code and Codex there is no fallback: load `mstack-research` with a message in this form, and read its result block, which ends with `Search: ran` or `Search: not run (<reason>)`. When search did not run, report research as not run and continue.
+
+  ```text
+  Called by: mstack-skill-creator
+
+  1: Which public skills already do <the job>, with their links and licenses?
+  2: What does the primary documentation say about <the subject the skill relies on>?
+  3: What is the license of <each source whose text may be adapted>?
+  ```
 - A written spec. Write, in the conversation or a scratch file, the purpose, the triggers, the inputs and outputs, what the skill must never do, and the test tasks. Show it to the user and get a yes before Phase 3.
 - A plan. List the files the skill will have, in the order you will write them, each with its check.
 - Building with reviews. Write the files yourself (Phase 3), then get the review of Phase 8.

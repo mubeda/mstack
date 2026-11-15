@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: product-plan-not-plan
+expected_outcome: |
+  A product-level plan with no code goes to mstack-product-plan, not to mstack-plan or mstack-write-specs.
+  The router announces it and the product plan interview starts.
+context:
+  scaffold_script: place-files.sh

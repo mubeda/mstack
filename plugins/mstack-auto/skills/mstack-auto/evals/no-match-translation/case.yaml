@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: no-match-translation
+expected_outcome: |
+  No mstack skill covers a translation: the router says so in one line and hands the prompt to mstack-find-skills
+  in user mode. The file is not translated.
+context:
+  scaffold_script: place-files.sh

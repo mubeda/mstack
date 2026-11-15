@@ -7,6 +7,7 @@ Read this in Phase 0 when the session runs in Codex CLI, and whenever a later ph
 - Question tool: a numbered round in chat, then wait for the reply.
 - Subagent tool: the session's agent tool when it has one, otherwise a separate `codex exec` run with the brief on stdin.
 - Loading a skill: read its `SKILL.md` and follow it. The user mentions one with `$<name>` or picks it from `/skills`.
+- Research: the `mstack-research` skill, in called mode.
 - Commands that need network (`gh`, `npx`, a nested `codex exec`) run as approved commands, because the sandbox turns the network off.
 - Writing a skill into `.agents/skills/` needs an approved command too. On 2026-11-10 the `workspace-write` sandbox mounted `.agents` read-only ("Read-only file system"), so a plain write there fails. Ask the user to approve the write, or write the draft elsewhere in the workspace and give the user the command that moves it into place.
 
@@ -48,4 +49,4 @@ Claude, through the `claude-review` skill of the agent-bridges `claude` plugin, 
 
 ## mstack skills supported here
 
-Eighteen of the twenty mstack skills, as of 2026-11-12: `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-claude-review-workflow`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup`, and this skill. `mstack-codex-review-workflow` and `mstack-claude-pm-codex-dev` drive Claude Code tools and do not run here.
+Twenty of the twenty-two mstack skills, as of 2026-11-15: `mstack-auto`, `mstack-research`, `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-claude-review-workflow`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup`, and this skill. `mstack-codex-review-workflow` and `mstack-claude-pm-codex-dev` drive Claude Code tools and do not run here.

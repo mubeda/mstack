@@ -91,6 +91,7 @@ check "git on PATH"                        "command -v git >/dev/null"
 check "mstack-find-skills (names the skills per task)"   "has_skill mstack-find-skills"
 check "mstack-best-model-for (models for helpers and reviews)" "has_skill mstack-best-model-for"
 check "mstack-receive-review (processes every review)" "has_skill mstack-receive-review"
+check "mstack-research (research outside the repository)" "has_skill mstack-research"
 if [ "$host" = claude ]; then
   reviewer "codex skill (skill-codex plugin)" "has_codex_skill"
   reviewer "codex CLI logged in"              "command -v codex >/dev/null && codex login status >/dev/null 2>&1"

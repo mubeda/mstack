@@ -5,13 +5,13 @@
   },
   "metadata": {
     "description": "Daily-driver agent skills for Claude Code and Codex CLI, packaged as independently installable plugins.",
-    "version": "0.9.0"
+    "version": "0.11.0"
   },
   "plugins": [
     {
       "name": "mstack-codex-review-workflow",
       "description": "Claude-led coordinator workflow for any task in a repository, from a list of issues (GitHub or another tracker), an execution plan, or one larger task. It splits the work into conflict-free lanes (parallel worktree agents or one agent in sequence), tracks each item as open, in progress or closed, reviews every lane with the advisor and a read-only Codex pass, integrates, and delivers one pull request with CI run one at a time. Claude Code only.",
-      "version": "0.3.4",
+      "version": "0.3.6",
       "author": {
         "name": "mubeda"
       },
@@ -21,7 +21,7 @@
     {
       "name": "mstack-claude-pm-codex-dev",
       "description": "Claude-led workflow in which Codex writes the code: Claude briefs one Codex developer per phase through the OpenAI Codex plugin, reads each diff, reruns the validation, gets the advisor's and a read-only Codex review, sends findings back to the same Codex thread, and commits each accepted phase to one integration branch delivered as one pull request. Claude Code only.",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "author": {
         "name": "mubeda"
       },
@@ -31,7 +31,7 @@
     {
       "name": "mstack-diagnose",
       "description": "Diagnose crashes, bugs, regressions, flaky failures, performance problems, hangs and leaks with evidence: intake, a signal from a live loop or a saved crash record, ranked falsifiable hypotheses, one-variable probes, a regression test before the fix, graded root-cause tiers and fix verdicts. One skill for Claude Code and Codex.",
-      "version": "0.3.1",
+      "version": "0.3.2",
       "author": {
         "name": "mubeda"
       },
@@ -51,7 +51,7 @@
     {
       "name": "mstack-write-specs",
       "description": "Turn an idea, feature, bug class or refactor into an approved, testable specification: grilling interview rounds that settle every decision, approaches before drafting, EARS requirements with SHALL and a scenario each, a quality checklist, an independent read, and explicit approval before any build. One skill for Claude Code and Codex.",
-      "version": "0.4.1",
+      "version": "0.4.2",
       "author": {
         "name": "mubeda"
       },
@@ -61,7 +61,7 @@
     {
       "name": "mstack-plan",
       "description": "Turn an approved spec into a reviewed implementation plan: phases and tasks sized for one agent session each, red-green test steps, dependencies and parallel rounds, the best installed skills named per task (with vetted online suggestions for gaps), a review of every plan (cross-vendor, or a same-vendor fallback when that reviewer is missing), a shared progress file, and an execute-plan.md that starts inline or multi-agent execution. One skill for Claude Code and Codex.",
-      "version": "0.3.2",
+      "version": "0.3.3",
       "author": {
         "name": "mubeda"
       },
@@ -91,7 +91,7 @@
     {
       "name": "mstack-skill-creator",
       "description": "Create or improve agent skills (SKILL.md folders) that Claude Code, Codex, OpenCode and Cursor all load: an interview, a check for an existing skill, writing by portable rules, a static check, a comparison test against a baseline, and for an mstack-style repository the full plugin packaging and cross-vendor review. Uses the other mstack skills when they are installed. Never commits or publishes on its own.",
-      "version": "0.3.5",
+      "version": "0.3.7",
       "author": {
         "name": "mubeda"
       },
@@ -111,7 +111,7 @@
     {
       "name": "mstack-find-skills",
       "description": "Find the skills that fit a job: the installed skills scored per task, then vetted public candidates from skills.sh for the gaps only (audits, installs, license and the skill's own text), installed only after the user's yes. Called by the other mstack skills for their tasks. One skill for Claude Code and Codex.",
-      "version": "0.2.5",
+      "version": "0.2.7",
       "author": {
         "name": "mubeda"
       },
@@ -121,7 +121,7 @@
     {
       "name": "mstack-setup",
       "description": "Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: a status script for the host, then one list of install commands (codegraph, ponytail, the cross-vendor reviewer, the mstack skills) that runs only after one yes, and a final check. One skill for Claude Code and Codex.",
-      "version": "0.2.6",
+      "version": "0.2.8",
       "author": {
         "name": "mubeda"
       },
@@ -197,6 +197,26 @@
       },
       "source": "./plugins/mstack-decisions",
       "category": "workflow"
+    },
+    {
+      "name": "mstack-auto",
+      "description": "A router for the mstack skills. Give it any prompt and it starts the one mstack skill that fits, after one line that says which skill and why. It picks the earliest missing step of a chain (brainstorm, spec, plan, delivery), asks one question on a real tie, names a fitting skill that is missing or runs only on the other host, and hands a job no mstack skill covers to mstack-find-skills. It starts only when asked and never does the job itself. One skill for Claude Code and Codex.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-auto",
+      "category": "workflow"
+    },
+    {
+      "name": "mstack-research",
+      "description": "Research outside the repository with sources you can check. It answers a question from official documentation, source code, changelogs, issue trackers and forums, and every claim names the page it came from. For a package or SDK it starts from the version in the lockfile and reports the documentation for that version, what changed since, known issues with their fix versions, and security advisories. Readers get search and reading tools only where the host allows it, text in a fetched page is never followed as an instruction, and a run that could not search says so. In Claude Code a broad question from the user goes to Claude's deep-research when it is installed. Called by mstack-plan, the delivery workflows and mstack-skill-creator. One skill for Claude Code and Codex.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-research",
+      "category": "development"
     }
   ]
 }

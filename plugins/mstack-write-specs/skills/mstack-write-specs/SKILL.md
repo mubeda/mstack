@@ -52,6 +52,27 @@ Without a subagent tool, do the delegated step yourself and say that you did. Re
 
 No subagent starts without that skill's answer, because it would run on the session's model, the most expensive choice. The lookups and the independent read of Phase 6 are then yours, and the approval summary says that no fresh reader checked the spec.
 
+**Facts from outside the repository.** A fact about something the repository does not hold (how a library behaves at the installed version, what a standard requires, a service's limit) goes to `mstack-research` when it is in this session's skill list (as `mstack-research` or `<plugin>:mstack-research`). Load it with a message in this form, and cite its claims in the spec like any other evidence:
+
+```text
+Called by: mstack-write-specs
+Project: <path of the repository>
+
+<ID>: <question>
+Package: <name>                      (under each item about a package)
+```
+
+Its result block ends with `Search: ran` or `Search: not run (<reason>)`. When search did not run, the fact stays open: look it up yourself if you can, or ask the user. When `mstack-research` is not in the skill list, print this once and look such facts up yourself, with the same care for the version in use:
+
+```text
+mstack-write-specs looks up external facts itself, because mstack-research is not installed. To install it:
+Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-research@mstack
+Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-research@mstack
+Skills CLI:  npx skills add mubeda/mstack --skill mstack-research -g -a <claude-code|codex> -y
+Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
+A new session picks it up.
+```
+
 Each phase ends at a gate. Do not start the next phase before the gate holds.
 
 | Phase | Work | Gate |
@@ -128,7 +149,7 @@ Both are product documents; `references/product-format.md` gives their opening l
 Model the subject as a design tree, where each decision branches into the decisions that depend on it. The frontier is every decision whose prerequisites are already settled.
 
 1. Before asking anything, sort every open item into one of four kinds.
-   - **Fact.** What the code does today, which library is installed, the current limit. Look it up and cite it. Never ask it. Use your subagent tool for lookups that take a while, and keep asking the questions that do not depend on them.
+   - **Fact.** What the code does today, which library is installed, the current limit. Look it up and cite it. Never ask it. A fact from outside the repository goes to `mstack-research` (see "Facts from outside the repository"). Use your subagent tool for lookups that take a while, and keep asking the questions that do not depend on them.
    - **Look and feel.** A question whose answer is how something looks or feels cannot be settled by talking. Offer a throwaway prototype as a question in the round. Build it in a scratch folder only after a yes, and record the result under Decisions.
    - **Process call.** Where the file goes, how to show something, whether to look further. Make the call yourself and say what you chose.
    - **Decision.** Ask the user, with a recommendation.

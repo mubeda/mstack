@@ -17,7 +17,7 @@ C=.claude/plugins/cache
 
 
 mkdir -p "$H/$C/skill-codex/skill-codex/1.3.1/skills/codex"; echo "Run codex exec." > "$H/$C/skill-codex/skill-codex/1.3.1/skills/codex/SKILL.md"
-for s in mstack-best-model-for mstack-receive-review mstack-setup mstack-plan mstack-write-specs mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-codex-review-workflow; do skill "$C/mstack/$s/0.1.0/skills/$s"; done
+for s in mstack-best-model-for mstack-receive-review mstack-research mstack-setup mstack-plan mstack-write-specs mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-codex-review-workflow; do skill "$C/mstack/$s/0.1.0/skills/$s"; done
 
 skill "$C/mstack/mstack-find-skills/0.1.0/skills/mstack-find-skills"
 skill ".agents/skills/archify"

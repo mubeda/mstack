@@ -1,6 +1,6 @@
 ---
 name: mstack-claude-review-workflow
-description: Use when working in Codex and the user hands over work to deliver in a repository with Codex lanes and Claude review, whether a list of issues (GitHub or another tracker, as numbers, links, a table or a screenshot), an execution plan or task file, or one larger task, or says "fan out agents", "solve these issues", "execute this plan" or "process the backlog", or asks for Claude review of Codex work or serialized CI, or mentions mstack, even if they do not name this skill. Runs in Codex only; in Claude Code, use mstack-codex-review-workflow instead.
+description: Use when working in Codex and the user hands over work to deliver in a repository with Codex lanes and Claude review, whether a list of issues (GitHub or another tracker, as numbers, links, a table or a screenshot), an execution plan or task file, or one larger task, or says "fan out agents", "solve these issues", "execute this plan" or "process the backlog", or asks for Claude review of Codex work or serialized CI, even if they do not name this skill. Runs in Codex only; in Claude Code, use mstack-codex-review-workflow instead.
 ---
 
 # mstack Claude review workflow
@@ -82,7 +82,7 @@ Lanes run in `workspace-write` with the network off, so a lane can never commit.
 
 ## 0. Ask before starting
 
-**Required skills, first.** Before anything else, check the three shared skills this workflow calls: `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review`. For each one:
+**Required skills, first.** Before anything else, check the four shared skills this workflow calls: `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `mstack-research`. For each one:
 
 1. It is in this session's skill list (as `<name>` or `<plugin>:<name>`): continue.
 2. It is not in the list, but the preflight checker reports it `ok` on disk: it was installed after this session started. Say that a new session is needed, and stop.
@@ -122,13 +122,13 @@ Run the checker from the repository root. Add `--github` when the items are GitH
 bash <skill-dir>/scripts/check-required-skills.sh [--github] [--web-ui]
 ```
 
-The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's skill list, because a skill installed after the session started loads only in a new session. Look for `mstack-diagnose`, `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review` (shown as `<name>:<name>` from a plugin, or the bare name from the skills CLI) and `claude-review` from the `claude` plugin (shown as `claude:claude-review`).
+The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's skill list, because a skill installed after the session started loads only in a new session. Look for `mstack-diagnose`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `mstack-research` (shown as `<name>:<name>` from a plugin, or the bare name from the skills CLI) and `claude-review` from the `claude` plugin (shown as `claude:claude-review`).
 
-Required always: `ponytail`, `mstack-diagnose`, `mstack-find-skills` and `mstack-best-model-for` from this marketplace, `node`, and `git`. Recommended: the `claude-review` skill from the agent-bridges `claude` plugin with a logged-in `claude` CLI, the cross-vendor reviewer. Without it the run continues, and section 6 › When the cross-vendor reviewer is missing says how reviews are done instead. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
+Required always: `ponytail`, `mstack-diagnose`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `mstack-research` from this marketplace, `node`, and `git`. Recommended: the `claude-review` skill from the agent-bridges `claude` plugin with a logged-in `claude` CLI, the cross-vendor reviewer. Without it the run continues, and section 6 › When the cross-vendor reviewer is missing says how reviews are done instead. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
 
 If anything is missing:
 
-1. `mstack-find-skills`, `mstack-best-model-for` or `mstack-receive-review`: section 0's required-skills step already stopped the run.
+1. `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` or `mstack-research`: section 0's required-skills step already stopped the run.
 2. `ponytail`, `mstack-diagnose`, `node` or `git`, or for this work `gh`, `ui-ux-pro-max` or Python 3: tell the user exactly which items are missing, say that `mstack-setup` installs the missing skills and plugins at user scope after one yes and lists the rest (`gh`, Python 3, logins) as steps for the user, and stop, because without them the code style and diagnosis this workflow guarantees would silently not happen. If a skill is installed but not in this session's list, say that a new session is needed.
 3. The cross-vendor reviewer: warn the user, name `mstack-setup` as the way to install it, and continue with the fallback in section 6.
 

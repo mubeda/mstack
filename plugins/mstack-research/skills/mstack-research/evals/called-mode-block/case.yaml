@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: called-mode-block
+expected_outcome: |
+  A called request with two items: the reply ends with the result block, with the sections 2.1 and 3.4 in that
+  order and a Search line, asks the user nothing, and does not hand over to Claude's deep-research although the
+  session lists it.
+notes: |
+  The request names `Depth: quick`, so this case does not show the hand-over exclusion at standard depth;
+  that exclusion was checked in a real called run of the skill, not by this case.
+  The files under node_modules/nanoid are a hand-written stand-in for version 2.1.11, not the package's code.
+context:
+  scaffold_script: place-files.sh

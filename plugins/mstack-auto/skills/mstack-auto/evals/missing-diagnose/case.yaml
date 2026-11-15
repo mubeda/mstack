@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: missing-diagnose
+expected_outcome: |
+  mstack-diagnose fits and is not installed: the router names it and mstack-setup, says a new session picks it up,
+  and stops. It prints no announcement line, diagnoses nothing and changes no file.
+context:
+  scaffold_script: place-files.sh

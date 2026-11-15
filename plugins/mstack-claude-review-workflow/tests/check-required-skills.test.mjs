@@ -63,3 +63,9 @@ test('a missing mstack-receive-review is reported, because every review is proce
   assert.match(r.out, /MISSING {2}mstack-receive-review/);
   assert.equal(r.status, 1, r.out);
 });
+
+test('a missing mstack-research is reported, because broad research goes through it', () => {
+  const r = required(['ponytail', 'mstack-diagnose', 'mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review']);
+  assert.match(r.out, /MISSING {2}mstack-research/);
+  assert.equal(r.status, 1, r.out);
+});

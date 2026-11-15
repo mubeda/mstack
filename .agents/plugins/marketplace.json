@@ -4,12 +4,12 @@
     "displayName": "mstack"
   },
   "metadata": {
-    "version": "0.9.0"
+    "version": "0.11.0"
   },
   "plugins": [
     {
       "name": "mstack-claude-review-workflow",
-      "version": "0.3.4",
+      "version": "0.3.6",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-claude-review-workflow"
@@ -22,7 +22,7 @@
     },
     {
       "name": "mstack-diagnose",
-      "version": "0.3.1",
+      "version": "0.3.2",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-diagnose"
@@ -48,7 +48,7 @@
     },
     {
       "name": "mstack-write-specs",
-      "version": "0.4.1",
+      "version": "0.4.2",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-write-specs"
@@ -61,7 +61,7 @@
     },
     {
       "name": "mstack-plan",
-      "version": "0.3.2",
+      "version": "0.3.3",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-plan"
@@ -100,7 +100,7 @@
     },
     {
       "name": "mstack-skill-creator",
-      "version": "0.3.5",
+      "version": "0.3.7",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-skill-creator"
@@ -126,7 +126,7 @@
     },
     {
       "name": "mstack-find-skills",
-      "version": "0.2.5",
+      "version": "0.2.7",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-find-skills"
@@ -139,7 +139,7 @@
     },
     {
       "name": "mstack-setup",
-      "version": "0.2.6",
+      "version": "0.2.8",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-setup"
@@ -234,6 +234,32 @@
       "source": {
         "source": "local",
         "path": "./plugins/mstack-decisions"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "mstack-auto",
+      "version": "0.1.0",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-auto"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "mstack-research",
+      "version": "0.1.0",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-research"
       },
       "policy": {
         "installation": "AVAILABLE",

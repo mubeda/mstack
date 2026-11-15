@@ -1,0 +1,8 @@
+{
+  "name": "blog-tools",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "slugline-fmt": "1.4.2"
+  }
+}

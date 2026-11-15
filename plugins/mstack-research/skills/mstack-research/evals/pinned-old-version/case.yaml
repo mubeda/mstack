@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: pinned-old-version
+expected_outcome: |
+  The project's lockfile pins nanoid at 2.1.11, where the package exports the generator function itself. The reply
+  gives the call for 2.1.11, says where the version was read, names the change to named exports in 3.0, and
+  does not present the newer call as valid for this project.
+notes: |
+  Version facts checked on 2026-11-15: the changelog of https://github.com/ai/nanoid says under 3.0
+  "Move to named exports", and version 2.1.11's entry file exports a function.
+  The files under node_modules/nanoid are a hand-written stand-in for version 2.1.11, not the package's code.
+context:
+  scaffold_script: place-files.sh

@@ -1,6 +1,6 @@
 ---
 name: mstack-codex-review-workflow
-description: Use when the user hands over work to deliver in a repository with writer subagents and Codex review, whether a list of issues (GitHub or another tracker, as numbers, links, a table or a screenshot), an execution plan or task file, or one larger task, or says "fan out agents", "solve these issues", "execute this plan" or "process the backlog", or asks for Codex review of agent work or serialized CI, or mentions mstack, even if they do not name this skill. Runs in Claude Code only; in Codex, use mstack-claude-review-workflow instead.
+description: Use when the user hands over work to deliver in a repository with writer subagents and Codex review, whether a list of issues (GitHub or another tracker, as numbers, links, a table or a screenshot), an execution plan or task file, or one larger task, or says "fan out agents", "solve these issues", "execute this plan" or "process the backlog", or asks for Codex review of agent work or serialized CI, even if they do not name this skill. Runs in Claude Code only; in Codex, use mstack-claude-review-workflow instead.
 ---
 
 # mstack Codex review workflow
@@ -68,7 +68,7 @@ Show the status of every work item in one table, using exactly three states.
 
 ## 0. Ask before starting
 
-**Required skills, first.** Before anything else, check the three shared skills this workflow calls: `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review`. For each one:
+**Required skills, first.** Before anything else, check the four shared skills this workflow calls: `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `mstack-research`. For each one:
 
 1. It is in this session's skill list (as `<name>` or `<plugin>:<name>`): continue.
 2. It is not in the list, but the preflight checker reports it `ok` on disk: it was installed after this session started. Say that a new session is needed, and stop.
@@ -108,13 +108,13 @@ Run the checker from the repository root. Add `--github` when the items are GitH
 bash <skill-dir>/scripts/check-required-skills.sh [--github] [--web-ui]
 ```
 
-The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's available-skills list, because a skill installed after the session started loads only in a new session (or after `/reload-plugins` for plugins). Look for every skill the checker reported: `mstack-diagnose:mstack-diagnose`, `mstack-find-skills:mstack-find-skills`, `mstack-best-model-for:mstack-best-model-for`, `mstack-receive-review:mstack-receive-review` and `skill-codex:codex` (or the bare names when installed as standalone skills), `ponytail`, and `ui-ux-pro-max` for web UI work, each under its plugin form (`<plugin>:<skill>`) or its bare name. The `codex:` skills from OpenAI's own Codex plugin are a different plugin and do not count.
+The checker finds the skill files and checks that the CLIs it needs are logged in. Also confirm that each skill appears in this session's available-skills list, because a skill installed after the session started loads only in a new session (or after `/reload-plugins` for plugins). Look for every skill the checker reported: `mstack-diagnose:mstack-diagnose`, `mstack-find-skills:mstack-find-skills`, `mstack-best-model-for:mstack-best-model-for`, `mstack-receive-review:mstack-receive-review`, `mstack-research:mstack-research` and `skill-codex:codex` (or the bare names when installed as standalone skills), `ponytail`, and `ui-ux-pro-max` for web UI work, each under its plugin form (`<plugin>:<skill>`) or its bare name. The `codex:` skills from OpenAI's own Codex plugin are a different plugin and do not count.
 
-Required always: `ponytail`, `mstack-diagnose`, `mstack-find-skills`, `mstack-best-model-for` and `mstack-receive-review` from this marketplace. Recommended: the `codex` skill from the skill-codex plugin with a logged-in `codex` CLI, the cross-vendor reviewer. Without it the run continues, and section 6 › When the cross-vendor reviewer is missing says how reviews are done instead. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
+Required always: `ponytail`, `mstack-diagnose`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `mstack-research` from this marketplace. Recommended: the `codex` skill from the skill-codex plugin with a logged-in `codex` CLI, the cross-vendor reviewer. Without it the run continues, and section 6 › When the cross-vendor reviewer is missing says how reviews are done instead. Required for GitHub: a logged-in `gh`. Required for web UI work: `ui-ux-pro-max` and Python 3.
 
 If anything is missing:
 
-1. `mstack-find-skills`, `mstack-best-model-for` or `mstack-receive-review`: section 0's required-skills step already stopped the run.
+1. `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` or `mstack-research`: section 0's required-skills step already stopped the run.
 2. `ponytail`, `mstack-diagnose`, `node` or `git`, or for this work `gh`, `ui-ux-pro-max` or Python 3: tell the user exactly which items are missing, say that `mstack-setup` installs the missing skills and plugins at user scope after one yes and lists the rest (`gh`, Python 3, logins) as steps for the user, and stop, because without them the code style and diagnosis this workflow guarantees would silently not happen. If a skill is installed but not in this session's list, say that a new session is needed.
 3. The cross-vendor reviewer: warn the user, name `mstack-setup` as the way to install it, and continue with the fallback in section 6.
 
