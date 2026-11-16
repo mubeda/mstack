@@ -8,7 +8,7 @@ A calling skill sends this, with one group of three lines per finding:
 
 ```text
 Called by: <calling skill>
-Repository: <owner/repo, or the tracker and project>
+Repository: <owner/repo, host/owner/repo when the tracker is not on github.com, or the tracker and project>
 
 <ID>: <bug | feature | follow-up> <the finding in one or two sentences>
 Evidence: <what was observed: the file and line, or the command and its output>
@@ -55,7 +55,7 @@ The first form may be followed by one ` --label '<label>'` per label, and by not
 
 The value rules:
 
-- `<owner/repo>` is made of letters, digits, `.`, `_` and `-` on each side of one `/`.
+- `<owner/repo>` is made of letters, digits, `.`, `_` and `-` on each side of one `/`. When the tracker is not on `github.com`, the host stands in front of it, as letters, digits, `.` and `-` followed by one `/` (`host/owner/repo`), in the line and in the `Repository:` line alike. A line without the host would go to `github.com`.
 - `<number>` is digits only.
 - A title, a label and a path hold no single quote, no backtick, no dollar sign, no backslash, no line break and no other control character.
 - A label also holds no comma and no double quote, because the tool reads a comma as a separator between labels.

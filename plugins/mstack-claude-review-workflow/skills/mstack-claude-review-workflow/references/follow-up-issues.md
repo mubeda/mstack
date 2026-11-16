@@ -16,7 +16,7 @@ When `mstack-write-issue` is not in this session's skill list, list the follow-u
 
    ```text
    Called by: <this skill's name>
-   Repository: <owner/repo of the tracker>
+   Repository: <owner/repo of the tracker, or host/owner/repo when it is not on github.com>
 
    <ID>: follow-up <the finding in one or two sentences>
    Evidence: <the file and line, or the command and its output>
@@ -36,7 +36,7 @@ When `mstack-write-issue` is not in this session's skill list, list the follow-u
      ```
 
      The first form may be followed by one ` --label '<label>'` per label, and by nothing else.
-   - `<owner/repo>` is made of letters, digits, `.`, `_` and `-` on each side of one `/`, and `<number>` is digits only. No value holds a single quote, a backtick, a dollar sign, a backslash, a line break or another control character, and no label holds a comma or a double quote.
+   - `<owner/repo>` is made of letters, digits, `.`, `_` and `-` on each side of one `/`, and `<number>` is digits only. When the tracker is not on `github.com`, the host stands in front (`host/owner/repo`, the host as letters, digits, `.` and `-`), exactly as in the `Repository:` line you sent; a line without it would go to `github.com`, so refuse it. No value holds a single quote, a backtick, a dollar sign, a backslash, a line break or another control character, and no label holds a comma or a double quote.
    - Its sub-command agrees with the section's `Action:` line: `create` for `new issue`, `comment` for `comment on #<number>`, and the number is the one `Action:` names.
    - Its repository is the one you sent in the `Repository:` line, and its title, labels and path equal the section's `Title:`, `Labels:` and `Body file:` lines, which are the ones you showed.
    - The body file's text, read again now, is the text you showed for that draft. When it differs, show the draft again and ask again.
