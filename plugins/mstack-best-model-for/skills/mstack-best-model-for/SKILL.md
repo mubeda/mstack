@@ -5,7 +5,7 @@ description: Use when the user asks which model or effort to use for a task, for
 
 # mstack-best-model-for
 
-Answers which model and effort fit a task, for Claude, Codex or both, from one table: `references/model-table.md`. Every other mstack skill takes its model choices from here, so a change to the table reaches all of them.
+Answers which model and effort fit a task, for Claude, Codex or both, from one table: `references/model-table.md`. Every other mstack skill that starts a subagent, a lane or a reviewer takes its model choices from here, so a change to the table reaches all of them.
 
 | Role | Claude Code | Codex |
 |---|---|---|

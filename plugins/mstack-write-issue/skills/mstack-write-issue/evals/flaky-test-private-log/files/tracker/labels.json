@@ -1,0 +1,20 @@
+[
+  {
+    "name": "bug"
+  },
+  {
+    "name": "enhancement"
+  },
+  {
+    "name": "documentation"
+  },
+  {
+    "name": "flaky-test"
+  },
+  {
+    "name": "question"
+  },
+  {
+    "name": "good first issue"
+  }
+]

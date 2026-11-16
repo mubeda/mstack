@@ -5,7 +5,7 @@ description: Use when the user asks "is there a skill for this", "find me a skil
 
 # mstack-find-skills
 
-Finds the skills that fit a job: installed skills first, then vetted public candidates from the skills.sh directory for the gaps only. Every other mstack skill takes its skill matches from here, except `mstack-auto`, which chooses among the mstack skills from its own routing table and hands every other job to this skill.
+Finds the skills that fit a job: installed skills first, then vetted public candidates from the skills.sh directory for the gaps only. Every other mstack skill that needs skill matches takes them from here, except `mstack-auto`, which chooses among the mstack skills from its own routing table and hands every other job to this skill.
 
 | Role | Claude Code | Codex |
 |---|---|---|

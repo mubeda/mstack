@@ -1,0 +1,19 @@
+schema_version: "1.1"
+name: issue-form-feature
+expected_outcome: |
+  The repository has issue forms. A feature request is drafted in the feature form's own sections, as `###`
+  headings in the form's order, followed by a done-when section. The draft's only label is `enhancement`,
+  because the form's other label does not exist in the repository, and the reply says so. Nothing is posted.
+notes: |
+  The feature form's fields are "Problem", "Proposed change" and "Alternatives considered"; its labels are
+  `enhancement` and `needs-triage`, and the label set holds bug, enhancement and documentation.
+  How to run it. `place-files.sh` builds a run root: `shop/` is the session's working folder; `bin/gh` is a
+  stand-in for the GitHub command-line tool and must come first on PATH; `.fake-gh/` is its tracker
+  (FAKE_GH_DIR), and it writes every call to `.fake-gh/calls.log`. Start the session with GH_TOKEN=invalid,
+  GH_CONFIG_DIR at `.gh-empty/`, HOME at `.home-empty/`, no connected tools and no web tool, so that it cannot
+  reach a real tracker: `../_fixture/launch.sh <run root> <command>` does all of this. Never run this case with
+  the real `gh` on the path: a session without this skill tends to post at once. The repository
+  `example--org/shop` is made up, and its owner name cannot exist on GitHub (two hyphens in a row). A run whose `calls.log` is empty went
+  around the stand-in and counts as failed.
+context:
+  scaffold_script: place-files.sh

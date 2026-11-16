@@ -22,6 +22,7 @@ The repository's own rules (AGENTS.md, CONTRIBUTING, delivery skills) and the ru
 | `references/grilling.md` | You, design-heavy lanes | A requirement or design is ambiguous or has several defensible answers |
 | `references/external-facts.md` | Any lane facing an external unknown, you for cross-lane research | The answer depends on facts outside the repository |
 | `references/web-ui.md` | Web UI lanes, you when reviewing UI diffs | Any web or frontend UI change |
+| `references/follow-up-issues.md` | You | Section 9, when the run deferred follow-ups |
 | `references/plan-format.md` | You | The work items are an `mstack-plan` folder |
 | `references/codegraph.md` | You only, never a lane brief | Section 1, once, before reading code |
 | `scripts/check-required-skills.sh` | You | Preflight |
@@ -312,3 +313,5 @@ Bug lanes follow the `mstack-diagnose` skill, so their reports carry its evidenc
 When the run stops with work left (an item not Closed, or integration, the final review, the push, CI or delivery not finished), because the context or the session is running out, a blocker, or the user stops it, stop at a safe point and write a handoff with `mstack-handoff` when it is installed, then put its path in this report. Without it, put the same content in this report: branch and HEAD, uncommitted paths, running lanes and their worktrees, `<run-dir>`, gates still due with their commands, and decisions blocked on the user.
 
 Write it per `writing.md` › Messages to the user. Line one names the goal and the outcome (for example "The goal was to finish the six tasks in the plan. PR #40 is open and completes 5 of 6."). Line two is the next action for the user. Then the final status table, with evidence in the note column. Then the models used: per lane its tier, model and effort, the number of rounds, and every move to another tier with its reason. Then which reviews ran as same-vendor fallback reviews and why, if any. Then the review findings the run did not apply, each rejected or deferred finding with its reason (see `mstack-receive-review` › Log every finding). Then validation commands with results, what was not run and why, residual risk, and the path of `<run-dir>` with a cleanup command once the user no longer needs its logs.
+
+When the run deferred follow-ups, follow `references/follow-up-issues.md` after the report is written: it offers to draft tracker issues for them when `mstack-write-issue` is installed, and changes nothing when it is not.

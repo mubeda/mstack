@@ -1,0 +1,26 @@
+[
+  {
+    "number": 3,
+    "title": "Export: the CSV file has no header row",
+    "state": "OPEN",
+    "stateReason": "",
+    "body": "Exporting orders gives a file whose first line is already an order.\n",
+    "labels": [],
+    "comments": [],
+    "url": "https://github.com/example--org/shop/issues/3"
+  },
+  {
+    "number": 5,
+    "title": "Login page shows a blank error after a wrong password",
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "body": "The error box is empty.\n",
+    "labels": [],
+    "comments": [
+      {
+        "body": "Fixed in 1.4.2."
+      }
+    ],
+    "url": "https://github.com/example--org/shop/issues/5"
+  }
+]
