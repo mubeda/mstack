@@ -4,12 +4,12 @@
     "displayName": "mstack"
   },
   "metadata": {
-    "version": "0.11.0"
+    "version": "0.12.0"
   },
   "plugins": [
     {
       "name": "mstack-claude-review-workflow",
-      "version": "0.3.6",
+      "version": "0.3.7",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-claude-review-workflow"
@@ -100,7 +100,7 @@
     },
     {
       "name": "mstack-skill-creator",
-      "version": "0.3.7",
+      "version": "0.3.8",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-skill-creator"
@@ -113,7 +113,7 @@
     },
     {
       "name": "mstack-best-model-for",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-best-model-for"
@@ -126,7 +126,7 @@
     },
     {
       "name": "mstack-find-skills",
-      "version": "0.2.7",
+      "version": "0.2.8",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-find-skills"
@@ -139,7 +139,7 @@
     },
     {
       "name": "mstack-setup",
-      "version": "0.2.8",
+      "version": "0.2.9",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-setup"
@@ -243,7 +243,7 @@
     },
     {
       "name": "mstack-auto",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-auto"
@@ -260,6 +260,19 @@
       "source": {
         "source": "local",
         "path": "./plugins/mstack-research"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "mstack-write-issue",
+      "version": "0.1.0",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-write-issue"
       },
       "policy": {
         "installation": "AVAILABLE",

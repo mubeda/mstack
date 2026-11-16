@@ -31,6 +31,7 @@ The reference files are shared with the two other mstack workflows, so read thei
 | `references/grilling.md` | You | A requirement or design is ambiguous or has several defensible answers |
 | `references/external-facts.md` | A developer run facing an external unknown, you for research | The answer depends on facts outside the repository |
 | `references/web-ui.md` | Web UI phases, you when reviewing UI diffs | Any web or frontend UI change |
+| `references/follow-up-issues.md` | You | Section 9, when the run deferred follow-ups |
 | `references/plan-format.md` | You | The work items are an `mstack-plan` folder |
 | `references/codegraph.md` | You only, never a brief | Section 1, once, before reading code |
 | `scripts/check-required-skills.sh` | You | Preflight |
@@ -266,3 +267,5 @@ Bug phases follow `mstack-diagnose`, so their reports carry its evidence. Accept
 When the run stops with work left (an item not Closed, or integration, the final review, the push, CI or delivery not finished), stop at a safe point and write a handoff with `mstack-handoff` when it is installed, and put its path in this report. Without it, put the same content here: branch and HEAD, the uncommitted paths, the phase in progress with its base, its last reviewed tree and its developer thread, the job ID and state of any developer run still active, gates still due with their commands, and decisions blocked on the user. A developer job ends with the session that started it, so the next session reviews what the working tree holds and starts a fresh run.
 
 Write the report per `writing.md` › Messages to the user. Line one names the goal and the outcome; line two is the next action for the user. Then the final status table, with evidence in the note column. Then, per phase, the developer model and effort, the number of rounds and retries, and every switch with its reason. Then which reviews were same-vendor (every Codex review) and which ran as fallback reviews by Claude, and why. Then the review findings not applied, each with its reason. Then the validation commands with results, the longest developer run, what was not run and why, and residual risk.
+
+When the run deferred follow-ups, follow `references/follow-up-issues.md` after the report is written: it offers to draft tracker issues for them when `mstack-write-issue` is installed, and changes nothing when it is not.

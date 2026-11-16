@@ -1,0 +1,40 @@
+[
+  {
+    "number": 3,
+    "title": "Export: the CSV file has no header row",
+    "state": "OPEN",
+    "stateReason": "",
+    "body": "Exporting orders gives a file whose first line is already an order.\n",
+    "labels": [],
+    "comments": [],
+    "url": "https://github.com/example--org/shop/issues/3"
+  },
+  {
+    "number": 5,
+    "title": "Login page shows a blank error after a wrong password",
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "body": "The error box is empty.\n",
+    "labels": [],
+    "comments": [
+      {
+        "body": "Fixed in 1.4.2."
+      }
+    ],
+    "url": "https://github.com/example--org/shop/issues/5"
+  },
+  {
+    "number": 12,
+    "title": "Upload: test_retry_after_timeout fails sometimes with a timeout",
+    "state": "OPEN",
+    "stateReason": "",
+    "body": "## Summary\n\n`tests/test_upload.py::test_retry_after_timeout` fails now and then with `AssertionError: expected 2 attempts, got 1`.\n\n## Steps to reproduce\n\nNot deterministic. Failed in 1 of 10 runs on CI.\n\n## Environment\n\nPython 3.11.9, pytest 8.2.0, the CI image.\n",
+    "labels": [],
+    "comments": [
+      {
+        "body": "Seen once more on main, same assertion."
+      }
+    ],
+    "url": "https://github.com/example--org/shop/issues/12"
+  }
+]

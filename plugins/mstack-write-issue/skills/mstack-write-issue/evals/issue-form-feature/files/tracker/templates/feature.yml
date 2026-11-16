@@ -1,0 +1,21 @@
+name: Feature request
+description: Something the shop cannot do yet
+title: "[Feature]: "
+labels: [enhancement, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: Describe the problem before the solution.
+  - type: textarea
+    attributes:
+      label: Problem
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Alternatives considered

@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Stand-in for the gh command-line tool in eval cases, so no test session reaches a real tracker.
+# It serves the made-up repository example--org/shop from the files in $FAKE_GH_DIR (default ./.fake-gh):
+# issues.json, labels.json and an optional templates/ folder. Every call is one line in calls.log.
+# It answers the calls the skill names; --jq is honoured only for the two template reads.
+set -eu
+dir="${FAKE_GH_DIR:-$PWD/.fake-gh}"
+mkdir -p "$dir"
+# A line break or a tab inside an argument is written as \n or \t, so one call stays one line.
+esc=()
+for a in "$@"; do a="${a//\\/\\\\}"; a="${a//$'\n'/\\n}"; a="${a//$'\t'/\\t}"; esc+=("$a"); done
+(IFS=$'\t'; printf '%s\n' "${esc[*]}") >> "$dir/calls.log"
+
+FAKE_GH_DIR="$dir" exec node -e '
+const fs = require("fs"), path = require("path");
+const dir = process.env.FAKE_GH_DIR, repo = "example--org/shop";
+const argv = process.argv.slice(1);
+const fail = (msg) => { process.stderr.write(msg + "\n"); process.exit(1); };
+const names = { "-R": "--repo", "-S": "--search", "-s": "--state", "-L": "--limit", "-t": "--title", "-F": "--body-file", "-l": "--label", "-q": "--jq" };
+const flags = { "--label": [] }, pos = [];
+for (let i = 0; i < argv.length; i++) {
+  const a = names[argv[i]] || argv[i];
+  if (a === "--comments" || a === "-c") continue;
+  if (!a.startsWith("-")) pos.push(a);
+  else if (a === "--label") flags[a].push(argv[++i]);
+  else flags[a] = argv[++i];
+}
+const load = (f) => JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
+const save = (issues) => fs.writeFileSync(path.join(dir, "issues.json"), JSON.stringify(issues, null, 2));
+const pick = (o) => flags["--json"] ? Object.fromEntries(flags["--json"].split(",").map((k) => [k, o[k] ?? null])) : o;
+const out = (v) => console.log(JSON.stringify(v));
+const limit = () => Number(flags["--limit"] || 30);
+const [cmd, sub, arg] = pos;
+if (cmd === "auth" && sub === "status") { console.log("stand-in gh: logged in to the made-up host"); process.exit(0); }
+const named = cmd === "api" ? (sub || "").split("/").slice(1, 3).join("/") : cmd === "repo" ? arg : flags["--repo"];
+if (named && named !== repo) fail("stand-in gh: wrong repository " + named + "; only " + repo + " exists here");
+const find = (issues, n) => issues.find((i) => String(i.number) === String(n)) || fail("stand-in gh: no issue " + n);
+if (cmd === "issue" && sub === "list") {
+  const state = (flags["--state"] || "open").toUpperCase();
+  const words = (flags["--search"] || "").toLowerCase().split(/\W+/).filter((w) => w.length > 2);
+  out(load("issues.json")
+    .filter((i) => state === "ALL" || i.state === state)
+    .filter((i) => !words.length || words.some((w) => (i.title + " " + i.body).toLowerCase().includes(w)))
+    .slice(0, limit()).map(pick));
+} else if (cmd === "issue" && sub === "view") {
+  out(pick(find(load("issues.json"), arg)));
+} else if (cmd === "issue" && sub === "create") {
+  if (!flags["--title"] || !flags["--body-file"]) fail("stand-in gh: issue create needs --title and --body-file");
+  const issues = load("issues.json"), known = load("labels.json").map((l) => l.name);
+  for (const l of flags["--label"]) if (!known.includes(l)) fail("could not add label: \x27" + l + "\x27 not found");
+  const number = Math.max(899, ...issues.map((i) => i.number)) + 1;
+  const url = "https://github.com/" + repo + "/issues/" + number;
+  issues.push({ number, title: flags["--title"], state: "OPEN", stateReason: "", body: fs.readFileSync(flags["--body-file"], "utf8"),
+    labels: flags["--label"].map((name) => ({ name })), comments: [], url });
+  save(issues);
+  console.log(url);
+} else if (cmd === "issue" && sub === "comment") {
+  if (!flags["--body-file"]) fail("stand-in gh: issue comment needs --body-file");
+  const issues = load("issues.json"), issue = find(issues, arg);
+  issue.comments = [...(issue.comments || []), { body: fs.readFileSync(flags["--body-file"], "utf8") }];
+  save(issues);
+  console.log(issue.url + "#issuecomment-" + issue.comments.length);
+} else if (cmd === "label" && sub === "list") {
+  out(load("labels.json").slice(0, limit()).map(pick));
+} else if (cmd === "repo" && sub === "view") {
+  out(pick({ nameWithOwner: repo, defaultBranchRef: { name: "main" } }));
+} else if (cmd === "api") {
+  const file = (sub.split("/contents/.github/ISSUE_TEMPLATE")[1] ?? "x").replace(/^\//, "");
+  const tdir = path.join(dir, "templates");
+  if (!sub.includes("/contents/.github/ISSUE_TEMPLATE") || !fs.existsSync(tdir) || (file && !fs.existsSync(path.join(tdir, file)))) fail("gh: Not Found (HTTP 404)");
+  if (!file) {
+    const list = fs.readdirSync(tdir).sort().map((name) => ({ name, path: ".github/ISSUE_TEMPLATE/" + name, type: "file" }));
+    if (flags["--jq"] === ".[].name") console.log(list.map((f) => f.name).join("\n")); else out(list);
+  } else {
+    const content = fs.readFileSync(path.join(tdir, file)).toString("base64");
+    if (flags["--jq"] === ".content") console.log(content); else out({ name: file, encoding: "base64", content });
+  }
+} else fail("stand-in gh: unsupported command: " + argv.join(" "));
+' -- "$@"

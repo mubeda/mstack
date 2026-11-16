@@ -49,8 +49,9 @@ One row per mstack skill. "Next in its chain" names the skill that takes this on
 | Work ready to deliver in a repository with writer agents and a Codex review: a plan folder, a list of issues, or one larger task. Also a request for a Codex review of agents' work, or for CI runs handled one after another | `mstack-codex-review-workflow` | Claude Code only | | `mstack-claude-review-workflow` |
 | The same delivery, when the user says Codex is to write the code and Claude manages, reviews and commits it | `mstack-claude-pm-codex-dev` | Claude Code only | | `mstack-claude-review-workflow` |
 | Work ready to deliver in a repository with Codex writers and a Claude review: a plan folder, a list of issues, or one larger task. Also a request for a Claude review of Codex work, or for CI runs handled one after another | `mstack-claude-review-workflow` | Codex only | | `mstack-codex-review-workflow` |
-| Something broken whose cause is not known: a crash, a wrong result, a failing or flaky test, a regression, a slowdown, a hang, a failing CI run | `mstack-diagnose` | both | | |
+| Something broken whose cause is not known and is to be found: a crash, a wrong result, a failing or flaky test, a regression, a slowdown, a hang, a failing CI run. Not a request to report a known problem as an issue | `mstack-diagnose` | both | | |
 | Open issues or a backlog to sort: what to do now, next or later, duplicates, the next batch | `mstack-backlog-triage` | both | | |
+| A problem, a change or a deferred follow-up that is already known and is to be written up as one issue in a tracker: filing an issue, opening a ticket, reporting a bug | `mstack-write-issue` | both | | |
 | Review feedback that has arrived and has to be acted on: reviewer output, bot findings, pull-request comments | `mstack-receive-review` | both | | |
 | A session that is ending or pausing with work left, or work to continue from a handoff file | `mstack-handoff` | both | | |
 | A goal that takes many sessions and needs one owner who keeps its decisions and history | `mstack-chief-of-staff` | both | | |
