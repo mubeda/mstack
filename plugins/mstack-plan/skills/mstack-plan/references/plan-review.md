@@ -62,7 +62,7 @@ Open questions the plan cannot answer.
 
 ## Run the reviewer
 
-Use the model and effort the user chose in Phase 0. Write output and errors to the scratch folder, never into the repository.
+Use the model and effort the user chose in Phase 0. Once "When the run fails" replaced the model or the effort, or chose the fallback, that holds for every later round. Write output and errors to the scratch folder, never into the repository.
 
 ### Claude Code: Codex reviews
 
@@ -92,7 +92,7 @@ Its effort accepts `low`, `medium` or `high`. Never pass `--write`.
 
 An empty output file or a non-zero exit is never a clean review. Read the last lines of the `.err` file.
 
-1. A model or effort error: rerun with the alternative model offered in Phase 0 (or the next lower effort), and log the switch. A login or other error an agent cannot fix: use the fallback in item 3. Nothing here waits for the user.
+1. An effort error: rerun once with the next lower effort, without asking, and log it; with no lower level, or when that one is rejected too, use the fallback in item 3. A model error: ask the user once for another model, offering the alternative of Phase 0, rerun once with the answer and log the change; the user's choice of a model is not consent to another one. When that model is rejected too, or the user names none, use the fallback in item 3. A login or other error an agent cannot fix: use the fallback in item 3. Apart from that one question, nothing here waits for the user.
 2. No error but no output: the run was killed. Rerun once with a longer timeout.
 3. The reviewer cannot run at all (the CLI or plugin is missing and the user declined to install it or it loads only in a new session, or an error an agent cannot fix): warn the user that the review will be same-vendor, then give a fresh-context, read-only subagent of your own vendor the same prompt (the model and effort `mstack-best-model-for` returns for the tier `most capable` and your own vendor: in Claude Code `Agent` with those as `model` and `effort`; in Codex a separate `codex exec -m <model> --config model_reasoning_effort="<effort>" --sandbox read-only -C <repository root> - < <scratch>/review-prompt-<n>.md` with them, as an approved (escalated) command because it needs network), and mark the review in `progress.md` and the report as "same-vendor review only, because <reason>". Without a subagent tool, review the plan yourself against the same checklist and say so. Never skip the review silently.
 
@@ -107,6 +107,6 @@ Process the review with `mstack-receive-review`, without asking the user anythin
 5. A finding that argues against a decision the spec, the questions record or the user made is rejected, quoting that decision.
 6. Minor and Nit findings that do not change what gets built may be deferred.
 7. After fixes, run `scripts/check-plan.mjs` again. Rerun the review only if the fixes changed the phases, the dependencies or the coverage. After the second round, decide what is still disputed with the same rules and log it.
-8. Update the `Plan review` line of `progress.md` with the reviewer, the model, the round and the verdict.
+8. Update the `Plan review` line of `progress.md` with the reviewer, the model, the round and the verdict, and set the `Plan reviewed by` line of `execute-plan.md` to the reviewer, model and effort that actually ran.
 
 The review is not approval. Only the user's explicit yes to the written plan approves it.

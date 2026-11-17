@@ -1,0 +1,18 @@
+schema_version: "1.1"
+name: review-flawed-page
+expected_outcome: |
+  The session reviews work/checkout.html and changes nothing. Its findings name each of the seven planted
+  flaws with the file and a line within two lines of the one in planted.txt, are ordered by severity, and
+  each says how to fix it. With the plugin, the reply also has a table of the classes that says which were
+  not reviewed, and at most 15 findings with a line of the ones it dropped.
+notes: |
+  How to run it. `place-files.sh` builds a run root in the current folder: `work/checkout.html`, and outside
+  `work/` the files `planted.txt` (one flaw per line, with its line number) and `files.sha256` (every file
+  under `work/` with its checksum). Start the session with
+  `../_fixture/launch.sh <run root> prompt.md 1 --model <model>`, and with `--no-plugin` before the other
+  options for a baseline. Graders 01 to 10 are conditions a session without the skill could meet and make up
+  the comparison. Graders 11 and 12 are about the skill's own output form: grade them for the run with the
+  plugin only, and keep them out of the comparison count.
+  What this case does not show: a review with a browser, and a review of a screen with no planted flaw.
+context:
+  scaffold_script: place-files.sh

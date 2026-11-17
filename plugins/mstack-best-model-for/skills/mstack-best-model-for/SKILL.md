@@ -1,6 +1,6 @@
 ---
 name: mstack-best-model-for
-description: Use when the user asks which model or effort to use for a task, for Claude or Codex, such as "which model for this subagent", "what effort should the review run at", "is haiku enough for this", "best Codex model for debugging", or when another mstack skill needs a model and effort for a tier (cheap, standard, most capable) or a task before it starts a subagent, a lane or a reviewer. Works in Claude Code and Codex. Returns a model, an effort, how to set both, a reason and a next step, per vendor.
+description: Use when the user asks which model or effort to use for a task, for Claude or Codex, such as "which model for this subagent", "what effort should the review run at", "is the cheapest model enough for this", "best Codex model for debugging", or when another mstack skill needs a model and effort for a tier (cheap, standard, most capable) or a task before it starts a subagent, a lane or a reviewer. Works in Claude Code and Codex. Returns a model, an effort, how to set both, a reason and a next step, per vendor.
 ---
 
 # mstack-best-model-for
@@ -38,7 +38,7 @@ Apply the caller's limits to the row's choice, in this order:
 2. `max effort`: if the effort is above the limit, lower it to the limit. Levels rise as `low`, `medium`, `high`, `xhigh`, `max`.
 3. Mark Capped `yes` when either step changed the table's choice, else `no`.
 
-For `no model fits`, write `no model fits` in the Model column, leave Effort and How to set empty, and put the limits in Reason. Return no model for that request.
+For `no model fits`, write `no model fits` in the Model column, leave Effort and How to set empty, put the limits in Reason, and write "relax a `never` limit" in Next step. Return no model for that request.
 
 ## Result block
 

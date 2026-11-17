@@ -1,0 +1,20 @@
+schema_version: "1.1"
+name: landing-page
+expected_outcome: |
+  The session writes work/index.html, a landing page with its CSS, a top bar with an icon-only menu button,
+  the product picture and a waiting-list form. The reply states the typefaces, the colors and the layout idea
+  before the first file is written. Every control has a readable name, the picture has its size reserved, the
+  form field has a visible label, nothing scrolls sideways at 320 px, and the page holds no invented customer,
+  quote or number. The reply says whether the page was looked at in a browser and claims no check that did
+  not run. With the plugin, the session reads the floor part and neither the motion part nor the React part.
+notes: |
+  How to run it. `place-files.sh` builds a run root in the current folder (`work/` with a README and
+  `product.svg`). Start the session with `../_fixture/launch.sh <run root> prompt.md 1 --model <model>`, and
+  with `--no-plugin` before the other options for a baseline. Every condition is one a session without the
+  skill could meet. The condition about 320 px is measured in a browser by the one who grades; without a
+  browser it is reported as not graded, never as met. "The reply" in the graders is every message the session
+  wrote in the turn.
+  What this case does not show: how the page looks. No grader judges that; the screenshots taken after a run
+  are for a person. It also does not show the question round, because the prompt says enough.
+context:
+  scaffold_script: place-files.sh
