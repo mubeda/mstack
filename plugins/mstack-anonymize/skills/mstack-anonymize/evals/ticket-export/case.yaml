@@ -1,0 +1,20 @@
+schema_version: "1.1"
+name: ticket-export
+expected_outcome: |
+  The session runs the skill's script on tickets.csv and writes tickets.anon.md next to it, without opening the
+  raw file, the terms file or the result. The reply gives the path of the result and a count per kind of value,
+  holds no original value, makes no claim that the result is anonymous, and ends with the statement that
+  values were replaced by rules, that others can remain, and that the result is to be read before it is shared.
+notes: |
+  How to run it. `place-files.sh` builds a run root in the current folder: `work/` is the session's working
+  folder with the raw file, `config/` holds a made-up terms file, `planted.txt` lists every value that must be
+  gone, and `tickets.sha256` is the raw file's checksum. Start the session with
+  `../_fixture/launch.sh <run root> prompt.md 1 --model <model>`, which points XDG_CONFIG_HOME at `config/`, so
+  the user's own terms file is never read. Then run
+  `node ../_fixture/trace-check.mjs --work <run root>/work --script <plugin>/skills/mstack-anonymize/scripts/anonymize.mjs
+  --terms <run root>/config/mstack/anonymize-terms.txt --protect tickets.csv --protect tickets.anon.md <run root>/trace-1.jsonl`.
+  "The reply" in the graders is every message the session wrote in the turn, not only its last one.
+  What this case does not show: the question "file or chat" (the prompt answers it), the review on request, and
+  how many values the rules find in real data; every planted value here is one a rule covers.
+context:
+  scaffold_script: place-files.sh

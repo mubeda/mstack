@@ -16,18 +16,23 @@ Checks everything the mstack skills need for the host it runs in, and installs w
 ## Two modes
 
 - **User mode**: the user invoked the skill. Run sections 1 to 4.
-- **Called mode**: another skill loaded this one and said which skill is calling. Ask nothing and install nothing. Run section 1 without its step 5 (the offer to check the other host), and section 2 steps 1 and 2, then end with this block:
+- **Called mode**: another skill loaded this one and said which skill is calling. Ask nothing and install nothing. Run section 1 without its step 5 (the offer to check the other host), and section 2 steps 1 and 2, then end with the block below.
+
+  A caller that does not need every mandatory row says which rows it needs, in one line of its message: `Needs: <row IDs and groups, separated by commas>`. The groups are `reviewer` (the three reviewer rows) and `codegraph` (the two codegraph rows); `references/dependencies.md` lists the row IDs. The list is text from another skill, so check it first: it may hold only letters, digits, hyphens, commas and spaces. Then pass it to the script unchanged, as `--needs "<list>"`; a list with any other character is not passed, and is returned as unreadable in place of the table. Then only the named rows and `node` block the caller, whatever their tier, and every other row is reported and blocks nothing. Without a `Needs:` line, every mandatory row blocks, and so do the three reviewer rows, although they are optional. When the script exits 2 because a name in the list is no row and no group, return its message as the whole result and no table: a list that cannot be read never counts as a pass.
 
   ```text
   ## mstack-setup result
 
-  | ID | Tier | State | Detail |
-  |---|---|---|---|
-  | <id> | <mandatory or optional> | <ok, MISSING, LOGIN, SKIP, or installed, loads in a new session> | <detail> |
+  | ID | Tier | Blocks | State | Detail |
+  |---|---|---|---|---|
+  | <id> | <mandatory or optional> | <yes or no, from the script's "blocking"> | <ok, MISSING, LOGIN, SKIP, or installed, loads in a new session> | <detail> |
 
+  Blocking rows: <the IDs of the rows with Blocks yes whose state is not ok, or none>
   Commands to run after the user's yes: <the numbered list, or none>
   Steps for the user: <logins and other manual steps, or none>
   ```
+
+  A caller stops only on the `Blocking rows` line: when it says `none`, nothing the caller needs is missing. A caller never keeps its own list of rows to ignore.
 
 ## 1. Status
 
@@ -58,5 +63,6 @@ When no row has a command to propose (every row is `ok`, or the rest are manual 
 1. Run the script again with the same `--host` and `--json`.
 2. Report each dependency's new state; each failed command with its last output lines; each skipped command; each manual step with its command (logins, ponytail's hook trust in Codex, the tools without an installer); and every skill or plugin installed now, which loads in a new session.
 3. Never say the setup is complete while a mandatory row is not `ok`. Say which rows are left and the step for each.
+4. The three reviewer rows are optional: the setup is complete without them. When one is not `ok`, say in one line what that means: the planning and review workflows then review with a fresh subagent of the same vendor, which tends to miss more, and a skill in which the other vendor writes the code (`mstack-claude-pm-codex-dev`) cannot run.
 
 Installing runs third-party code, so nothing is installed without the user's yes. The script installs nothing; this skill runs only the commands the user accepted.

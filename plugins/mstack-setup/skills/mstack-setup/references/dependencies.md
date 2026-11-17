@@ -13,9 +13,6 @@ Run each command on its own, in the order of the table, and only after the user'
 | `codegraph-cli` | the code index the code-reading skills use | `npm i -g @colbymchenry/codegraph` | same |
 | `codegraph-connected` | lets the host query the index | `codegraph install --yes --target=claude` | `codegraph install --yes --target=codex` |
 | `ponytail` | the code style every mstack skill follows | `claude plugin marketplace add DietrichGebert/ponytail`, then `claude plugin install ponytail@ponytail --scope user` | `codex plugin marketplace add DietrichGebert/ponytail`, then `codex plugin add ponytail@ponytail`; then the user trusts its hooks (manual step) |
-| `reviewer-plugin` | the cross-vendor reviewer | skill-codex: `claude plugin marketplace add skills-directory/skill-codex`, then `claude plugin install skill-codex@skill-codex --scope user` | agent-bridges `claude`, plugin route only (the skill runs a script the skills command does not install): `codex plugin marketplace add https://github.com/mubeda/agent-bridges.git`, then `codex plugin add claude@agent-bridges` |
-| `reviewer-cli` | the reviewer's command-line tool | `npm install -g @openai/codex` | `npm install -g @anthropic-ai/claude-code` |
-| `reviewer-login` | the reviewer can run | manual step: `codex login`, then `codex login status` | manual step: `claude auth login`, then `claude auth status` |
 | `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review`, `mstack-research`, `mstack-setup` | skills the other mstack skills call | `claude plugin marketplace add mubeda/mstack` (once), then `claude plugin install <id>@mstack --scope user` | `codex plugin marketplace add mubeda/mstack` (once), then `codex plugin add <id>@mstack` |
 
 What `codegraph install --yes --target=<host>` writes, to tell the user before the yes:
@@ -25,15 +22,29 @@ What `codegraph install --yes --target=<host>` writes, to tell the user before t
 
 It indexes no code. The code-reading skills build each repository's index themselves.
 
+## What a calling skill needs
+
+A skill that calls `mstack-setup` names the rows it needs in a `Needs:` line (`SKILL.md` › Two modes). A name is a row ID of the two tables in this file, or one of two groups:
+
+| Group | Rows | For a caller that |
+|---|---|---|
+| `reviewer` | `reviewer-plugin`, `reviewer-cli`, `reviewer-login` | starts the cross-vendor reviewer |
+| `codegraph` | `codegraph-cli`, `codegraph-connected` | reads code through the code index |
+
+The three reviewer rows are optional for the user, who can work without an account at the other vendor. A caller that sends no `Needs:` line is still stopped by them, as it was when they were mandatory, so no caller starts passing without its reviewer. `node` always blocks, because the check itself runs on it. A caller that starts no reviewer and reads no code names neither group, and a reviewer that is not logged in then does not stop it. When a row of a group is renamed or added, the group changes here and in `scripts/check-setup.mjs`, and no caller changes.
+
 ## Optional
 
 | ID | For | Claude Code | Codex |
 |---|---|---|---|
+| `reviewer-plugin` | the cross-vendor reviewer: the second opinion of the planning and review workflows, which review with a fresh subagent of the same vendor without it | skill-codex: `claude plugin marketplace add skills-directory/skill-codex`, then `claude plugin install skill-codex@skill-codex --scope user` | agent-bridges `claude`, plugin route only (the skill runs a script the skills command does not install): `codex plugin marketplace add https://github.com/mubeda/agent-bridges.git`, then `codex plugin add claude@agent-bridges` |
+| `reviewer-cli` | the reviewer's command-line tool | `npm install -g @openai/codex` | `npm install -g @anthropic-ai/claude-code` |
+| `reviewer-login` | the reviewer can run | manual step: `codex login`, then `codex login status` | manual step: `claude auth login`, then `claude auth status` |
 | `ui-ux-pro-max` | web and UI work | `claude plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill`, then `claude plugin install ui-ux-pro-max@ui-ux-pro-max-skill --scope user` (it also installs six companion design skills) | no plugin: `npm install -g ui-ux-pro-max-cli`, then `uipro init --ai codex --global`. Where that puts the skill was not verified; check with `uipro init --ai codex --global --dry-run` first |
 | `archify` | the diagrams `mstack-explain-me-better` offers | no plugin: `npx -y skills@latest add https://archify.si --skill archify --agent claude-code --global --copy --yes` | no plugin: `npx -y skills@latest add https://archify.si --skill archify --agent codex --global --copy --yes` |
 | `gh` | GitHub issues and pull requests | none: install from https://cli.github.com, then the user runs `gh auth login` | same |
 | `python3` | `ui-ux-pro-max`'s search script | none: install from https://www.python.org/downloads/ or the system package manager | same |
-| `mstack-plan`, `mstack-write-specs`, `mstack-brainstorm`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-handoff`, `mstack-skill-creator`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-auto`, `mstack-write-issue` | the other mstack skills | `claude plugin install <id>@mstack --scope user`, after the marketplace line above | `codex plugin add <id>@mstack`, after the marketplace line above |
+| `mstack-plan`, `mstack-write-specs`, `mstack-brainstorm`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-handoff`, `mstack-skill-creator`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-auto`, `mstack-write-issue`, `mstack-anonymize` | the other mstack skills | `claude plugin install <id>@mstack --scope user`, after the marketplace line above | `codex plugin add <id>@mstack`, after the marketplace line above |
 | `mstack-codex-review-workflow` | plan execution with Codex review | `claude plugin install mstack-codex-review-workflow@mstack --scope user` | not for this host |
 | `mstack-claude-review-workflow` | plan execution with Claude review | not for this host | `codex plugin add mstack-claude-review-workflow@mstack` |
 | `mstack-claude-pm-codex-dev` | plan execution with Codex as the developer and Claude reviewing | `claude plugin install mstack-claude-pm-codex-dev@mstack --scope user` | not for this host |
