@@ -1,0 +1,18 @@
+schema_version: "1.1"
+name: settings-screen
+expected_outcome: |
+  The session adds a settings screen to the small React 18 app in work/: a profile form, the list of team
+  members and a way to remove one. It uses the app's own Button and Field components and its tokens, changes
+  nothing in package.json, gives every field a visible label, writes an error that says the cause and the
+  fix, handles no members, loading and a failed request, keeps a long name from pushing the remove control out
+  of its row, asks before removing or offers an undo, uses no API that came with React 19, and says what it
+  did not check. With the plugin, the session reads the React part.
+notes: |
+  How to run it. `place-files.sh` builds a run root in the current folder (`work/` with the app, and
+  `package.sha256`, the checksum of the manifest, outside it). Start the session with
+  `../_fixture/launch.sh <run root> prompt.md 1 --model <model>`, and with `--no-plugin` before the other
+  options for a baseline. Every condition is one a session without the skill could meet. For a screenshot,
+  copy `work/` elsewhere, run `npm install` and `npx vite build` there, and serve its `dist/` folder.
+  What this case does not show: how the screen looks, and anything about a version of React other than 18.
+context:
+  scaffold_script: place-files.sh

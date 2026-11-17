@@ -71,9 +71,9 @@ Then send one message that restates the user's goal in a sentence and asks these
 1. **Where should the plan go?** Recommend, in this order: the folder the spec already sits in when it is a plan folder of its own, the repository's existing plans folder if it has one (look for `docs/plans/`, `plans/`, `docs/specs/`), or `docs/plans/<yyyy-mm-dd>-<slug>/`. Accept any path.
 2. **Which spec?** Only when the request names none. Offer the specs you find (`rg -l --glob '*.md' '^### R1\b'`, `docs/specs/`), newest first.
 3. **External sources.** Ask whether there is any information outside the repository the plan should use, such as links, wiki pages, design files, tracker issues, API or vendor documentation, or earlier decisions. Recommend "none" only when the spec's Source line and the repository docs already cover the work.
-4. **Reviewer model and effort.** In Claude Code, the Codex model (recommend `gpt-6.1-sol`, alternative `gpt-6-astra`) and effort (recommend `high`, then `medium`, `xhigh`, `max`). In Codex, the Claude model (recommend `opus`, alternative `sonnet`) and effort (recommend `medium`, then `high`, `low`). Accept any other name the user types.
+4. **Reviewer model and effort.** In Claude Code, the Codex model (recommend `gpt-6.2-sol`, alternative `gpt-6.2-astra`) and effort (recommend `high`, then `medium`, `xhigh`, `max`). In Codex, the Claude model (recommend `opus`, alternative `sonnet`) and effort (recommend `medium`, then `high`, `low`). Accept any other name the user types.
 
-When the folder already holds a plan (`plan.md` and `progress.md`), read both and resume instead. A Draft plan continues from its first unfinished phase of this skill. An Approved plan stays as it is unless the user asks for a change, and that change sets it back to Draft. A plan whose tasks are already In progress or Closed is being executed, so change only tasks that are still Open and log why.
+When the folder already holds a plan (`plan.md` and `progress.md`), read both and resume instead. A Draft plan continues from its first unfinished phase of this skill. An Approved plan stays as it is unless the user asks for a change, and that change sets it back to Draft. A plan whose tasks are already In progress or Closed is being executed, so change only tasks that are still Open and log why. An `execute-plan.md` written by an earlier version of this skill tells the inline executor to switch to another reviewer model when the chosen one is rejected: when you resume such a folder, replace rule 3 of its "Rules for the whole run" and the whole failure bullet of its review step (the one that begins "An empty output or a non-zero exit") with the text of `references/execute-plan-template.md`, filling the placeholders from the old file, and log it in `progress.md`. This edit does not set an Approved plan back to Draft, and the recorded reviewer model stays.
 
 ## Preflight
 
@@ -174,7 +174,7 @@ Keep it proportionate. Steps name exact signatures, values and commands, not who
 
 ## 7. Cross-vendor review
 
-Follow `references/plan-review.md`, and process the review with `mstack-receive-review`. The other vendor's model reviews the whole plan folder, read-only, or the same-vendor fallback when that reviewer is not available. Nothing in this phase asks the user: verify every finding, fix the facts, reject what is wrong or contradicts a decision already made, keep design changes for the approval summary, and record how each finding was handled in `reviews/plan-review-<n>.md`. At most two review rounds.
+Follow `references/plan-review.md`, and process the review with `mstack-receive-review`. The other vendor's model reviews the whole plan folder, read-only, or the same-vendor fallback when that reviewer is not available. Nothing in this phase asks the user, except the one question for a reviewer model that was rejected (`references/plan-review.md` › When the run fails): verify every finding, fix the facts, reject what is wrong or contradicts a decision already made, keep design changes for the approval summary, and record how each finding was handled in `reviews/plan-review-<n>.md`. At most two review rounds.
 
 ## 8. Approval
 
