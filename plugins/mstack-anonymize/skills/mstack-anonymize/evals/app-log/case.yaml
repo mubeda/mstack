@@ -1,0 +1,20 @@
+schema_version: "1.1"
+name: app-log
+expected_outcome: |
+  The session runs the skill's script on app.log without opening the raw file or the terms file, and prints
+  the cleaned log in the reply. The same e-mail address has the same placeholder wherever it stands, both
+  customer names from the terms file are customer placeholders, the token, the hosts, the addresses and the
+  user name of the home path are gone, and a file name, a version number and the dates stay as they are.
+  No file is written. The reply ends with the statement that values were replaced by rules, that others can
+  remain, and that the result is to be read before it is shared.
+notes: |
+  How to run it. `place-files.sh` builds a run root in the current folder (`work/app.log`, `config/` with a
+  made-up terms file, `planted.txt`, `app.sha256`). Start the session with
+  `../_fixture/launch.sh <run root> prompt.md 1 --model <model>` and check the trace with
+  `node ../_fixture/trace-check.mjs --work <run root>/work --script <plugin>/skills/mstack-anonymize/scripts/anonymize.mjs
+  --terms <run root>/config/mstack/anonymize-terms.txt --protect app.log <run root>/trace-1.jsonl`.
+  "The reply" in the graders is every message the session wrote in the turn, not only its last one.
+  What this case does not show: a result written to a file, the review on request, and how many values the
+  rules find in real data; every planted value here is one a rule covers.
+context:
+  scaffold_script: place-files.sh

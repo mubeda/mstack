@@ -33,6 +33,7 @@ When a skill from the mstack marketplace or from the agent-bridges marketplace f
 | A job handed to mstack as a whole, with no skill named | `mstack-auto` |
 | A question to answer from the web, forums or official documentation, or a package's documentation, changes and known fixes | `mstack-research` |
 | A known problem, change or deferred follow-up to write up as one tracker issue | `mstack-write-issue` |
+| A file or a text whose personal, customer or company identifiers are to be replaced before it goes to a model or to other people | `mstack-anonymize` |
 | A product-level plan for an initiative, split into ordered epics, with no code | `mstack-product-plan` |
 | One epic detailed for developers by a product person | `mstack-epic` |
 | Customer feedback (tickets, interviews, surveys) to turn into evidence with counts and quotes | `mstack-evidence` |

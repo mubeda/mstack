@@ -234,7 +234,7 @@ for (const host of ['claude', 'codex']) {
     const r = run(machine(), ['--host', host]);
     assert.equal(r.json.items.find((i) => i.id === 'mstack-explain-me-better')?.tier, 'optional', r.out);
   });
-  for (const skill of ['mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue']) {
+  for (const skill of ['mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize']) {
     test(`${host}: ${skill} is an optional row`, () => {
       const r = run(machine(), ['--host', host]);
       assert.equal(r.json.items.find((i) => i.id === skill)?.tier, 'optional', r.out);
@@ -275,4 +275,60 @@ test('codex: a cached skill whose plugin is switched off is MISSING, and ok when
   const on = machine().skill('.codex/plugins/cache/mstack/mstack-find-skills/0.1.0/skills/mstack-find-skills')
     .file('.codex/config.toml', '[plugins."mstack-find-skills@mstack"]\nenabled = true\n');
   assert.equal(run(on, ['--host', 'codex']).state('mstack-find-skills'), 'ok');
+});
+
+// ---- --needs: the rows one calling skill needs (issue 23) ----
+const blocking = (r) => r.json.items.filter((i) => i.blocking).map((i) => i.id);
+
+test('needs: without --needs every mandatory row and every reviewer row blocks, and only those', () => {
+  const r = run(completeClaude(machine()), ['--host', 'claude']);
+  assert.deepEqual(blocking(r), r.json.items.filter((i) => i.tier === 'mandatory' || i.id.startsWith('reviewer-')).map((i) => i.id));
+});
+
+test('needs: a caller that needs no reviewer is not stopped by a reviewer that is not logged in', () => {
+  const m = completeClaude(machine()).stub('codex', 1);
+  assert.equal(run(m, ['--host', 'claude']).status, 1);
+  const r = run(m, ['--host', 'claude', '--needs', 'git,mstack-find-skills']);
+  assert.equal(r.status, 0, r.out);
+  assert.equal(r.state('reviewer-login'), 'LOGIN');
+  assert.deepEqual(blocking(r), ['node', 'git', 'mstack-find-skills']);
+});
+
+test('needs: a caller that needs the reviewer is stopped when it is not logged in, or when its tool is missing', () => {
+  const m = completeClaude(machine()).stub('codex', 1);
+  const r = run(m, ['--host', 'claude', '--needs', 'reviewer']);
+  assert.equal(r.status, 1, r.out);
+  assert.deepEqual(blocking(r), ['node', 'reviewer-plugin', 'reviewer-cli', 'reviewer-login']);
+  const bare = machine().stub('node');
+  assert.equal(run(bare, ['--host', 'claude', '--needs', 'reviewer-login']).status, 1);
+});
+
+test('needs: the codegraph group, and an optional row that a caller needs blocks it', () => {
+  const m = completeClaude(machine());
+  const r = run(m, ['--host', 'claude', '--needs', 'codegraph, mstack-diagnose']);
+  assert.equal(r.status, 1, r.out);
+  assert.deepEqual(blocking(r), ['node', 'codegraph-cli', 'codegraph-connected', 'mstack-diagnose']);
+  assert.equal(r.state('mstack-diagnose'), 'MISSING');
+});
+
+test('needs: a name that is no row and no group is a usage error, never a pass', () => {
+  const r = run(completeClaude(machine()), ['--host', 'claude', '--needs', 'git,reviewer-logon']);
+  assert.equal(r.status, 2, r.out);
+  assert.match(r.out, /reviewer-logon/);
+});
+
+test('needs: a name every object inherits, such as constructor, is no group', () => {
+  for (const name of ['constructor', 'toString', 'hasOwnProperty']) {
+    assert.equal(run(completeClaude(machine()), ['--host', 'claude', '--needs', name]).status, 2, name);
+  }
+});
+
+test('the three reviewer rows are optional, and still block a caller that sends no --needs', () => {
+  const r = run(completeClaude(machine()).stub('codex', 1), ['--host', 'claude']);
+  for (const id of ['reviewer-plugin', 'reviewer-cli', 'reviewer-login']) {
+    const row = r.json.items.find((i) => i.id === id);
+    assert.deepEqual([row.tier, row.blocking], ['optional', true], id);
+  }
+  assert.equal(r.status, 1, r.out);
+  assert.ok(r.json.items.filter((i) => i.tier === 'mandatory').every((i) => i.state === 'ok'), r.out);
 });

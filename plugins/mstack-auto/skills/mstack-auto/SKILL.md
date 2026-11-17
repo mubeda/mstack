@@ -60,6 +60,7 @@ One row per mstack skill. "Next in its chain" names the skill that takes this on
 | One epic to detail for developers, from a product plan or from chat, with no code | `mstack-epic` | both | `mstack-write-specs` | |
 | Customer feedback (support tickets, interview notes, survey answers) and what it shows | `mstack-evidence` | both | | |
 | Meeting notes or a transcript, and the decisions, action items and open points in them | `mstack-decisions` | both | | |
+| A file or a text whose personal, customer or company identifiers are to be replaced before it is given to a model or to other people: anonymizing, redacting or cleaning data. Not what the data shows or what was decided in it | `mstack-anonymize` | both | | |
 | A new agent skill to create, or an existing one to fix, improve, test or benchmark | `mstack-skill-creator` | both | | |
 | Which installed or public skill fits a job, or installing a skill that was found | `mstack-find-skills` | both | | |
 | A question to answer from the web, forums or official documentation, or what a package's documentation, changes or known fixes say for the version in use | `mstack-research` | both | | |

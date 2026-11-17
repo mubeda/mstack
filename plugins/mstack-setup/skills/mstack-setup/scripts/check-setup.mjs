@@ -1,25 +1,31 @@
 #!/usr/bin/env node
 // Report what the mstack skills need on this machine, for one host. Reads the environment and the disk; writes nothing.
-//   node check-setup.mjs --host <claude|codex> [--platform <linux|darwin|win32>] [--json]
+//   node check-setup.mjs --host <claude|codex> [--platform <linux|darwin|win32>] [--needs <ids and groups>] [--json]
 // Each line: <state>  <tier>  <id>  <detail>, state ok | MISSING | LOGIN | SKIP.
-// Exit 0 when no mandatory item is MISSING or LOGIN, 1 when one is, 2 on a usage error.
+// --needs is for one calling skill: a comma-separated list of row IDs and of the groups `reviewer` and `codegraph`.
+// Only those rows and `node` then block, whatever their tier. Without it, every mandatory row blocks, and so do
+// the three reviewer rows, which are optional for the user but were mandatory for callers before --needs existed.
+// Exit 0 when no blocking item is MISSING or LOGIN (with --needs: when every blocking item is ok), 1 otherwise,
+// 2 on a usage error, which includes a name in --needs that is no row and no group.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { delimiter as hostDelimiter, dirname, join } from 'node:path';
 
 const args = process.argv.slice(2);
-let host = '', platform = process.platform, json = false;
+let host = '', platform = process.platform, json = false, needs = null;
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === '--host') host = args[++i] ?? '';
   else if (a.startsWith('--host=')) host = a.slice(7);
   else if (a === '--platform') platform = args[++i] ?? '';
   else if (a.startsWith('--platform=')) platform = a.slice(11);
+  else if (a === '--needs') needs = args[++i] ?? '';
+  else if (a.startsWith('--needs=')) needs = a.slice(8);
   else if (a === '--json') json = true;
   else { console.error(`unknown option: ${a}`); process.exit(2); }
 }
 if (host !== 'claude' && host !== 'codex') {
-  console.error('usage: check-setup.mjs --host <claude|codex> [--platform <linux|darwin|win32>] [--json]');
+  console.error('usage: check-setup.mjs --host <claude|codex> [--platform <linux|darwin|win32>] [--needs <ids and groups>] [--json]');
   process.exit(2);
 }
 const supported = ['linux', 'darwin', 'win32'].includes(platform);
@@ -137,15 +143,15 @@ const ponytailPlugin = pluginInstalled('ponytail') && cacheSkills.some((p) => p.
 add('ponytail', 'mandatory', ponytailPlugin, ponytailPlugin || !hasSkill('ponytail')
   ? (host === 'codex' ? 'ponytail plugin (its hooks need a trust step in Codex)' : 'ponytail plugin')
   : 'ponytail skill found without the plugin, so its hooks are missing');
-if (host === 'claude') add('reviewer-plugin', 'mandatory', hasCodexSkill(), 'skill-codex plugin (Codex reviews)');
-else add('reviewer-plugin', 'mandatory', hasClaudeReview(), 'agent-bridges claude plugin with its companion script (Claude reviews)');
+if (host === 'claude') add('reviewer-plugin', 'optional', hasCodexSkill(), 'skill-codex plugin (Codex reviews)');
+else add('reviewer-plugin', 'optional', hasClaudeReview(), 'agent-bridges claude plugin with its companion script (Claude reviews)');
 const cliName = host === 'claude' ? 'codex' : 'claude';
 const cli = which(cliName);
-add('reviewer-cli', 'mandatory', cli, `${cliName} command-line tool`);
-if (!cli) add('reviewer-login', 'mandatory', false, `needs ${cliName} first`, 'SKIP');
+add('reviewer-cli', 'optional', cli, `${cliName} command-line tool`);
+if (!cli) add('reviewer-login', 'optional', false, `needs ${cliName} first`, 'SKIP');
 else {
   const ok = loggedIn(cli, host === 'claude' ? ['login', 'status'] : ['auth', 'status']);
-  add('reviewer-login', 'mandatory', ok, `${cliName} logged in`, ok ? 'ok' : 'LOGIN');
+  add('reviewer-login', 'optional', ok, `${cliName} logged in`, ok ? 'ok' : 'LOGIN');
 }
 for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup']) add(s, 'mandatory', hasSkill(s), 'mstack skill');
 add('ui-ux-pro-max', 'optional', hasSkill('ui-ux-pro-max'), 'UI design skill');
@@ -155,11 +161,21 @@ add('python3', 'optional', which('python3') || (win && (which('python') || which
 const workflow = host === 'claude' ? 'mstack-codex-review-workflow' : 'mstack-claude-review-workflow';
 if (host === 'claude') add('codex-plugin', 'optional', pluginInstalled('codex'), 'OpenAI Codex plugin (Codex as developer in mstack-claude-pm-codex-dev)');
 const pmWorkflow = host === 'claude' ? ['mstack-claude-pm-codex-dev'] : [];
-for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', 'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', workflow, ...pmWorkflow]) {
+for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', 'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', workflow, ...pmWorkflow]) {
   add(s, 'optional', hasSkill(s), 'mstack skill');
 }
 
-const failed = items.some((i) => i.tier === 'mandatory' && (i.state === 'MISSING' || i.state === 'LOGIN'));
+// Which rows block: every mandatory one and the reviewer rows, or with --needs the rows the calling skill named, and node.
+const GROUPS = { __proto__: null, reviewer: ['reviewer-plugin', 'reviewer-cli', 'reviewer-login'], codegraph: ['codegraph-cli', 'codegraph-connected'] };
+let needed = null;
+if (needs !== null) {
+  const names = needs.split(',').map((n) => n.trim()).filter(Boolean);
+  const unknown = names.filter((n) => !GROUPS[n] && !items.some((i) => i.id === n));
+  if (unknown.length) { console.error(`--needs names no row and no group of this host: ${unknown.join(', ')}`); process.exit(2); }
+  needed = new Set(['node', ...names.flatMap((n) => GROUPS[n] ?? [n])]);
+}
+for (const i of items) i.blocking = needed ? needed.has(i.id) : i.tier === 'mandatory' || GROUPS.reviewer.includes(i.id);
+const failed = items.some((i) => i.blocking && (needed ? i.state !== 'ok' : i.state === 'MISSING' || i.state === 'LOGIN'));
 if (json) console.log(JSON.stringify({ host, platform, supported, items }, null, 2));
 else {
   if (!supported) console.log(`platform ${platform} is not covered: status only, no install commands`);
