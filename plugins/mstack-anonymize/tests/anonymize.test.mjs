@@ -862,3 +862,12 @@ test('a table that its own separator cannot read is not read with another separa
   const r = cleanAs('csv', '"Kunde";"Adresse, Ort"\n"Jane Example";"Hauptstr. 1, Berlin"\n');
   assert.equal(tableOf(r.out)[1][0], '[NAME_1]');
 });
+
+// ---- Findings of the review bot on the pull request ----
+test('a date with dots or slashes after a trigger word stays whole', () => {
+  assert.equal(cleanText('order 17.11.2026 and invoice 2026/11/17 and order 17').text, 'order 17.11.2026 and invoice 2026/11/17 and order [ID_1]');
+});
+
+test('a birth date written as a key and a value is replaced', () => {
+  assert.equal(cleanText('dob=1980-05-03 birthdate="1980-05-04" Geburtsdatum=03.05.1980').text, 'dob=[BIRTHDATE_1] birthdate="[BIRTHDATE_2]" Geburtsdatum=[BIRTHDATE_3]');
+});

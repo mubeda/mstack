@@ -97,7 +97,7 @@ const FORM_RULES = [
     re: new RegExp(`(?<![A-Za-z0-9])["']?(?:${SECRET_KEYS})["']?\\s*[=:]\\s*(?:"((?:[^"\\\\\\n]|\\\\.)*)"|'((?:[^'\\\\\\n]|\\\\.)*)'|([^\\s"',;&]+))`, 'giud'),
     ok: (v, line, at, m) => !(/^["']?authorization/i.test(m[0]) && /^(?:bearer|basic|token)$/i.test(v)),
   },
-  { type: 'BIRTHDATE', re: new RegExp(`(?<![\\p{L}\\p{N}])${BIRTH_WORDS}[:\\s]*(${DATE})`, 'giud'), group: 1 },
+  { type: 'BIRTHDATE', re: new RegExp(`(?<![\\p{L}\\p{N}])${BIRTH_WORDS}["']?[:=\\s]*["']?(${DATE})`, 'giud'), group: 1 },
   { type: 'URL', re: /\b(?:https?|wss?|s?ftp|ssh|file):\/\/[^\s<>"'`)\]]+/gi, trim: /[.,;:!?]+$/ },
   // The look-behind keeps a long unbroken line from being rescanned at every position.
   { type: 'EMAIL', re: /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g },
@@ -129,7 +129,8 @@ const FORM_RULES = [
     // After a whole trigger word: a number of any length, or a code that holds a digit or is written in capitals.
     // A plain word stays ("order confirmed"), and so do "I" ("the order I placed") and the SQL words of ORDER BY and CASE WHEN.
     re: new RegExp(`(?<![\\p{L}\\p{N}_])(?:${ID_WORDS})(?![\\p{L}\\p{N}_])\\s*(?:(?:number|no\\.?|nr\\.?|num\\.?|n\\.?[º°]|número|numero|id|#)\\s*)?[:#]?\\s*([A-Za-z0-9][A-Za-z0-9-]*)`, 'giud'),
-    ok: (v) => !DATE_LIKE.test(v) && !/^(?:id|no|nr|num|number)$/i.test(v)
+    // The number may be the start of a date written with dots or slashes (order 17.11.2026), which stays.
+    ok: (v, line, at) => !DATE_LIKE.test(v) && !/^(?:id|no|nr|num|number)$/i.test(v) && !/^\d{1,4}[./]\d{1,2}[./]\d{1,4}(?!\d)/.test(line.slice(at))
       && (/\d/.test(v) || (/^[A-Z][A-Z0-9-]*$/.test(v) && !['I', 'BY', 'WHEN'].includes(v))),
   },
   { type: 'ID', re: /(?<![\p{L}\p{N}_-])[A-Z]+-\d+(?![\p{L}\p{N}_]|-\w)/gu, ok: (v) => !KEPT_CODES.has(v) },
