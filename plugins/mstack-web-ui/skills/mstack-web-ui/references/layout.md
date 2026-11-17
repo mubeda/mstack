@@ -29,7 +29,7 @@ Most of these are one declaration, and none shows in a desktop browser's phone p
 | The layout is too tall and a bottom button hides under the browser's bar | `100dvh` for an app shell, `100svh` for a first screen that should not shift while scrolling. Not `100vh` |
 | The page zooms when a field takes the focus | Field text at the size `floor.md` gives for small screens. Do not switch off zoom |
 | A tap feels late | Feedback on press, not on release (`:active`), and `touch-action: manipulation` on controls |
-| The page behind a sheet or dialog scrolls | `overscroll-behavior: contain` on the inner scroll area |
+| The page behind a sheet or dialog scrolls | Lock the page's own scrolling while it is open (for example `overflow: hidden` on the root element) and undo that when it closes. `overscroll-behavior: contain` on the inner scroll area is an addition: it only stops a scroll that reaches the end of that area from moving the page |
 | Content sits under the notch or the home bar | `viewport-fit=cover` in the viewport tag, and `env(safe-area-inset-*)` as padding on fixed bars |
 | A long press selects a button's label | `user-select: none` on controls only. Text that is content stays selectable |
 | The browser's bar has the wrong color | A `theme-color` for each color scheme, matching the top of the page |
