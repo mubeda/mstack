@@ -1,0 +1,22 @@
+schema_version: "1.1"
+name: installed-library
+expected_outcome: |
+  The session changes the task list and the Add button of the app in work/. The list's entrance uses the
+  animation library the app already has, with a later start per item, is undone when the list unmounts and does
+  not move under the reduced-motion setting. The hover is a CSS transition that names its property. The package
+  manifest is unchanged, no base style hides the items, and no React 19 API is used.
+notes: |
+  How to run it. `place-files.sh` builds a run root in the current folder. Start the session with
+  `../_fixture/launch.sh <run root> prompt.md 1 --model <model>`. The comparison is against the plugin as it is
+  on the main branch: extract it with `git archive main plugins/mstack-web-ui` into a scratch folder and start
+  the second session with that copy's own launcher. Every condition is one that version could meet.
+  The graders judge the built source and the trace: a session has no shell and installs nothing, so behaviour
+  is judged by reading the handler code. "The reply" is every message the session wrote in the turn.
+  The prompt names the skill, because a request this small does not always load it, and the case is about the
+  rules for an installed library, not about when the skill is chosen.
+  What this case does not show: that the app runs. Nothing is installed or built; the conditions are read from
+  the source the session wrote. The library calls of the scaffold's own Banner component (`createScope` with
+  `root` and `mediaQueries`, `add` with a named method, `methods`, `animate`, `revert`) were confirmed in the library's source at the commit
+  the skill's notices name.
+context:
+  scaffold_script: place-files.sh

@@ -15,7 +15,7 @@ Go through them in this order. The floor comes first because its faults lock peo
 | Class | Part with its rules |
 |---|---|
 | The floor: keyboard, focus, names, contrast, forms, small screens, targets, images | `floor.md` |
-| States and real content | `layout.md` |
+| States and real content | `layout.md`, `components.md` |
 | Layout and screen sizes | `layout.md` |
 | Direction and the look | `direction.md`, `visual.md` |
 | Motion | `motion.md` |
@@ -24,6 +24,8 @@ Go through them in this order. The floor comes first because its faults lock peo
 | React, when the project uses it | `react.md` |
 
 Read a part only for a class the screens touch.
+
+A component without the roles or keys of its kind, and an effect that cannot be paused or ignores reduced motion, are findings of the floor. A component that works but is the wrong one for its job belongs to "States and real content". An effect that breaks another condition of `motion.md`, section 11, belongs to "Motion".
 
 ## A finding
 

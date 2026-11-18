@@ -4,7 +4,7 @@
     "displayName": "mstack"
   },
   "metadata": {
-    "version": "0.14.0"
+    "version": "0.14.1"
   },
   "plugins": [
     {
@@ -295,7 +295,7 @@
     },
     {
       "name": "mstack-web-ui",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": {
         "source": "local",
         "path": "./plugins/mstack-web-ui"

@@ -1,6 +1,6 @@
 {
   "name": "mstack-web-ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Builds and reviews web interfaces. Every page, screen, component or form it builds meets a floor: it works with a keyboard and on a phone, every control has a readable name and its states, every data view handles no data, loading, an error and long content, and motion is used with restraint. A new page with no design system gets a direction that is chosen and stated, not the default look, and nothing in it is invented. In an existing project the design system, components and stack win over every default of the skill. A React project also gets rules for component structure, rendering and loading, matched to the installed React version. A review returns ranked findings with file and line and changes nothing. Text only: no script, no data and nothing to install. One skill for Claude Code and Codex.",
   "author": {
     "name": "mubeda"

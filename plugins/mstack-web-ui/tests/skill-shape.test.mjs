@@ -9,10 +9,15 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const skill = resolve(here, '../skills/mstack-web-ui');
 const root = resolve(here, '../../..');
-const PARTS = ['floor', 'direction', 'visual', 'layout', 'motion', 'copy', 'performance', 'react', 'review'];
+const PARTS = ['floor', 'direction', 'visual', 'layout', 'motion', 'copy', 'performance', 'react', 'review', 'components'];
+// The components of the part on component choice: each is the bold start of exactly one entry there.
+const COMPONENTS = ['Disclosure', 'Accordion', 'Tabs', 'Dialog', 'Alert dialog', 'Popover', 'Tooltip', 'Drawer',
+  'Radio group', 'Checkbox', 'Switch', 'Select', 'Combobox', 'Listbox', 'Slider', 'Alert', 'Status message',
+  'Navigation links', 'Menu', 'Breadcrumb', 'Pagination', 'Carousel', 'Tree view'];
 const SOURCES = ['Nutlope/hallmark', 'emilkowalski/skills', 'jakubkrehel/make-interfaces-feel-better',
   'nextlevelbuilder/ui-ux-pro-max-skill', 'Leonxlnx/taste-skill', 'vercel-labs/web-interface-guidelines',
-  'vercel-labs/agent-skills', 'benjitaylor/skills'];
+  'vercel-labs/agent-skills', 'benjitaylor/skills', 'w3c/aria-practices', 'w3c/wcag', 'inbn/component-gallery',
+  'magicuidesign/magicui', 'DavidHDev/react-bits', 'juliangarnier/anime'];
 
 const read = (rel) => readFileSync(join(skill, rel), 'utf8');
 const lines = (rel) => read(rel).replace(/\n$/, '').split('\n').length;
@@ -34,7 +39,7 @@ test('(a) SKILL.md has at most 150 lines', () => {
   assert.ok(lines('SKILL.md') <= 150, `${lines('SKILL.md')} lines`);
 });
 
-test('(b) each of the nine parts exists and has at most 200 lines', () => {
+test('(b) each of the ten parts exists and has at most 200 lines', () => {
   for (const p of PARTS) {
     const rel = `references/${p}.md`;
     assert.ok(existsSync(join(skill, rel)), `${rel} is missing`);
@@ -65,7 +70,7 @@ test('(f) the rules name no address to fetch anything from', () => {
   assert.deepEqual(ruleText().match(/https?:\/\/\S+/g) ?? [], []);
 });
 
-test('(g) the notices name all eight sources', () => {
+test('(g) the notices name all fourteen sources', () => {
   const notices = read('THIRD_PARTY_NOTICES.md');
   for (const s of SOURCES) assert.ok(notices.includes(s), `${s} is not named`);
 });
@@ -88,4 +93,34 @@ test('(h) the press scale is stated once, in the motion part, and the target siz
 
 test('(i) the license is the root license', () => {
   assert.ok(readFileSync(join(skill, 'LICENSE')).equals(readFileSync(join(root, 'LICENSE'))));
+});
+
+test('(j) the component part gives no duration, and the five-second limit is stated in the floor part only', () => {
+  assert.deepEqual(read('references/components.md').match(/\d+\s*ms\b/g) ?? [], [], 'references/components.md gives a duration');
+  // The whole quantity: "0.5s" and "1.5 seconds" are other values.
+  const limit = /(?<![\d.,\w-])(?:five|5)[ -]?(?:seconds?|s)\b|(?<![\d.,])5[,.]?000\s*(?:ms|milliseconds?)\b/gi;
+  for (const [text, n] of [['twenty-five seconds', 0], ['0.5s', 0], ['1.5 seconds', 0], ['five seconds', 1], ['5,000 ms', 1], ['5000 milliseconds', 1]]) {
+    assert.equal((text.match(limit) ?? []).length, n, `the pattern on "${text}"`);
+  }
+  assert.equal((read('references/floor.md').match(limit) ?? []).length, 1, 'the floor part states the limit once');
+  for (const f of ['SKILL.md', ...PARTS.filter((p) => p !== 'floor').map((p) => `references/${p}.md`)]) {
+    const hit = read(f).split('\n').find((l) => l.match(limit));
+    assert.equal(hit, undefined, `${f} restates the limit: ${hit}`);
+  }
+});
+
+test('(l) the component part has exactly one entry for each of the 23 components', () => {
+  const starts = (read('references/components.md').match(/^- \*\*[^*]+\*\*/gm) ?? [])
+    .map((m) => m.replace(/^- \*\*|\*\*$/g, '').replace(/[.:]$/, ''));
+  for (const c of COMPONENTS) assert.equal(starts.filter((s) => s === c).length, 1, `entries for "${c}"`);
+  assert.equal(starts.length, COMPONENTS.length, `entries: ${starts.join(', ')}`);
+});
+
+test('(k) the motion part has its sections on a requested effect and on an animation library, and the report has its Effects line', () => {
+  const heads = read('references/motion.md').split('\n').filter((l) => l.startsWith('## '));
+  assert.ok(heads.some((h) => h.includes('asked for')), 'no section on an effect the user asked for');
+  assert.ok(heads.some((h) => h.includes('animation library')), 'no section on an animation library');
+  // In the section on the report, with or without backticks.
+  const report = read('SKILL.md').split(/^## /m).find((s) => s.startsWith('The report of a build')) ?? '';
+  assert.match(report, /Add the line `?Effects:`?/, 'the report section does not tell to add the Effects line');
 });

@@ -65,11 +65,11 @@ Name the purpose before you write it. When the only purpose is that it looks goo
 - **Stagger.** When a group enters, each item follows the one before by 30 to 80 ms, and larger blocks by up to 100 ms. The whole sequence stays under half a second and never blocks input.
 - **Direction means something.** What moves forward comes from the right and leaves the way it came; going back mirrors it.
 - **What leaves gives up its space at once,** so its neighbors close the gap while it fades, instead of jumping at the end.
-- No parallax, no custom cursor, no scroll-jacking, and no loop that never stops, except a loading indicator.
+- No parallax, no custom cursor and no scroll-jacking. No loop that never stops either, with two exceptions: a loading indicator, and an effect the user asked for (section 11).
 
 ## 7. It can be interrupted
 
-A user changes their mind in the middle of a movement. Anything they can reverse (a hover, a toggle, opening and closing) uses a CSS transition, which turns around from where it is. A keyframe animation starts again from the beginning, so keep keyframes for sequences that run once. Never wait for the end of an animation to set the final state.
+A user changes their mind in the middle of a movement. Anything they can reverse (a hover, a toggle, opening and closing) uses a CSS transition, which turns around from where it is. A keyframe animation starts again from the beginning, so keep keyframes for sequences that run once, for a loading indicator, and for an effect the user asked for (section 11). Never wait for the end of an animation to set the final state.
 
 ## 8. Gestures
 
@@ -86,3 +86,31 @@ Under `prefers-reduced-motion: reduce`, remove movement and scaling, and keep a 
 ## 10. Check it
 
 When you can run the page, slow the animation down (five times longer, or the browser's animation tools) and watch one run: do two states overlap, does it grow from the right point, do the properties move together. When you cannot run it, say so in the report.
+
+## 11. An effect the user asked for
+
+A marquee, a moving background, text that keeps animating, particles: none of these is built by default. Build one only when the request names it. A wish for "more life" or "something dynamic" names none: add no such effect, say in the report that none was added, and that the user can ask for one by name. On a screen that is used all day, section 1 still holds: say so before you build.
+
+When the request names one, build it so that all of this is true:
+
+- **A screen reader does not meet the decoration.** What only decorates is hidden with `aria-hidden="true"`. Content that moves, such as the names in a marquee, is still there for a screen reader once and at rest. A second copy that exists only to close the loop is hidden.
+- **It meets the floor's rule for moving content** (`floor.md`, images and media): it can be paused, and it stops under the reduced-motion setting. That rule leaves two things open, and here they are fixed: the pause is a visible `<button>` with a name that says its state, which works with the keyboard; and under reduced motion the content is still shown, at rest.
+- **Nothing shifts.** The effect has its space reserved before it starts or loads.
+- **It moves only what section 3 allows.** A marquee moves by `transform`. A moving background is a layer of its own that is moved or faded, never an animated background position.
+
+In a project that has an animation library, build it by section 12. In every other project, build it with CSS, and when CSS cannot express it, with the browser's own animation interface. Add no library for it: when neither can do the effect, say so and ask first. That question is the yes of the rule "add nothing without a yes" in `SKILL.md`. When nobody can answer, leave the effect out and say so in the report.
+
+Name the effect in the report, with what was built in for it.
+
+## 12. A project with an animation library
+
+The project's package manifest, the one nearest the files you change, shows whether an animation library is installed. When one is:
+
+- A change of color or opacity on hover or focus is still a CSS transition. Reach for the library only when the motion needs more than that: a sequence, a stagger, a drag.
+- Use the library the way the project's own code uses it. When no code uses it yet, use the basic form its documentation gives, and say so in the report. With two libraries installed, use the one the code you touch already uses, or else the one the nearest code of the project uses; when no code uses either, take either one. Say which you used.
+- **Undo what you started.** What a component or a page started stops and is reverted when that component or page goes away, with the means the library has for it: a scope that is reverted in anime.js, the hook `useGSAP` or a reverted context in GSAP, an effect's cleanup in React.
+- **Reduced motion is the script's job here.** A CSS rule cannot stop motion a script drives, so the script reads the setting through what the library offers: a media query in an anime.js scope, `useReducedMotion` in Motion, `gsap.matchMedia()` in GSAP. The content is shown at rest.
+- Add no second library, and none at all without a yes.
+- Before you call a function you are not sure the installed version has, check that the installed package exports it.
+
+Every other rule of this part applies to motion made with a library as well.
