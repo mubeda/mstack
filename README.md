@@ -260,6 +260,10 @@ Many of these skills build on other open-source projects. Their rules are rewrit
 | [digital-stoic-org/agent-skills](https://github.com/digital-stoic-org/agent-skills) (its `anonymize-doc` skill) | MIT | `mstack-anonymize` (an idea only) |
 | [hallmark](https://github.com/Nutlope/hallmark), [emilkowalski/skills](https://github.com/emilkowalski/skills), [make-interfaces-feel-better](https://github.com/jakubkrehel/make-interfaces-feel-better), [ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill), [taste-skill](https://github.com/Leonxlnx/taste-skill), [web-interface-guidelines](https://github.com/vercel-labs/web-interface-guidelines), [benjitaylor/skills](https://github.com/benjitaylor/skills) (its `stageshow` skill) | MIT | `mstack-web-ui` (ideas only) |
 | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) (its `react-best-practices` and `composition-patterns` skills) | MIT, stated in its README; no license file | `mstack-web-ui` (ideas only, the React part) |
+| [ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/) and [Understanding WCAG 2.2](https://www.w3.org/WAI/WCAG22/Understanding/), by W3C | W3C Software and Document License (2023) | `mstack-web-ui` (the roles and keys of components, moving content; rewritten) |
+| [magicui](https://github.com/magicuidesign/magicui), [anime](https://github.com/juliangarnier/anime) | MIT | `mstack-web-ui` (ideas only, the motion part) |
+| [react-bits](https://github.com/DavidHDev/react-bits) | MIT with the Commons Clause | `mstack-web-ui` (ideas only, no code) |
+| [component-gallery](https://github.com/inbn/component-gallery) | No license stated | `mstack-web-ui` (the idea of a part on component choice; nothing copied) |
 | [SkillForge](https://github.com/tripleyak/SkillForge) | MIT | `mstack-skill-creator` (an idea only) |
 | [ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | MIT | the three workflows (usage notes only) |
 

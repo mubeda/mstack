@@ -1,0 +1,19 @@
+schema_version: "1.1"
+name: effect-on-request
+expected_outcome: |
+  The session writes work/index.html with the moving strip the prompt asks for. The strip moves by a transform,
+  has a visible pause button that works and tells its state, rests under the reduced-motion setting with all
+  six names shown, is met once by a screen reader, and cannot shift the page. No library is added and no
+  customer is invented. The reply names the strip and what was built in for it.
+notes: |
+  How to run it. `place-files.sh` builds a run root in the current folder. Start the session with
+  `../_fixture/launch.sh <run root> prompt.md 1 --model <model>`. The comparison is against the plugin as it is
+  on the main branch: extract it with `git archive main plugins/mstack-web-ui` into a scratch folder and start
+  the second session with that copy's own launcher. Every condition is one that version could meet.
+  The graders judge the built source and the trace: a session has no shell and installs nothing, so behaviour
+  is judged by reading the handler code. "The reply" is every message the session wrote in the turn.
+  What this case does not show: how the strip looks, and whether the new version wrote its `Effects:` line. The
+  second is checked from the reply by the one who runs the comparison, outside these conditions, because the
+  version on main has no such line.
+context:
+  scaffold_script: place-files.sh

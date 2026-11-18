@@ -1,0 +1,19 @@
+schema_version: "1.1"
+name: component-choice
+expected_outcome: |
+  The session writes work/help.html. The twelve questions are disclosures, not tabs. The site navigation is a
+  navigation landmark with links and carries no menu role; its drop-down is a button that tells its state. The
+  filter of three options is a radio group or a native select. The session warning is a native modal dialog
+  with the alert-dialog role and a name, and its button closes it. No focus trap is written by hand.
+notes: |
+  How to run it. `place-files.sh` builds a run root in the current folder. Start the session with
+  `../_fixture/launch.sh <run root> prompt.md 1 --model <model>`. The comparison is against the plugin as it is
+  on the main branch: extract it with `git archive main plugins/mstack-web-ui` into a scratch folder and start
+  the second session with that copy's own launcher. Every condition is one that version could meet.
+  The graders judge the built source and the trace: a session has no shell and installs nothing, so behaviour
+  is judged by reading the handler code. "The reply" is every message the session wrote in the turn.
+  What this case does not show: how the page looks, and whether the new version read its part on component
+  choice. The second is checked from the trace by the one who runs the comparison, outside these conditions,
+  because the version on main has no such part.
+context:
+  scaffold_script: place-files.sh

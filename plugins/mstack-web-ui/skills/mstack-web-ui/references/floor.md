@@ -6,9 +6,9 @@ Go through the nine groups in order after you wrote the code, and again when you
 
 ## 1. Keyboard
 
-- Every control can be reached with Tab and used with the keys its kind has: Enter and Space on a button, the arrow keys in a menu, a tab list or a radio group, Escape to close what opened.
+- Every control can be reached and used with the keyboard. Tab moves from one control to the next, and to a composite widget as a whole (a menu bar, a tab list, a radio group); inside such a widget the arrow keys move. A menu that a button opens is reached through that button: opening it puts the focus on an item. Each control answers to the keys its kind has: Enter and Space on a button, Escape to close a menu, a popover or a dialog. The keys per component are in `components.md`.
 - The tab order is the reading order. Use no `tabindex` above 0.
-- A dialog keeps the focus inside while it is open and gives it back to the control that opened it. The native `<dialog>` opened with `showModal()` does both; mark the page behind it `inert`.
+- A modal dialog keeps the focus inside while it is open, and the page behind it cannot be used. When it closes, the focus goes back to where it was before, which is usually the control that opened it; when that element is gone or disabled, put the focus on the nearest thing that makes sense. The native `<dialog>` opened with `showModal()` does the first two and tries the third. A dialog a script opens by itself, such as a timed warning, returns the focus to wherever the user was. Mark the page behind a hand-built modal `inert`. A dialog that is not modal leaves the page usable.
 - Give keyboard users a way past repeated navigation: a "skip to content" link as the first focusable element.
 - Anything that works by dragging, swiping or another gesture also works with a click and with the keyboard.
 - A custom Enter shortcut in a text field keeps the visible submit button, and does not fire while an input method is composing text.
@@ -30,7 +30,7 @@ Go through the nine groups in order after you wrote the code, and again when you
 - Use the element that already means the thing (`<button>`, `<a>`, `<label>`, `<table>`, `<nav>`, `<main>`) before any ARIA role.
 - Headings go down one level at a time, with one `<h1>` per page.
 - `<html lang>` names the language the page is written in.
-- A change the user did not cause by moving the focus (a toast, a saved line, a new count, a validation message) is announced through a polite live region, and never takes the focus.
+- A routine update the user did not cause by moving the focus and need not answer (a toast, a saved line, a new count, a validation message) is announced through a polite live region. An urgent one (a failed save, a lost connection) is an alert and is announced at once. Neither takes the focus. A message the user must answer is different: it takes the focus, as an alert dialog (`components.md`).
 
 ## 4. Contrast and color
 
@@ -82,7 +82,7 @@ Go through the nine groups in order after you wrote the code, and again when you
 
 ## 9. Motion
 
-- Everything that moves has a rule under `@media (prefers-reduced-motion: reduce)` that removes the movement. A fade may stay.
+- Everything that moves has a rule under `@media (prefers-reduced-motion: reduce)` that removes the movement. A fade may stay. Motion that a script drives is switched off by the script, on the same setting, because a CSS rule cannot stop it.
 - No rule animates every property at once: write the properties out, never `transition: all`.
 - Content that the page shows when it loads is never hidden first so that a script can reveal it: an entrance effect starts from visible content, so a script that fails leaves the page readable. This is not about what opens on the user's action (a closed dialog, a menu, an inactive tab panel), and it does not ask an app that renders in the browser to be rebuilt.
 
