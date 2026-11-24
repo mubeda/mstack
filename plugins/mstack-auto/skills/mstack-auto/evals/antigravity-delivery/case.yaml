@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: antigravity-delivery
+expected_outcome: |
+  In Antigravity no mstack delivery workflow runs: the router says so, names mstack-codex-review-workflow for
+  Claude Code and mstack-claude-review-workflow for Codex, asks nothing, loads no skill and stops. It does not
+  call either skill missing and does not name mstack-setup.
+context:
+  scaffold_script: place-files.sh

@@ -1,7 +1,7 @@
 {
   "name": "mstack-brainstorm",
   "version": "0.1.5",
-  "description": "Turn an unformed idea into a design brief the user approved: reads before asking, asks one open question at a time until the reason is known, then numbered rounds, lays out whole-shape approaches, generates ideas before judging them in ideas mode, and hands the approved brief to mstack-write-specs. One skill for Claude Code and Codex.",
+  "description": "Turn an unformed idea into a design brief the user approved: reads before asking, asks one open question at a time until the reason is known, then numbered rounds, lays out whole-shape approaches, generates ideas before judging them in ideas mode, and hands the approved brief to mstack-write-specs. One skill for Claude Code, Codex and Antigravity.",
   "author": {
     "name": "mubeda"
   },

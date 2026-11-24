@@ -1,7 +1,7 @@
 {
   "name": "mstack-auto",
   "version": "0.1.4",
-  "description": "A router for the mstack skills. Give it any prompt and it starts the one mstack skill that fits, after one line that says which skill and why. It picks the earliest missing step of a chain (brainstorm, spec, plan, delivery), asks one question on a real tie, names a fitting skill that is missing or runs only on the other host, and hands a job no mstack skill covers to mstack-find-skills. It starts only when asked and never does the job itself. One skill for Claude Code and Codex.",
+  "description": "A router for the mstack skills. Give it any prompt and it starts the one mstack skill that fits, after one line that says which skill and why. It picks the earliest missing step of a chain (brainstorm, spec, plan, delivery), asks one question on a real tie, names a fitting skill that is missing or runs only on another host, and hands a job no mstack skill covers to mstack-find-skills. It starts only when asked and never does the job itself. One skill for Claude Code, Codex and Antigravity.",
   "author": {
     "name": "mubeda"
   },
@@ -15,7 +15,7 @@
   "interface": {
     "displayName": "mstack Auto",
     "shortDescription": "Start the mstack skill that fits your prompt.",
-    "longDescription": "Reads your prompt, picks the fitting mstack skill from its routing table, says which one and why in one line, and starts it with your prompt unchanged. It chooses the earliest missing step of a chain, asks one question when two unrelated skills fit, tells you when the fitting skill is missing or runs only on the other host, and hands everything else to mstack-find-skills.",
+    "longDescription": "Reads your prompt, picks the fitting mstack skill from its routing table, says which one and why in one line, and starts it with your prompt unchanged. It chooses the earliest missing step of a chain, asks one question when two unrelated skills fit, tells you when the fitting skill is missing or runs only on another host, and hands everything else to mstack-find-skills.",
     "developerName": "mubeda",
     "category": "Productivity",
     "capabilities": [

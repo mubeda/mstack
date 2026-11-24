@@ -1,6 +1,6 @@
 ---
 name: mstack-receive-review
-description: Use when review feedback has arrived and has to be acted on, such as findings from a cross-vendor reviewer, the advisor, a fresh-context reviewer, CI review bots or comments on a pull request, or when the user says "process this review", "address the review comments", "handle these findings" or pastes reviewer output, or when another mstack skill needs a review processed. Works in Claude Code and Codex. Produces verified fixes with tests, reasoned rejections, and a log with a drafted reply per finding.
+description: Use when review feedback has arrived and has to be acted on, such as findings from a cross-vendor reviewer, the advisor, a fresh-context reviewer, CI review bots or comments on a pull request, or when the user says "process this review", "address the review comments", "handle these findings" or pastes reviewer output, or when another mstack skill needs a review processed. Works in Claude Code, Codex and Antigravity. Produces verified fixes with tests, reasoned rejections, and a log with a drafted reply per finding.
 ---
 
 # mstack receive review

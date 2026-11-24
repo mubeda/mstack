@@ -1,22 +1,22 @@
 ---
 name: mstack-brainstorm
-description: Use when the user asks to brainstorm, think an idea through, or explore what to build, or brings a rough idea whose goal or reason is not stated yet ("add notifications", "something for onboarding", "I have an idea for an app"), or asks for ideas or options ("give me ideas for X", "what could we do about Y"), in software or outside it. Works in Claude Code and Codex. Produces a design brief the user approved, ready for mstack-write-specs.
+description: Use when the user asks to brainstorm, think an idea through, or explore what to build, or brings a rough idea whose goal or reason is not stated yet ("add notifications", "something for onboarding", "I have an idea for an app"), or asks for ideas or options ("give me ideas for X", "what could we do about Y"), in software or outside it. Works in Claude Code, Codex and Antigravity. Produces a design brief the user approved, ready for mstack-write-specs.
 ---
 
 # mstack brainstorm
 
 Find out what the user wants and why before anything is built, then agree how it gets built, and end with a design brief the user approved. The user knows the goal better than you do, even when they have not said it yet; your job is to help them say it, and to settle the many small choices they will never raise in the way they would settle them. This skill writes a brief. It never builds what the brief describes.
 
-## Using this skill in Claude Code and Codex
+## Using this skill in Claude Code, Codex and Antigravity
 
-This file is the same for both hosts. It never names a host tool outside the table below. Where it says "your question tool" or "your subagent tool", use the host's equivalent.
+This file is the same for every host. It never names a host tool outside the table below. Where it says "your question tool" or "your subagent tool", use the host's equivalent.
 
-| This file says | Claude Code | Codex |
-|---|---|---|
-| your question tool | `AskUserQuestion` for a short choice; a numbered round in chat for longer ones | A numbered round in chat, then wait for the answer |
-| your subagent tool | `Agent` with a fresh context, `model` and `effort` set | A separate read-only `codex exec` run with `-m` and `model_reasoning_effort` set, or the session's agent tool if it has one |
-| loading a skill | The Skill tool | Read the skill's SKILL.md and follow it |
-| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/`, but only under a plugin that `claude plugin list` shows as installed, because the cache keeps leftover copies (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/`, but only under a plugin that Codex has enabled in its `config.toml` (`CODEX_HOME` replaces `~/.codex`) |
+| This file says | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| your question tool | `AskUserQuestion` for a short choice; a numbered round in chat for longer ones | A numbered round in chat, then wait for the answer | `ask_question`, then wait for the reply |
+| your subagent tool | `Agent` with a fresh context, `model` and `effort` set | A separate read-only `codex exec` run with `-m` and `model_reasoning_effort` set, or the session's agent tool if it has one | `invoke_subagent` with the brief, on the subagent tier that `mstack-best-model-for` gives for vendor `antigravity` and the tier `standard` |
+| loading a skill | The Skill tool | Read the skill's SKILL.md and follow it | Read its SKILL.md with `read_file` and follow it |
+| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/`, but only under a plugin that `claude plugin list` shows as installed, because the cache keeps leftover copies (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/`, but only under a plugin that Codex has enabled in its `config.toml` (`CODEX_HOME` replaces `~/.codex`) | In the workspace `.agents/skills/` and `.agents/plugins/`; for the user `~/.gemini/config/skills/` and `~/.gemini/config/plugins/` |
 
 Refer to the files below by their path inside this skill's folder.
 
@@ -26,18 +26,19 @@ Before the first question, check `mstack-best-model-for`, which gives the model 
 
 1. It is in this session's skill list (as `mstack-best-model-for` or `<plugin>:mstack-best-model-for`): continue.
 2. Its folder exists on disk (in the user skill folders the host table names) but the session has not loaded it: say that a new session is needed, and stop.
-3. Otherwise it is not installed. Print this once, then continue without subagents: do every delegated step yourself, one after another, start no subagent in this run, and tell the user so.
+3. Otherwise it is not installed. Print this block once, whole and unchanged, at the top of your next message to the user, then continue without subagents: do every delegated step yourself, one after another, start no subagent in this run, and tell the user so.
 
    ```text
    mstack-brainstorm runs without subagents, because mstack-best-model-for is not installed. To install it:
    Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-best-model-for@mstack
    Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-best-model-for@mstack
-   Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex> -y
+   Antigravity: agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/mstack-best-model-for
+   Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex|antigravity> -y
    Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
    A new session picks it up.
    ```
 
-No subagent starts without that skill's answer, because it would run on the session's model, the most expensive choice. The builder check is then your own read of the brief, as `references/builder-check.md` says for a host without a subagent tool, and you tell the user so. When the skill is installed, load `mstack-best-model-for` in called mode once, before the builder check: say that `mstack-brainstorm` is calling, and ask for this host's vendor (`claude` in Claude Code, `codex` in Codex) and the tier `standard`.
+No subagent starts without that skill's answer, because it would run on the session's model, the most expensive choice. The builder check is then your own read of the brief, as `references/builder-check.md` says for a host without a subagent tool, and you tell the user so. When the skill is installed, load `mstack-best-model-for` in called mode once, before the builder check: say that `mstack-brainstorm` is calling, and ask for this host's vendor (`claude` in Claude Code, `codex` in Codex, `antigravity` in Antigravity) and the tier `standard`.
 
 ## Ground rules
 

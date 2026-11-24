@@ -1,26 +1,26 @@
 ---
 name: mstack-diagnose
-description: Use when something is broken and the cause is not known yet, such as a crash, segfault, abort, panic or core dump, a bug or wrong output, a failing or flaky test, a regression ("it worked before", "since the last update"), a slowdown or performance problem, a hang, deadlock or memory leak, a CI failure, or a vague report like "X doesn't work" or "X keeps dying". Works in Claude Code and Codex. Use it even when the user only asks "why did X crash" or "fix this bug" and does not name this skill.
+description: Use when something is broken and the cause is not known yet, such as a crash, segfault, abort, panic or core dump, a bug or wrong output, a failing or flaky test, a regression ("it worked before", "since the last update"), a slowdown or performance problem, a hang, deadlock or memory leak, a CI failure, or a vague report like "X doesn't work" or "X keeps dying". Works in Claude Code, Codex and Antigravity. Use it even when the user only asks "why did X crash" or "fix this bug" and does not name this skill.
 ---
 
 # mstack diagnose
 
 Find out why something is broken, prove it, and fix it only when the user wants a fix. The goal is an honest account backed by evidence, not a plausible story. Every claim in your final report either points at output you produced in this session or says plainly that it is an inference.
 
-## Using this skill in Claude Code and Codex
+## Using this skill in Claude Code, Codex and Antigravity
 
-This file is the same for both hosts. It never names a host tool outside the table below. Where it says "your subagent tool" or "your question tool", use the host's equivalent.
+This file is the same for every host. It never names a host tool outside the table below. Where it says "your subagent tool" or "your question tool", use the host's equivalent.
 
-| This file says | Claude Code | Codex |
-|---|---|---|
-| your question tool | `AskUserQuestion` | Ask in chat with numbered options, then wait |
-| your subagent tool | `Agent`, with `isolation: "worktree"` when it edits code | A separate `codex exec` run in its own `git worktree`, or the session's agent tool if it has one |
-| a cheap subagent | `model` and `effort` set to `mstack-best-model-for`'s answer for the tier `cheap` | `-m` and `model_reasoning_effort` set to its answer for the tier `cheap` |
-| a standard subagent | `model` and `effort` set to its answer for the tier `standard` | `-m` and `model_reasoning_effort` set to its answer for the tier `standard` |
-| the skill folder | The base directory the host showed when it loaded this skill | The folder of the SKILL.md you loaded |
-| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/`, but only under a plugin that `claude plugin list` shows as installed, because the cache keeps leftover copies (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/`, but only under a plugin that Codex has enabled in its `config.toml` (`CODEX_HOME` replaces `~/.codex`) |
+| This file says | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| your question tool | `AskUserQuestion` | Ask in chat with numbered options, then wait | `ask_question`, then wait for the reply |
+| your subagent tool | `Agent`, with `isolation: "worktree"` when it edits code | A separate `codex exec` run in its own `git worktree`, or the session's agent tool if it has one | `invoke_subagent` on the subagent tier that the `antigravity` row of `mstack-best-model-for`'s answer for the subagent's tier (`cheap`, `standard` or `most capable`) names under "How to set"; for one that edits code, first a `git worktree` made with `run_command`, its path in the brief |
+| a cheap subagent | `model` and `effort` set to `mstack-best-model-for`'s answer for the tier `cheap` | `-m` and `model_reasoning_effort` set to its answer for the tier `cheap` | The tier of the `cheap` row |
+| a standard subagent | `model` and `effort` set to its answer for the tier `standard` | `-m` and `model_reasoning_effort` set to its answer for the tier `standard` | The tier of the `standard` row |
+| the skill folder | The base directory the host showed when it loaded this skill | The folder of the SKILL.md you loaded | The folder of the SKILL.md you read |
+| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/`, but only under a plugin that `claude plugin list` shows as installed, because the cache keeps leftover copies (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/`, but only under a plugin that Codex has enabled in its `config.toml` (`CODEX_HOME` replaces `~/.codex`) | In the workspace `.agents/skills/` and `.agents/plugins/`; for the user `~/.gemini/config/skills/` and `~/.gemini/config/plugins/` |
 
-Before the first subagent of a run, load `mstack-best-model-for` in called mode once: say which skill is calling, and ask for this host's vendor (`claude` in Claude Code, `codex` in Codex) and the tiers `cheap`, `standard` and `most capable`. A subagent started without a model runs on the session's model, the most expensive choice, so set it every time. A subagent that only reads (a log search, a history lookup) is a cheap subagent. A subagent that tests a hypothesis or edits code is a standard subagent. A subagent whose hypothesis is about concurrency, memory corruption or a cause that spans components runs on the `most capable` answer instead (ask for that tier in the same call), and the report says why.
+Before the first subagent of a run, load `mstack-best-model-for` in called mode once: say which skill is calling, and ask for this host's vendor (`claude` in Claude Code, `codex` in Codex, `antigravity` in Antigravity) and the tiers `cheap`, `standard` and `most capable`. A subagent started without a model runs on the session's model, the most expensive choice, so set it every time. A subagent that only reads (a log search, a history lookup) is a cheap subagent. A subagent that tests a hypothesis or edits code is a standard subagent. A subagent whose hypothesis is about concurrency, memory corruption or a cause that spans components runs on the `most capable` answer instead (ask for that tier in the same call), and the report says why.
 
 Without a subagent tool, do the delegated steps yourself, one after another. Refer to the files below by their path inside the skill folder.
 
@@ -40,13 +40,14 @@ Without a subagent tool, do the delegated steps yourself, one after another. Ref
 
 1. It is in this session's skill list (as `mstack-best-model-for` or `<plugin>:mstack-best-model-for`): continue.
 2. Its folder exists on disk (in the user skill folders the host table names) but the session has not loaded it: say that a new session is needed, and stop.
-3. Otherwise it is not installed. Print this once, then continue without subagents: do every delegated step yourself, one after another, start no subagent in this run, and say so in the report.
+3. Otherwise it is not installed. Print this block once, whole and unchanged, at the top of your next message to the user, then continue without subagents: do every delegated step yourself, one after another, start no subagent in this run, and say so in the report.
 
    ```text
    mstack-diagnose runs without subagents, because mstack-best-model-for is not installed. To install it:
    Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-best-model-for@mstack
    Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-best-model-for@mstack
-   Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex> -y
+   Antigravity: agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/mstack-best-model-for
+   Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex|antigravity> -y
    Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
    A new session picks it up.
    ```
@@ -101,13 +102,14 @@ Project: <path of the repository>
 Package: <name>
 ```
 
-Its result block ends with `Search: ran` or `Search: not run (<reason>)`. A claim from it is evidence of what is known upstream, never proof that it is this failure's cause: Phase 4 still tests the hypothesis. Ground rule 5 applies to this call too. When `mstack-research` is not in the skill list, print this once and do the lookup yourself:
+Its result block ends with `Search: ran` or `Search: not run (<reason>)`. In Antigravity it can also end `Search: ran, pages not opened (<reason>)`. Under any closing line, a claim whose opened field says `not opened` is still open and is never cited as confirmed; an opened claim keeps its address and date; a claim read from a local file keeps its file as its source. A claim from it is evidence of what is known upstream, never proof that it is this failure's cause: Phase 4 still tests the hypothesis. Ground rule 5 applies to this call too. When `mstack-research` is not in the skill list, print this once and do the lookup yourself:
 
 ```text
 mstack-diagnose looks up external facts itself, because mstack-research is not installed. To install it:
 Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-research@mstack
 Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-research@mstack
-Skills CLI:  npx skills add mubeda/mstack --skill mstack-research -g -a <claude-code|codex> -y
+Antigravity: agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/mstack-research
+Skills CLI:  npx skills add mubeda/mstack --skill mstack-research -g -a <claude-code|codex|antigravity> -y
 Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
 A new session picks it up.
 ```

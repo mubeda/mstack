@@ -1,7 +1,7 @@
 ---
 type: llm
-focus: outcome
+focus: trace
 weight: 1
 ---
 
-The reply gives the plugin install command (claude plugin install or codex plugin add, with mstack-best-model-for@mstack) and the skills CLI command (npx skills add mubeda/mstack --skill mstack-best-model-for), and names mstack-setup.
+One message of the run to the user (the final reply or an earlier one) gives every install command for mstack-best-model-for, in this order: `claude plugin marketplace add mubeda/mstack` and then `claude plugin install mstack-best-model-for@mstack` for Claude Code; `codex plugin marketplace add mubeda/mstack` and then `codex plugin add mstack-best-model-for@mstack` for Codex; `agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/mstack-best-model-for` for Antigravity; and the skills CLI command `npx skills add mubeda/mstack --skill mstack-best-model-for` with `claude-code`, `codex` and `antigravity` as its agents. It names mstack-setup. A reply that leaves out one host's command, or a marketplace add, does not pass.

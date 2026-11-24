@@ -1,6 +1,6 @@
 ---
 name: mstack-chief-of-staff
-description: Use when the user hands over a goal that will take many sessions and wants one agent to own it, such as a release to ship, a backlog to work down, a migration or a multi-step project, or says "own this", "be my chief of staff", "drive this to done", "keep track of this project across sessions" or "pick the goal back up", or when a session resumes a goal whose wiki has a goal page. Works in Claude Code and Codex. Not for a task that fits one session. Keeps the goal, its decisions and its history in a dated wiki that the next session starts from.
+description: Use when the user hands over a goal that will take many sessions and wants one agent to own it, such as a release to ship, a backlog to work down, a migration or a multi-step project, or says "own this", "be my chief of staff", "drive this to done", "keep track of this project across sessions" or "pick the goal back up", or when a session resumes a goal whose wiki has a goal page. Works in Claude Code, Codex and Antigravity. Not for a task that fits one session. Keeps the goal, its decisions and its history in a dated wiki that the next session starts from.
 ---
 
 # mstack chief of staff
@@ -11,15 +11,15 @@ A task that fits one session needs no goal owner. Say so, and do the task.
 
 ## Host tools
 
-| Role | Claude Code | Codex |
-|---|---|---|
-| Your question tool | `AskUserQuestion` | A numbered question in chat, then wait |
-| Your subagent tool | `Agent`, with a fresh context | Ask Codex to start a subagent for the brief; where the session cannot, a separate `codex exec` run |
-| Loading a skill | The Skill tool | Read its SKILL.md and follow it |
-| Recurring work | A session-scoped scheduled task while the session stays open; a cloud or Desktop scheduled task to outlive it | A scheduled task in the Codex app or on the web; the CLI has none |
-| The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md |
+| Role | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| Your question tool | `AskUserQuestion` | A numbered question in chat, then wait | `ask_question`, then wait for the reply |
+| Your subagent tool | `Agent`, with a fresh context | Ask Codex to start a subagent for the brief; where the session cannot, a separate `codex exec` run | `invoke_subagent` with the subagent tier that `mstack-best-model-for` gives for vendor `antigravity` |
+| Loading a skill | The Skill tool | Read its SKILL.md and follow it | Read its SKILL.md with `read_file` and follow it |
+| Recurring work | A session-scoped scheduled task while the session stays open; a cloud or Desktop scheduled task to outlive it | A scheduled task in the Codex app or on the web; the CLI has none | None that this skill relies on: use a scheduled job in the repository's CI |
+| The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md | The folder of the SKILL.md you read |
 
-On either host, a scheduled job in the repository's CI also works. Without a subagent tool, do the work yourself and say that you did.
+On every host, a scheduled job in the repository's CI also works. Without a subagent tool, do the work yourself and say that you did.
 
 ## Files in this skill
 
@@ -68,7 +68,7 @@ Write each brief to stand on its own, because the subagent sees nothing of this 
 3. Everything long as a pointer, with one line on what it answers: a wiki page, a note, a commit, a file. Do not paste what a pointer already holds.
 4. What to return: pointers to what it wrote (files, commits, notes) and a short summary, with the commands it ran and their results.
 
-Take every subagent's model and effort from `mstack-best-model-for`: load it in called mode for the kind of work each brief holds (one call can ask for several), and set what it returns on that subagent. When it is not installed, the subagent runs on the host's default model: say so, and name `mstack-setup`.
+Take every subagent's model and effort from `mstack-best-model-for`: load it in called mode for this host's vendor (`claude` in Claude Code, `codex` in Codex, `antigravity` in Antigravity) and the kind of work each brief holds (one call can ask for several), and set what it returns on that subagent. When it is not installed, the subagent runs on the host's default model: say so, and name `mstack-setup`.
 
 ## 4. Routes
 
@@ -78,7 +78,7 @@ Run these procedures through their mstack skill instead of doing them yourself. 
 |---|---|
 | An idea whose goal or reason is not settled | `mstack-brainstorm` |
 | Large work | `mstack-write-specs`, then `mstack-plan` |
-| Executing a plan | `mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex; in Claude Code, `mstack-claude-pm-codex-dev` when Codex is to write the code |
+| Executing a plan | `mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex; in Claude Code, `mstack-claude-pm-codex-dev` when Codex is to write the code; in Antigravity no mstack delivery workflow exists yet: say so, and name these with their hosts |
 | A backlog to sort | `mstack-backlog-triage` |
 | Something broken, cause unknown | `mstack-diagnose` |
 | Review feedback to act on | `mstack-receive-review` |

@@ -1,7 +1,7 @@
 {
   "name": "mstack-write-issue",
   "version": "0.1.1",
-  "description": "Well-formed tracker issues from what the session already knows. It searches open and closed issues before it drafts, and turns a match into a comment with only the new evidence. It writes in the repository's own issue template, or in a fixed outline for a bug, a feature or a follow-up, and ends every issue with a line that says when it is done. A bug that does not happen every time gets its counts and conditions, never steps that pretend to reproduce it. Credentials, private hosts, names and home paths are replaced before anything is shown. It posts only after you approve the exact text in a later message, with gh on GitHub, through a connected tool on another tracker, or as a draft to paste. The delivery workflows offer it for deferred follow-ups. One skill for Claude Code and Codex.",
+  "description": "Well-formed tracker issues from what the session already knows. It searches open and closed issues before it drafts, and turns a match into a comment with only the new evidence. It writes in the repository's own issue template, or in a fixed outline for a bug, a feature or a follow-up, and ends every issue with a line that says when it is done. A bug that does not happen every time gets its counts and conditions, never steps that pretend to reproduce it. Credentials, private hosts, names and home paths are replaced before anything is shown. It posts only after you approve the exact text in a later message, with gh on GitHub, through a connected tool on another tracker, or as a draft to paste. The delivery workflows offer it for deferred follow-ups. One skill for Claude Code, Codex and Antigravity.",
   "author": {
     "name": "mubeda"
   },

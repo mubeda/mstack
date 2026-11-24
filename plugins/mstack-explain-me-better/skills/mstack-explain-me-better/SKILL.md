@@ -1,6 +1,6 @@
 ---
 name: mstack-explain-me-better
-description: Use when the user cannot follow an answer or a report and asks to have it explained better, more simply or in plain words, says it is too long, too complex, confusing or makes no sense, or writes "explain me better", "explain this simply", "in simple words", "I don't get it" or "too long, what is the point", or asks for simple answers from now on. Works in Claude Code and Codex. Not for a question about the meaning of one word. Produces a plain-language explanation that loses no fact, and stays on as a mode until the user stops it.
+description: Use when the user cannot follow an answer or a report and asks to have it explained better, more simply or in plain words, says it is too long, too complex, confusing or makes no sense, or writes "explain me better", "explain this simply", "in simple words", "I don't get it" or "too long, what is the point", or asks for simple answers from now on. Works in Claude Code, Codex and Antigravity. Not for a question about the meaning of one word. Produces a plain-language explanation that loses no fact, and stays on as a mode until the user stops it.
 ---
 
 # mstack explain me better
@@ -11,9 +11,9 @@ The words get easier. The facts stay exactly as they were.
 
 ## Host tools
 
-| Role | Claude Code | Codex |
-|---|---|---|
-| Loading a skill | The Skill tool | Read its SKILL.md and follow it |
+| Role | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| Loading a skill | The Skill tool | Read its SKILL.md and follow it | Read its SKILL.md with `read_file` and follow it |
 
 ## Starting and stopping
 
