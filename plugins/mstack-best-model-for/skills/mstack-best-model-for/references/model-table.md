@@ -54,7 +54,7 @@ Codex:
 
 Antigravity:
 
-- Cell text for the result block, copied exactly with the tier `flash` or `pro` filled in: `the full model id, chosen when the Antigravity session is started or in its model setting (agy models lists the ids); subagent: invoke_subagent on the tier flash|pro`
+- Cell text for the result block: `the full model id, chosen when the Antigravity session is started or in its model setting (agy models lists the ids); subagent: invoke_subagent on the tier <tier>`. Copy it exactly and put the one tier of the row in place of `<tier>`: `flash` for the cheap and standard tiers, `pro` for most capable. Never write both tiers, and never write a `|` inside a cell: it would split the cell in two.
 - Choose the full model id when you start the Antigravity session or in its model setting (`agy models` lists the ids); the effort is the id's suffix, never a second setting.
 - Subagent tool: `invoke_subagent` with model `flash` for the cheap and standard tiers and `pro` for most capable; a subagent takes a tier only, never an id or an effort. A task row takes the subagent tier of the tier that has its model.
 

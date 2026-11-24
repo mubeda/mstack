@@ -56,3 +56,50 @@ test('a plan folder without receiving-review.md passes, because mstack-receive-r
   const r = spawnSync(process.execPath, [script, dir], { encoding: 'utf8' });
   assert.equal(r.status, 0, `${r.stdout}${r.stderr}`);
 });
+
+// A start file with a planning-time placeholder left in it fails, for every host label and helper slot.
+function checkStartFile(extra) {
+  const dir = join(mkdtempSync(join(tmpdir(), 'plan-check-')), 'plan');
+  cpSync(sample, dir, { recursive: true });
+  const file = join(dir, 'execute-plan.md');
+  writeFileSync(file, `${readFileSync(file, 'utf8')}\n${extra}\n`);
+  const r = spawnSync(process.execPath, [script, dir], { encoding: 'utf8' });
+  rmSync(dirname(dir), { recursive: true, force: true });
+  return { status: r.status, out: `${r.stdout}${r.stderr}` };
+}
+for (const left of ['<Claude Code | Codex | Antigravity>', '<Codex | Claude | a same-vendor subagent>', '<cheap helper: antigravity>', '<standard helper: antigravity>', '<fallback reviewer: antigravity>', '<cheap helper: codex>']) {
+  test(`an unfilled ${left} in execute-plan.md fails`, () => {
+    const r = checkStartFile(`- Left over: ${left}`);
+    assert.equal(r.status, 1, r.out);
+    assert.match(r.out, /unfilled placeholder/);
+  });
+}
+test('a start file that says none (planned in Codex) for an Antigravity slot passes', () => {
+  const r = checkStartFile('on none (planned in Codex) for a cheap helper');
+  assert.equal(r.status, 0, r.out);
+});
+
+// The host-choice labels and the helper and reviewer slots belong to the start file: a plan may quote them elsewhere.
+test('a phase file that quotes a host choice passes; the same text left in execute-plan.md fails', () => {
+  const quote = 'The line says <Claude Code | Codex | Antigravity> and <cheap helper: antigravity>.';
+  const dir = join(mkdtempSync(join(tmpdir(), 'plan-check-')), 'plan');
+  cpSync(sample, dir, { recursive: true });
+  const phase = join(dir, 'phases', 'PHASE-01-greet.md');
+  writeFileSync(phase, `${readFileSync(phase, 'utf8')}\n${quote}\n`);
+  const inPhase = spawnSync(process.execPath, [script, dir], { encoding: 'utf8' });
+  rmSync(dirname(dir), { recursive: true, force: true });
+  assert.equal(inPhase.status, 0, `${inPhase.stdout}${inPhase.stderr}`);
+  const inStart = checkStartFile(quote);
+  assert.equal(inStart.status, 1, inStart.out);
+  assert.match(inStart.out, /execute-plan\.md: unfilled placeholder/);
+});
+test('a general planning placeholder left in a phase file still fails', () => {
+  const dir = join(mkdtempSync(join(tmpdir(), 'plan-check-')), 'plan');
+  cpSync(sample, dir, { recursive: true });
+  const phase = join(dir, 'phases', 'PHASE-01-greet.md');
+  writeFileSync(phase, `${readFileSync(phase, 'utf8')}\nSee <yyyy-mm-dd> and <review model>.\n`);
+  const r = spawnSync(process.execPath, [script, dir], { encoding: 'utf8' });
+  rmSync(dirname(dir), { recursive: true, force: true });
+  assert.equal(r.status, 1, `${r.stdout}${r.stderr}`);
+  assert.match(`${r.stdout}${r.stderr}`, /PHASE-01-greet\.md: unfilled placeholder/);
+});

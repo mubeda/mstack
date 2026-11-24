@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: antigravity-start
+expected_outcome: |
+  The prompt says the session runs in Antigravity. The run follows the Antigravity column: it runs the preflight
+  script with --host antigravity, sends the vendor `all` to mstack-best-model-for and takes its own helper model from
+  the antigravity row, asks no reviewer model, and says the plan review will be a same-vendor review.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture: no agent starts an Antigravity session, so this case runs in Claude Code with the host named in the
+  prompt. It shows that the Antigravity column and the preflight for that host are followed. Which model a helper
+  subagent runs on is read only from a transcript of a person's Antigravity session, so this fixture does not show
+  it. The run loads the branch copies of mstack-plan and of its four shared skills by plugin folder, so the
+  preflight script, which looks in Antigravity's folders, reports them missing; the session's skill list decides.
+  One turn: the user can answer questions about an expensive tier or model, so the run may end at those questions,
+  before the outline.

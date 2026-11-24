@@ -156,7 +156,9 @@ for (const word of ['Recommended mode', 'Inline', 'mstack-codex-review-workflow'
 // Template placeholders left behind.
 for (const [name, text] of [['plan.md', plan], ['progress.md', progress], ['execute-plan.md', execute], ...phaseFiles.map((f) => [`phases/${f}`, readFileSync(join(phaseDir, f), 'utf8')])]) {
   // <model>, <effort>, <branch> and similar are filled by the executing session, so only planning-time placeholders count.
-  const left = [...new Set(prose(text).match(/<(title|path|command|reason|plan title|slug|yyyy-mm-dd|placeholder|base|review model|review effort|reviewer and model|Claude Code \| Codex|Codex \| Claude|Inline \| Workflow|one sentence from the plan|(?:cheap|standard) helper: (?:claude|codex)|fallback reviewer: (?:claude|codex)|path of the plan folder[^>]*)>/g) ?? [])];
+  // The host-choice labels and the helper and reviewer slots exist only in the start file; a plan may quote them elsewhere.
+  const startOnly = name === 'execute-plan.md' ? '|Claude Code \\| Codex(?: \\| Antigravity)?|Codex \\| Claude(?: \\| a same-vendor subagent)?|(?:cheap|standard) helper: (?:claude|codex|antigravity)|fallback reviewer: (?:claude|codex|antigravity)' : '';
+  const left = [...new Set(prose(text).match(new RegExp(`<(title|path|command|reason|plan title|slug|yyyy-mm-dd|placeholder|base|review model|review effort|reviewer and model|Inline \\| Workflow|one sentence from the plan|path of the plan folder[^>]*${startOnly})>`, 'g')) ?? [])];
   if (left.length) fail(`${name}: unfilled placeholder${left.length > 1 ? 's' : ''} ${left.join(', ')}`);
 }
 

@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: expensive-answers
+expected_outcome: |
+  The user named most capable for phase 1 and its tasks and said no, in advance, to phase 2, its tasks and the
+  fallback reviewer. The written plan records most capable for phase 1 and its tasks as the user's choice with no
+  question about them, standard for phase 2 and its tasks with the declined tier nowhere for them, and
+  gpt-6.2-sol as the Codex fallback reviewer in execute-plan.md.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The run loads the branch copies of mstack-plan and of its four shared skills. It has no subagent tool, and its
+  `PATH` holds no real `codex`, `claude` or `agy`, so the cross-vendor reviewer is missing and no client starts.
+  The prompt stops the run after the plan files are written, so no check and no review runs.
