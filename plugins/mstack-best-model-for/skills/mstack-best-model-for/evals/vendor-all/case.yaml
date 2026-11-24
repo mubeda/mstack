@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: vendor-all
+expected_outcome: |
+  A called-mode answer with three rows for the one request: claude with sonnet, codex with gpt-6.2-sol and antigravity with gemini-4-hydrogen-medium, the claude row naming the full model id for a headless run, and no question to the user.
+context:
+  scaffold_script: place-files.sh

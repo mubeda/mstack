@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: vendor-both
+expected_outcome: |
+  A called-mode answer with two rows per request, one for claude and one for codex and none for antigravity, with the Expensive column last: yes for fable and gpt-6.2-astra, no for opus, sonnet and gpt-6.2-sol.
+context:
+  scaffold_script: place-files.sh

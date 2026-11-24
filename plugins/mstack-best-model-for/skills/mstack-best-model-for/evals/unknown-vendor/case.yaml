@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: unknown-vendor
+expected_outcome: |
+  A called-mode answer whose one row says no model fits because the vendor acme is not in the table, names no model of any vendor, and tells the caller which vendor values to ask for.
+context:
+  scaffold_script: place-files.sh

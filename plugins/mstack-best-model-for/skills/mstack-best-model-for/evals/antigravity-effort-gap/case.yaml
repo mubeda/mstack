@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: antigravity-effort-gap
+expected_outcome: |
+  A called-mode answer with two rows. Request 1, one antigravity row: gemini-4-neon-low, Capped yes, because the controlled inventory of this case lists no medium effort for gemini-4-neon, and for request 2 (cheap, max effort medium, where gemini-3.8-flash lists only high and no family lies below it) a row with Model no model fits.
+notes: |
+  This case runs with its workspace copy of the skill only: place-files.sh copies the branch skill folder into the case folder's .claude/skills/mstack-best-model-for/ and rewrites that copy's Neon effort line to the gap and its Flash line to high only. Load it by the route of the facts file's "Loading a branch copy" pointed at that copy, never beside the branch copy.
+context:
+  scaffold_script: place-files.sh
