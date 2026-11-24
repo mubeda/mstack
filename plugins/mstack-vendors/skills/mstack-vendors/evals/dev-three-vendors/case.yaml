@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: dev-three-vendors
+expected_outcome: |
+  A Gemini leader with a Codex developer: claude joins the leader's review, and codex, which wrote the code, has no row.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: review-mixed-lanes
+expected_outcome: |
+  Writers claude and antigravity: codex is the only reviewer offered; claude has no row although it is installed and signed in.
+context:
+  scaffold_script: place-files.sh

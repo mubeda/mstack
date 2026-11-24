@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Daily-driver agent skills for Claude Code, Codex CLI and Antigravity, packaged as independently installable plugins.",
-    "version": "0.14.3"
+    "version": "0.15.0"
   },
   "plugins": [
     {
@@ -109,6 +109,16 @@
       "category": "development"
     },
     {
+      "name": "mstack-vendors",
+      "description": "Find out which other vendor's model can review code, review a plan or develop from this session: per job, which of Claude and Codex is eligible and available, how each review is recorded, the command and steps to call it, and what to install or sign in. Answers a person, and is the interface, a fixed message and a result block, that other mstack skills will call; none calls it yet. One skill for Claude Code, Codex and Antigravity.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-vendors",
+      "category": "development"
+    },
+    {
       "name": "mstack-find-skills",
       "description": "Find the skills that fit a job: the installed skills scored per task, then vetted public candidates from skills.sh for the gaps only (audits, installs, license and the skill's own text), installed only after the user's yes. Called by the other mstack skills for their tasks. One skill for Claude Code, Codex and Antigravity.",
       "version": "0.2.11",
@@ -120,7 +130,7 @@
     },
     {
       "name": "mstack-setup",
-      "description": "Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: a status script for the host, then one list of install commands (codegraph, ponytail, the cross-vendor reviewer, the mstack skills) that runs only after one yes, and a final check. One skill for Claude Code, Codex and Antigravity.",
+      "description": "Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: a status script for the host, then one list of install commands (codegraph, ponytail, the other vendors' clients, the mstack skills) that runs only after one yes, and a final check. One skill for Claude Code, Codex and Antigravity.",
       "version": "0.2.12",
       "author": {
         "name": "mubeda"

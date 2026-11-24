@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: codex-plugin-network-on
+expected_outcome: |
+  The Codex configuration turns network access on for workspace-write: the codex developer row is not available and says why, and the codex review row stays available.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log. No developer model runs. The host is the `Host` line of the called message, so the case runs in
+  Claude Code whatever that line says. It shows that the text is followed, not what another client does.

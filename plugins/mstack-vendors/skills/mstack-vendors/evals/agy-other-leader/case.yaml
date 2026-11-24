@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: agy-other-leader
+expected_outcome: |
+  An Antigravity leader on a model of no listed vendor: Leader other, and both claude and codex are offered for the plan review.
+context:
+  scaffold_script: place-files.sh

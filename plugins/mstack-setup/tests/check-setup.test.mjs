@@ -14,6 +14,9 @@ const script = resolve(dirname(fileURLToPath(import.meta.url)), '../skills/mstac
 const roots = [];
 after(() => { for (const r of roots) rmSync(r, { recursive: true, force: true }); });
 
+// What a signed-in client prints for its status command: codex a sentence, claude JSON. A stand-in prints it on every call.
+const SAYS = { codex: 'echo "Logged in using ChatGPT"\n', claude: 'echo \'{"loggedIn": true}\'\n' };
+
 function machine() {
   const root = mkdtempSync(join(tmpdir(), 'check-setup-'));
   roots.push(root);
@@ -23,7 +26,7 @@ function machine() {
     root, home, bin,
     stub(name, code = 0) {
       const p = join(bin, name);
-      writeFileSync(p, `#!/bin/sh\nexit ${code}\n`); chmodSync(p, 0o755); return m;
+      writeFileSync(p, `#!/bin/sh\n${SAYS[name] ?? ''}exit ${code}\n`); chmodSync(p, 0o755); return m;
     },
     file(rel, text = 'x') {
       const p = join(home, rel); mkdirSync(dirname(p), { recursive: true }); writeFileSync(p, text); return m;
@@ -99,11 +102,13 @@ test('(d) Codex host: the claude client and its sign-in are the vendor rows, cod
 
 test('(d2) Codex host: the reviewer group is the client and its login, and no plugin row exists', () => {
   const m = machine().stub('node').stub('claude', 1);
+  // No ready channel: the rows are reported and block nothing, and the caller runs its fallback review.
   const r = run(m, ['--host', 'codex', '--needs', 'reviewer']);
-  assert.equal(r.status, 1, r.out);
-  assert.deepEqual(r.json.items.filter((i) => i.blocking).map((i) => i.id), ['node', 'claude-cli', 'claude-login']);
+  assert.equal(r.status, 0, r.out);
+  assert.deepEqual(r.json.items.filter((i) => i.blocking).map((i) => i.id), ['node']);
   assert.equal(r.state('claude-login'), 'LOGIN');
-  assert.equal(run(m.stub('claude'), ['--host', 'codex', '--needs', 'reviewer']).status, 0);
+  const ready = run(m.stub('claude'), ['--host', 'codex', '--needs', 'reviewer']);
+  assert.deepEqual([ready.status, ready.json.items.filter((i) => i.blocking).map((i) => i.id)], [0, ['node', 'claude-cli', 'claude-login']], ready.out);
   assert.equal(run(m, ['--host', 'codex', '--needs', 'codex-plugin']).status, 2);
 });
 
@@ -236,7 +241,7 @@ for (const host of ['claude', 'codex']) {
     const r = run(machine(), ['--host', host]);
     assert.equal(r.json.items.find((i) => i.id === 'mstack-explain-me-better')?.tier, 'optional', r.out);
   });
-  for (const skill of ['mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui']) {
+  for (const skill of ['mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-vendors']) {
     test(`${host}: ${skill} is an optional row`, () => {
       const r = run(machine(), ['--host', host]);
       assert.equal(r.json.items.find((i) => i.id === skill)?.tier, 'optional', r.out);
@@ -297,11 +302,12 @@ test('needs: a caller that needs no reviewer is not stopped by a reviewer that i
   assert.deepEqual(blocking(r), ['node', 'git', 'mstack-find-skills']);
 });
 
-test('needs: a caller that needs the reviewer is stopped when it is not logged in, or when its tool is missing', () => {
+test('needs: a caller that needs the reviewer is not stopped when the reviewer is not logged in, but one that names the row is', () => {
   const m = completeClaude(machine()).stub('codex', 1);
   const r = run(m, ['--host', 'claude', '--needs', 'reviewer']);
-  assert.equal(r.status, 1, r.out);
-  assert.deepEqual(blocking(r), ['node', 'codex-cli', 'codex-login']);
+  assert.equal(r.status, 0, r.out);
+  assert.deepEqual(blocking(r), ['node']);
+  assert.equal(r.state('codex-login'), 'LOGIN');
   const bare = machine().stub('node');
   assert.equal(run(bare, ['--host', 'claude', '--needs', 'codex-login']).status, 1);
 });
@@ -340,7 +346,7 @@ test('the vendor rows are optional, and block nothing for a caller that sends no
 const MSTACK_ALL = ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup',
   'mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator',
   'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions',
-  'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui'];
+  'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-vendors'];
 const agy = (m) => {
   m.file('.gemini/config/skills/.keep').file('.gemini/config/plugins/.keep');
   writeFileSync(join(m.bin, 'agy'), `#!/bin/sh\necho "$@" >> "${m.root}/agy-calls.log"\n`); chmodSync(join(m.bin, 'agy'), 0o755);
@@ -457,7 +463,7 @@ test('needs: a value with no name in it is a usage error, on every host', () => 
   }
 });
 
-test('antigravity: the 22 mstack rows keep today\'s tiers', () => {
+test('antigravity: the 23 mstack rows keep today\'s tiers', () => {
   const r = run(machine(), ANTI);
   for (const id of MSTACK_ALL) assert.equal(item(r, id)?.tier, MSTACK_ALL.indexOf(id) < 5 ? 'mandatory' : 'optional', id);
 });
@@ -486,10 +492,11 @@ test('antigravity: the four vendor rows, and no codex-plugin or workflow row', (
   for (const id of ['archify', 'gh', 'python3']) assert.equal(item(r, id)?.tier, 'optional', id);
 });
 
-test('antigravity: --needs reviewer names the group of the four vendor rows', () => {
+test('antigravity: --needs reviewer names the group of the four vendor rows, and with no ready channel none of them blocks', () => {
   const r = run(completeAnti(machine()), [...ANTI, '--needs', 'reviewer']);
-  assert.equal(r.status, 1, r.out);
-  assert.deepEqual(blocking(r), ['node', ...ALL_VENDOR]);
+  assert.equal(r.status, 0, r.out);
+  assert.deepEqual(blocking(r), ['node']);
+  assert.deepEqual(states(r, ALL_VENDOR), ['MISSING', 'SKIP', 'MISSING', 'SKIP']);
 });
 
 test('antigravity: --needs codegraph still works', () => {
@@ -509,7 +516,7 @@ test('claude: a missing ui-ux-pro-max is MISSING, not WARN', () => {
 // ---- Vendor rows: the client and the sign-in of each of claude and codex that is not the host's own ----
 // logStub: a client stand-in that appends its arguments to <root>/<name>-calls.log and exits with `code`.
 function logStub(m, name, code = 0) {
-  writeFileSync(join(m.bin, name), `#!/bin/sh\necho "$@" >> "${m.root}/${name}-calls.log"\nexit ${code}\n`); chmodSync(join(m.bin, name), 0o755);
+  writeFileSync(join(m.bin, name), `#!/bin/sh\necho "$@" >> "${m.root}/${name}-calls.log"\n${SAYS[name] ?? ''}exit ${code}\n`); chmodSync(join(m.bin, name), 0o755);
   return m;
 }
 const calls = (m, name) => { try { return readFileSync(join(m.root, `${name}-calls.log`), 'utf8').trim().split('\n'); } catch { return null; } };
@@ -605,11 +612,17 @@ test('no detail of any row says that a vendor can review', () => {
   }
 });
 
-test('needs reviewer: no ready channel blocks on every vendor row', () => {
+// One client installed is enough (the user's rule of 2026-11-24): a caller that names `reviewer` falls back to a review by
+// its own vendor when no channel is ready, so the group never stops it. Only a row named by its ID blocks.
+test('needs reviewer: no ready channel blocks nothing, and the vendor rows are still reported', () => {
   const r = run(logStub(agy(machine()), 'codex', 1).stub('node'), [...ANTI, '--needs', 'reviewer']);
-  assert.deepEqual([r.status, blocking(r)], [1, ['node', ...ALL_VENDOR]], r.out);
+  assert.deepEqual([r.status, blocking(r)], [0, ['node']], r.out);
+  assert.deepEqual(states(r, ALL_VENDOR), ['MISSING', 'SKIP', 'ok', 'LOGIN']);
   const c = run(machine().stub('node'), ['--host', 'claude', '--needs', 'reviewer']);
-  assert.deepEqual([c.status, blocking(c)], [1, ['node', 'codex-cli', 'codex-login']], c.out);
+  assert.deepEqual([c.status, blocking(c)], [0, ['node']], c.out);
+  assert.deepEqual([c.state('codex-cli'), c.state('codex-login')], ['MISSING', 'SKIP']);
+  // A pairing-specific need names the rows, and they block.
+  assert.equal(run(machine().stub('node'), ['--host', 'claude', '--needs', 'codex-cli,codex-login']).status, 1);
 });
 
 // One client installed is enough (the user's rule of 2026-11-24): another vendor's client is never needed without --needs.
@@ -671,7 +684,7 @@ test('a client file without execute permission is not found, and a usable one la
   const r = run(m, ['--host', 'codex', '--needs', 'claude-cli']);
   assert.deepEqual([r.state('claude-cli'), r.state('claude-login'), r.status], ['MISSING', 'SKIP', 1], r.out);
   const later = join(m.root, 'bin2'); mkdirSync(later);
-  writeFileSync(join(later, 'claude'), '#!/bin/sh\nexit 0\n'); chmodSync(join(later, 'claude'), 0o755);
+  writeFileSync(join(later, 'claude'), `#!/bin/sh\n${SAYS.claude}exit 0\n`); chmodSync(join(later, 'claude'), 0o755);
   const r2 = run(m, ['--host', 'codex', '--needs', 'reviewer'], { PATH: `${m.bin}:${later}` });
   assert.deepEqual([r2.state('claude-cli'), r2.state('claude-login'), r2.status], ['ok', 'ok', 0], r2.out);
 });
@@ -686,13 +699,13 @@ test('a sign-in check that could not complete is LOGIN with its reason and no in
   const m = machine().stub('node');
   // a client that kills itself: the check ends by a signal, not by an exit code
   writeFileSync(join(m.bin, 'codex'), '#!/bin/sh\nkill -9 $$\n'); chmodSync(join(m.bin, 'codex'), 0o755);
-  const r = run(m, ['--host', 'claude', '--needs', 'reviewer']);
+  const r = run(m, ['--host', 'claude', '--needs', 'codex-login']);
   assert.deepEqual([r.state('codex-login'), item(r, 'codex-login').blocking, r.status], ['LOGIN', true, 1], r.out);
   assert.match(item(r, 'codex-login').detail, /^sign-in could not be checked: .*SIGKILL/);
   assert.doesNotMatch(item(r, 'codex-login').detail, /run codex login/);
   // an executable whose interpreter line names a program that does not exist: the command cannot start
   writeFileSync(join(m.bin, 'codex'), '#!/nonexistent/interpreter\n'); chmodSync(join(m.bin, 'codex'), 0o755);
-  const r2 = run(m, ['--host', 'claude', '--needs', 'reviewer']);
+  const r2 = run(m, ['--host', 'claude', '--needs', 'codex-login']);
   assert.deepEqual([r2.state('codex-cli'), r2.state('codex-login'), r2.status], ['ok', 'LOGIN', 1], r2.out);
   assert.equal(item(r2, 'codex-login').detail, 'sign-in could not be checked: the command could not start (ENOENT)');
   const out = run(machine().stub('codex', 1), ['--host', 'claude']);
@@ -700,11 +713,11 @@ test('a sign-in check that could not complete is LOGIN with its reason and no in
 });
 
 // ---- --vendors not-checked: the Antigravity run inside the sandbox after the run outside it was refused ----
-test('--vendors not-checked: no client is probed, the four rows read not checked, and the reviewer group blocks on all of them', () => {
+test('--vendors not-checked: no client is probed, the four rows read not checked, and the reviewer group blocks on none of them', () => {
   const m = logStub(logStub(completeAnti(machine()), 'codex'), 'claude');
   const r = run(m, [...ANTI, '--vendors', 'not-checked', '--needs', 'reviewer']);
-  assert.equal(r.status, 1, r.out);
-  assert.deepEqual(blocking(r), ['node', ...ALL_VENDOR]);
+  assert.equal(r.status, 0, r.out);
+  assert.deepEqual(blocking(r), ['node']);
   for (const id of ALL_VENDOR) assert.deepEqual([r.state(id), item(r, id).detail, item(r, id).tier], ['not checked', 'the run outside the sandbox was not approved', 'optional'], id);
   assert.deepEqual([calls(m, 'claude'), calls(m, 'codex')], [null, null]);
   const plain = run(m, [...ANTI, '--vendors=not-checked']);
@@ -716,4 +729,25 @@ test('--vendors not-checked: no client is probed, the four rows read not checked
 
 test('--vendors takes only not-checked', () => {
   for (const v of ['', 'checked', 'off']) assert.equal(run(machine().stub('node'), [...ANTI, '--vendors', v]).status, 2, v);
+});
+
+// ---- The sign-in answer is read, not only the exit code (the same rule as mstack-vendors' status script) ----
+const client = (m, name, body) => { writeFileSync(join(m.bin, name), `#!/bin/sh\n${body}\n`); chmodSync(join(m.bin, name), 0o755); return m; };
+const login = (host, name, body, needs = `${name}-login`) => { const r = run(client(machine().stub('node'), name, body), ['--host', host, '--needs', needs]); return [r.state(`${name}-login`), item(r, `${name}-login`).detail, r.status]; };
+
+test('codex: signed in only when login status exits 0 and says logged in, on either stream and in any case', () => {
+  assert.deepEqual(login('claude', 'codex', 'echo "Logged in using ChatGPT"'), ['ok', 'codex signed in: the codex channel is ready', 0]);
+  assert.deepEqual(login('claude', 'codex', 'echo "LOGGED IN with an API key" >&2'), ['ok', 'codex signed in: the codex channel is ready', 0]);
+  const unread = 'sign-in could not be checked: codex login status exited 0 with an answer that could not be read';
+  for (const body of ['exit 0', 'echo "Not logged in"', 'echo "ok"']) assert.deepEqual(login('claude', 'codex', body), ['LOGIN', unread, 1], body);
+  assert.deepEqual(login('claude', 'codex', 'echo "Logged in using ChatGPT"; exit 1'), ['LOGIN', 'not signed in: run codex login', 1]);
+});
+
+test('claude: signed in only when auth status exits 0 and prints JSON with loggedIn true', () => {
+  assert.deepEqual(login('codex', 'claude', `echo '{ "loggedIn": true, "authMethod": "x" }'`), ['ok', 'claude signed in: the claude channel is ready', 0]);
+  const out = ['LOGIN', 'not signed in: run claude auth login', 1];
+  assert.deepEqual(login('codex', 'claude', `echo '{"loggedIn": false}'`), out);
+  assert.deepEqual(login('codex', 'claude', `echo '{"loggedIn": true}'; exit 1`), out);
+  const unread = 'sign-in could not be checked: claude auth status exited 0 with an answer that could not be read';
+  for (const body of ['exit 0', 'echo "Logged in"', `echo '{"loggedIn": "yes"}'`, `echo '{"loggedIn": true}' >&2`]) assert.deepEqual(login('codex', 'claude', body), ['LOGIN', unread, 1], body);
 });

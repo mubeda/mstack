@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: agy-check-approved-missing
+expected_outcome: |
+  The same Antigravity session, and a user who approves the run outside the sandbox on a machine without the codex client: the codex rows say not installed, the claude rows are the normal check, and no row says the run was not approved.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: the host is the `Host` line of the called message, so it runs in Claude Code
+  also for an Antigravity host, where `./ask-outside` stands for the client's approval prompt. It shows that the text
+  is followed, not what an Antigravity session does.

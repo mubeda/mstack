@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: user-mode-nothing-installed
+expected_outcome: |
+  A person in Claude Code with no other vendor installed asks which vendors they can use. The answer shows codex as not available for every job, because it is not installed, names mstack-setup as the way to install it, and installs nothing itself.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: review-none-available
+expected_outcome: |
+  No other vendor is installed: the codex row is not available with what to install, a fallback row for claude is recorded same-vendor, the section recommends a fallback review, and a warning says no other vendor reviews. The skill does not stop and reports no error.
+context:
+  scaffold_script: place-files.sh

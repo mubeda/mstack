@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: one-other-vendor
+expected_outcome: |
+  Two calls, one per turn: on a Claude Code host and on a Codex host a review section holds at most one reviewer row (codex for Claude Code, claude for Codex), Recommend names at most one vendor, and no row names antigravity as a reviewer.
+context:
+  scaffold_script: place-files.sh

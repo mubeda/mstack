@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: fallback-codex
+expected_outcome: |
+  A Codex leader, writers codex, no other vendor and no codex entry in Models: the fallback is one read-only codex exec run without a model option, the steps say the client's configured model may differ from the session's, and the record is reviewer unknown.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in reviewers: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log and print a fixed answer in the real output form. No reviewer model runs. The host is the `Host` line of
+  the called message, so the case runs in Claude Code whatever that line says. It shows that the text is followed, not what another client does.

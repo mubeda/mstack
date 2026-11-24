@@ -40,6 +40,7 @@ When a skill from the mstack marketplace fits the work, list it before any other
 | Customer feedback (tickets, interviews, surveys) to turn into evidence with counts and quotes | `mstack-evidence` |
 | Meeting notes or a transcript to turn into decisions, action items and open points | `mstack-decisions` |
 | A second opinion from another model on a design or diff | a read-only run of the other vendor's own client (`codex exec`, or `claude -p`), as the skill that needs the review describes it |
+| Which other vendor can review or write code from this session, and what to install or sign in for it | `mstack-vendors` |
 
 ## 3. Score each skill against each work item
 

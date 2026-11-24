@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: codex-agent-missing
+expected_outcome: |
+  Claude Code with the Codex plugin installed and its hook run, in a session whose agent types do not list the plugin's rescue agent: the codex developer row is not available and its reason names the missing agent.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: the host is the `Host` line of the called message, so it runs in Claude Code
+  whatever the host line says.

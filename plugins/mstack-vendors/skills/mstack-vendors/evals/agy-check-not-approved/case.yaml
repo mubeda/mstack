@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: agy-check-not-approved
+expected_outcome: |
+  An Antigravity session whose sandbox does not show the claude and codex clients, and a user who does not approve the run of the vendor check outside it. The session first says that the check must run outside the sandbox and that the client will ask for approval, then requests the run; after the refusal every reviewer and developer row is not available because the run outside the sandbox was not approved, never because a client is not installed.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: the host is the `Host` line of the called message, so it runs in Claude Code
+  also for an Antigravity host, where `./ask-outside` stands for the client's approval prompt. It shows that the text
+  is followed, not what an Antigravity session does.

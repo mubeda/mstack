@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: user-mode-claude-code
+expected_outcome: |
+  A person in Claude Code asks which vendors they can use. The answer is a table of vendors and jobs with a state and a reason per cell: codex is available for a code review and a plan review and not available as a developer, with the Codex plugin as the reason. It names mstack-setup, installs nothing and gives no command to start a review.
+context:
+  scaffold_script: place-files.sh

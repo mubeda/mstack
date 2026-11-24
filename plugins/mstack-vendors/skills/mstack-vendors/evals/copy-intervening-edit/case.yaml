@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: copy-intervening-edit
+expected_outcome: |
+  A tracked file of the checkout changed after round one was applied: apply refuses round two, the checkout is left as it was, and the session stops and asks the user.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log, act as a developer in the folder they are started in, and print a result in the real output
+  form. No developer model runs. The host is the `Host` line of the called message, so the case runs in
+  Claude Code whatever that line says. It shows that the text is followed, not what another client does.

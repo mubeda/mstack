@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: models-antigravity-entry
+expected_outcome: |
+  A Models line that names antigravity and codex: one warning names the ignored antigravity entry, codex is the reviewer, and no row names antigravity as a reviewer or a developer.
+context:
+  scaffold_script: place-files.sh

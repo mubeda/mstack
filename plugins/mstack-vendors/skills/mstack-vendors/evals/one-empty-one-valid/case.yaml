@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: one-empty-one-valid
+expected_outcome: |
+  claude exits 0 with an empty result: that run is a failed run, never a clean review, and only codex's review counts.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in reviewers: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log and print a fixed answer in the real output form. No reviewer model runs. The host is the `Host` line of
+  the called message, so the case runs in Claude Code also for an Antigravity host, where `./ask-outside` stands for
+  the client's approval prompt. It shows that the text is followed, not what another client does.

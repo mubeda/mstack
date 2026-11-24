@@ -18,12 +18,15 @@ CG="#!/bin/sh
 echo \"codegraph \$*\" >> \"$L\"
 case \"\$*\" in *--print-config*) echo \"# Add to $A/mcp_config.json\" ;; *install*--target=antigravity*) printf '{\"mcpServers\":{\"codegraph\":{\"command\":\"codegraph\",\"args\":[\"serve\",\"--mcp\"]}}}\n' > \"$A/mcp_config.json\" ;; esac
 exit 0"
-for s in mstack-best-model-for mstack-receive-review mstack-setup mstack-write-specs mstack-brainstorm mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-chief-of-staff mstack-explain-me-better mstack-product-plan mstack-epic mstack-evidence mstack-decisions mstack-auto mstack-write-issue mstack-anonymize mstack-web-ui; do plugin "$s"; done
+for s in mstack-best-model-for mstack-receive-review mstack-setup mstack-write-specs mstack-brainstorm mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-chief-of-staff mstack-explain-me-better mstack-product-plan mstack-epic mstack-evidence mstack-decisions mstack-auto mstack-write-issue mstack-anonymize mstack-web-ui mstack-vendors; do plugin "$s"; done
 # archify is missing on purpose: in Antigravity its skills command is a step for the user, which the skill never runs.
 echo "{}" > "$A/mcp_config.json"
 stub npx; stub gh; stub python3
 # Both other vendors' clients are installed and signed in (each stand-in exits 0 for its status command), so the vendor rows are ok.
-stub claude; stub codex
+# A signed-in client stand-in: it logs each call and answers its status command as the real client does.
+client() { printf "#!/bin/sh\necho \"%s \$*\" >> \"%s\"\ncase \"\$*\" in \"%s\") echo '%s' ;; esac\nexit 0\n" "$1" "$L" "$2" "$3" > "$B/$1"; }
+client claude "auth status" '{"loggedIn": true}'
+client codex "login status" 'Logged in using ChatGPT'
 # The npm stand-in "installs" codegraph by dropping the codegraph stand-in, so the later connect command works and is logged.
 {
   echo '#!/bin/sh'

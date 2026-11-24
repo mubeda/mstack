@@ -11,7 +11,8 @@
 // Antigravity has no codex-plugin or workflow rows.
 // --needs is for one calling skill: a comma-separated list of row IDs and of the groups `reviewer` and `codegraph`.
 // Only those rows and `node` then block, whatever their tier. The group `reviewer` is the host's vendor rows, and one ready
-// channel meets it: the first ready channel's rows block and the other vendor rows do not; with none ready, all of them block.
+// channel meets it: the first ready channel's rows block and the other vendor rows do not. With none ready, none of them
+// blocks: mstack works with one client, and the caller then reviews with its fallback. A vendor row named by its ID blocks.
 // Without --needs, every mandatory row blocks and no other row does, on every host.
 // Exit 0 when no blocking item is MISSING or LOGIN (with --needs: when every blocking item is ok), 1 otherwise,
 // 2 on a usage error, which includes a name in --needs that is no row and no group, and a --needs with no name in it.
@@ -145,15 +146,24 @@ function codegraphConnected() {
   }
   try { return /^\s*\[mcp_servers\.codegraph\]/m.test(readFileSync(join(codexDir, 'config.toml'), 'utf8')); } catch { return false; }
 }
-// true when the client's own status command exits 0, false when it completes with another code (signed out), and a
-// sentence when it did not complete (it could not start, timed out or was ended by a signal): then nothing is known.
-function loggedIn(path, cmdArgs) {
+// The sign-in of a client, by the same rule as mstack-vendors' status script, so the two never disagree on one machine.
+// `said` reads an answer that came with exit 0: true signed in, false signed out, undefined when it says neither.
+const SIGN_IN = {
+  // codex prints its answer on stderr. Exit 0 with "not logged in" contradicts itself, so it confirms nothing.
+  codex: { args: ['login', 'status'], said: (r) => { const t = `${r.stdout}${r.stderr}`.toLowerCase(); return t.includes('logged in') && !t.includes('not logged in') ? true : undefined; }, fix: 'run codex login' },
+  claude: { args: ['auth', 'status'], said: (r) => { try { const v = JSON.parse(r.stdout).loggedIn; return typeof v === 'boolean' ? v : undefined; } catch { return undefined; } }, fix: 'run claude auth login' },
+};
+// true when signed in, false when the client says it is signed out (a non-zero exit, or claude's "loggedIn": false), and a
+// sentence when nothing is known: the command could not start, gave no answer in time, was ended, or exited 0 with no readable answer.
+function loggedIn(vendor, path) {
+  const { args: cmdArgs, said } = SIGN_IN[vendor];
   // A .cmd shim on real Windows only starts through the shell.
   const shell = process.platform === 'win32' && /\.(cmd|bat)$/i.test(path);
-  const r = spawnSync(path, cmdArgs, { stdio: 'ignore', timeout: 15000, shell });
+  const r = spawnSync(path, cmdArgs, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 15000, killSignal: 'SIGKILL', shell });
   if (r.error) return r.error.code === 'ETIMEDOUT' ? 'the command gave no answer within 15 seconds' : `the command could not start (${r.error.code ?? r.error.message})`;
   if (r.signal) return `the command was ended by ${r.signal}`;
-  return r.status === 0;
+  if (r.status !== 0 || said(r) === false) return false;
+  return said(r) ? true : `${vendor} ${cmdArgs.join(' ')} exited 0 with an answer that could not be read`;
 }
 
 const items = [];
@@ -175,16 +185,15 @@ else add('ponytail', 'mandatory', ponytailPlugin, ponytailPlugin || !hasSkill('p
   : 'ponytail skill found without the plugin, so its hooks are missing');
 // The channels to the other vendors: each client and its sign-in. Whether a vendor can review a given piece of work is not
 // decided here (mstack-vendors answers that from the leader and the writers).
-const SIGN_IN = { claude: 'auth', codex: 'login' };
-const channels = Object.keys(SIGN_IN).filter((v) => v !== host).map((v) => {
+const channels = ['claude', 'codex'].filter((v) => v !== host).map((v) => {
   const ids = [`${v}-cli`, `${v}-login`];
   if (vendors) { for (const id of ids) add(id, 'optional', false, 'the run outside the sandbox was not approved', 'not checked'); return ids; }
   const cli = which(v);
   add(ids[0], 'optional', cli, `${v} command-line tool: the channel to ${v}; mstack-vendors answers whether it can review a given piece of work`);
   if (!cli) add(ids[1], 'optional', false, `needs ${v} first`, 'SKIP');
   else {
-    const ok = loggedIn(cli, [SIGN_IN[v], 'status']);
-    const detail = ok === true ? `${v} signed in: the ${v} channel is ready` : ok === false ? `not signed in: run ${v} ${v === 'claude' ? 'auth login' : 'login'}`
+    const ok = loggedIn(v, cli);
+    const detail = ok === true ? `${v} signed in: the ${v} channel is ready` : ok === false ? `not signed in: ${SIGN_IN[v].fix}`
       : `sign-in could not be checked: ${ok}`;
     add(ids[1], 'optional', ok === true, detail, ok === true ? 'ok' : 'LOGIN');
   }
@@ -200,14 +209,14 @@ const workflow = host === 'claude' ? 'mstack-codex-review-workflow' : 'mstack-cl
 const workflows = host === 'antigravity' ? [] : [workflow];
 if (host === 'claude') add('codex-plugin', 'optional', pluginInstalled('codex'), 'OpenAI Codex plugin (Codex as developer in mstack-claude-pm-codex-dev)');
 const pmWorkflow = host === 'claude' ? ['mstack-claude-pm-codex-dev'] : [];
-for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', 'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', ...workflows, ...pmWorkflow]) {
+for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', 'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-vendors', ...workflows, ...pmWorkflow]) {
   add(s, 'optional', hasSkill(s), 'mstack skill');
 }
 
 // Which rows block: every mandatory one, or with --needs the rows the calling skill named, and node.
-// A caller that names the group `reviewer` is blocked through its first ready channel, or through every vendor row when none is ready.
+// A caller that names the group `reviewer` is blocked through its first ready channel, and by no vendor row when none is ready.
 const isOk = (id) => items.find((i) => i.id === id).state === 'ok';
-const GROUPS = { __proto__: null, reviewer: channels.find((c) => c.every(isOk)) ?? channels.flat(), codegraph: ['codegraph-cli', 'codegraph-connected'] };
+const GROUPS = { __proto__: null, reviewer: channels.find((c) => c.every(isOk)) ?? [], codegraph: ['codegraph-cli', 'codegraph-connected'] };
 let needed = null;
 if (needs !== null) {
   const names = needs.split(',').map((n) => n.trim()).filter(Boolean);

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Builds a throwaway machine under the target folder (default: the current folder): home/, codex-home/, bin/ of stubs.
 # Stubs for claude, codex, npm, npx and codegraph append their arguments to calls.log and install nothing.
+# The codex stub answers `login status` as a signed-in client does.
 set -eu
 T="$(cd "${1:-.}" && pwd)"
 H="$T/home"; B="$T/bin"; L="$T/calls.log"
@@ -21,7 +22,7 @@ for s in mstack-best-model-for mstack-receive-review mstack-research mstack-setu
 skill "$C/mstack/mstack-find-skills/0.1.0/skills/mstack-find-skills"
 skill ".agents/skills/archify"
 stub claude '*"plugin install ponytail"*) echo "Error: marketplace ponytail could not be reached" >&2; exit 1 ;;'
-stub codex; stub npx
+stub codex '"login status") echo "Logged in using ChatGPT" ;;'; stub npx
 # The npm stub "installs" codegraph by dropping a codegraph stub, so the later connect command is logged too.
 {
   echo '#!/bin/sh'

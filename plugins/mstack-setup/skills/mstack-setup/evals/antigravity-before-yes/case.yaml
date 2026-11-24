@@ -1,7 +1,7 @@
 schema_version: "1.1"
 name: antigravity-before-yes
 expected_outcome: |
-  One turn. The code index is installed but not connected, and ponytail and the 22 mstack skills are missing. The
+  One turn. The code index is installed but not connected, and ponytail and the 23 mstack skills are missing. The
   status says so and shows ui-ux-pro-max as not available in Antigravity. The list holds the connect command, one
   plugin install for ponytail and one per missing mstack plugin, names mcp_config.json, and ends with one question.
   Nothing is installed or connected.

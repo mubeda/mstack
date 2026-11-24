@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: copy-replacement-fails
+expected_outcome: |
+  Round two cannot replace round one (it writes a file the checkout holds untracked): apply exits 1, the session stops and asks, and the checkout still holds round one byte for byte.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log, act as a developer in the folder they are started in, and print a result in the real output
+  form. No developer model runs. The host is the `Host` line of the called message, so the case runs in
+  Claude Code whatever that line says. It shows that the text is followed, not what another client does.

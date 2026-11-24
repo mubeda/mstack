@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: review-yes-developer-no
+expected_outcome: |
+  Claude Code with a signed-in codex client and no Codex plugin: codex is available as a reviewer and not available as a developer, and the reason names the plugin to install with its command.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: the host is the `Host` line of the called message, so it runs in Claude Code
+  whatever the host line says.

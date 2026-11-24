@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: review-in-worktree
+expected_outcome: |
+  Two code review groups with different Models lines get two sections, each with its own command; the caller runs the second section's command with the workspace path replaced by a worktree of the same repository.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in reviewers: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log and print a fixed answer in the real output form. No reviewer model runs. The host is the `Host` line of
+  the called message, so the case runs in Claude Code whatever that line says. It shows that the text is followed, not what another client does.

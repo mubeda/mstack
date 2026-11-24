@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: review-two-available
+expected_outcome: |
+  A Gemini leader whose own lanes wrote the plan: claude and codex are both recommended, both cross-vendor.
+context:
+  scaffold_script: place-files.sh

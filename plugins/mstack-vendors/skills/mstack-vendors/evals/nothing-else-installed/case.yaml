@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: nothing-else-installed
+expected_outcome: |
+  A machine with only the leader's client, asked once per host: each of claude and codex that is not the leader's vendor is not available with the reason not installed, the review falls back to the leader's own vendor with a warning, and no row lists antigravity as a reviewer or a developer.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: the host is the `Host` line of the called message, so it runs in Claude Code
+  also for an Antigravity host, where `./ask-outside` stands for the client's approval prompt. It shows that the text
+  is followed, not what an Antigravity session does.

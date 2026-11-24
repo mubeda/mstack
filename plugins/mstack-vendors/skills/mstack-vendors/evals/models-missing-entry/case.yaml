@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: models-missing-entry
+expected_outcome: |
+  claude is installed and signed in but the Models line has no entry for it: its row is not available with the reason that no model was given, it has no command, it is not recommended, and no command carries a placeholder for a model.
+context:
+  scaffold_script: place-files.sh

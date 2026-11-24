@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: resumed-plan-codex-writers
+expected_outcome: |
+  A plan continued from Codex, with only codex ready: codex wrote the plan and gets no reviewer row although it is installed and signed in, claude is not available, and the fallback review is recommended with its warning.
+context:
+  scaffold_script: place-files.sh

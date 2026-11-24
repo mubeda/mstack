@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: signed-out
+expected_outcome: |
+  An Antigravity host whose codex client is installed and signed out: codex is not available for every job, with the reason not signed in and how to sign in, claude is offered, and the call ends with the block.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: the host is the `Host` line of the called message, so it runs in Claude Code
+  also for an Antigravity host, where `./ask-outside` stands for the client's approval prompt. It shows that the text
+  is followed, not what an Antigravity session does.

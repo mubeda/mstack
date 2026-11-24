@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: dev-leader-wrote
+expected_outcome: |
+  A dev workflow whose writers are the leader's own vendor: the leader's row says same-vendor, and a warning says a dev workflow needs a developer of another vendor.
+context:
+  scaffold_script: place-files.sh

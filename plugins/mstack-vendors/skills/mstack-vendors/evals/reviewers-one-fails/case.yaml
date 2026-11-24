@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: reviewers-one-fails
+expected_outcome: |
+  Two reviewers, and claude fails with an error an agent cannot repair: the run is reported as failed, the work is reviewed by codex alone, and nothing calls the failed run a clean review.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in reviewers: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log and print a fixed answer in the real output form. No reviewer model runs. The host is the `Host` line of
+  the called message, so the case runs in Claude Code also for an Antigravity host, where `./ask-outside` stands for
+  the client's approval prompt. It shows that the text is followed, not what another client does.

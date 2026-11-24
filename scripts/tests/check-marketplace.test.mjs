@@ -87,7 +87,7 @@ const fails = (result, ...words) => {
 test('versions agree', () => {
   const result = run(tree());
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Marketplace checks passed: \d+ Claude plugins, \d+ Codex plugins, 22 Antigravity plugins/);
+  assert.match(result.stdout, /Marketplace checks passed: \d+ Claude plugins, \d+ Codex plugins, 23 Antigravity plugins/);
 });
 
 test('agy absent', () => {
@@ -204,14 +204,14 @@ test('validator error', () => {
 test('no logo', () => {
   const result = run(tree(), { agy: 'ok' });
   assert.equal(result.status, 0, result.stderr + result.stdout);
-  assert.match(result.stdout, /Antigravity validator passed: 22 plugins/);
+  assert.match(result.stdout, /Antigravity validator passed: 23 plugins/);
 });
 
 test('validator runs per plugin', () => {
   const result = run(tree(), { agy: 'ok' });
   const root = result.root;
   const expected = covered(root).map((name) => `plugin validate ${join(root, 'plugins', name)}`).sort();
-  assert.equal(expected.length, 22);
+  assert.equal(expected.length, 23);
   assert.deepEqual(result.log.split('\n').filter((line) => line.startsWith('plugin validate ')).sort(), expected);
 });
 
@@ -239,7 +239,7 @@ test('routing row', () => {
   agyOnly(root, true);
   const result = run(root, { hosts: { 'mstack-agy-only': 'antigravity' } });
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /23 Antigravity plugins/);
+  assert.match(result.stdout, /24 Antigravity plugins/);
 });
 
 test('routing row missing', () => {

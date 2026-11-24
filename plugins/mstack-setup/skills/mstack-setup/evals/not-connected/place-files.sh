@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Builds a throwaway machine under the target folder (default: the current folder): home/, codex-home/, bin/ of stubs.
 # Stubs for claude, codex, npm, npx and codegraph append their arguments to calls.log and install nothing.
+# The codex stub answers `login status` as a signed-in client does.
 set -eu
 T="$(cd "${1:-.}" && pwd)"
 H="$T/home"; B="$T/bin"; L="$T/calls.log"
@@ -22,7 +23,7 @@ skill ".agents/skills/archify"
 
 skill "$C/mstack/mstack-find-skills/0.1.0/skills/mstack-find-skills"
 echo "{}" > "$H/.claude.json"
-stub claude; stub codex; stub npm; stub npx; stub codegraph
+stub claude; stub codex '"login status") echo "Logged in using ChatGPT" ;;'; stub npm; stub npx; stub codegraph
 # The install record: the plugins the case installs elsewhere, plus one "<skill>@mstack" entry per cached mstack skill,
 # because a skill in the cache counts only when its plugin is recorded.
 mkdir -p "$H/.claude/plugins"

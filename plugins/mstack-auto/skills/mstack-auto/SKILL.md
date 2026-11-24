@@ -67,6 +67,7 @@ One row per mstack skill. "Next in its chain" names the skill that takes this on
 | Which installed or public skill fits a job, or installing a skill that was found | `mstack-find-skills` | Claude Code, Codex, Antigravity | | |
 | A question to answer from the web, forums or official documentation, or what a package's documentation, changes or known fixes say for the version in use | `mstack-research` | Claude Code, Codex, Antigravity | | |
 | Which model and effort to use for a task, a subagent or a reviewer | `mstack-best-model-for` | Claude Code, Codex, Antigravity | | |
+| Which other vendor's model, Claude or Codex, can review code, review a plan or write code from this session, and what to install or sign in so that it can | `mstack-vendors` | Claude Code, Codex, Antigravity | | |
 | Setting up mstack, or a dependency an mstack skill reported as missing | `mstack-setup` | Claude Code, Codex, Antigravity | | |
 
 ## Choose

@@ -4,7 +4,7 @@
     "displayName": "mstack"
   },
   "metadata": {
-    "version": "0.14.3"
+    "version": "0.15.0"
   },
   "plugins": [
     {
@@ -117,6 +117,19 @@
       "source": {
         "source": "local",
         "path": "./plugins/mstack-best-model-for"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "mstack-vendors",
+      "version": "0.1.0",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mstack-vendors"
       },
       "policy": {
         "installation": "AVAILABLE",
