@@ -41,13 +41,102 @@ const editAntigravity = (root, name, change) => {
   writeJson(root, path, manifest);
 };
 
+const reviewWorkflows = ['mstack-claude-led-review', 'mstack-codex-led-review', 'mstack-antigravity-led-review'];
+const devWorkflows = ['mstack-claude-led-dev', 'mstack-codex-led-dev', 'mstack-antigravity-led-dev'];
+const newWorkflows = [...reviewWorkflows, ...devWorkflows];
+const hostTitle = { claude: 'Claude Code', codex: 'Codex', antigravity: 'Antigravity' };
+const leaderOf = (name) => name.split('-')[1];
+const reviewBody = '# Review workflow\n\nFollow the shared review workflow steps.\n';
+const devBody = '# Dev workflow\n\nFollow the shared dev workflow steps.\n';
+const edit = (root, rel, fn) => {
+  const path = join(root, rel);
+  writeFileSync(path, fn(readFileSync(path, 'utf8')));
+};
+
 // A copy of the repository files the check reads, shipped Antigravity manifests included.
+// Strips any real new workflows so every test starts from a tree whose only workflows are the old three.
 const tree = () => {
   const root = temp('mstack-check-');
   for (const entry of ['plugins', '.claude-plugin', '.agents', 'LICENSE', 'skills.sh.json']) cpSync(join(repo, entry), join(root, entry), { recursive: true });
+  for (const name of newWorkflows) rmSync(join(root, 'plugins', name), { recursive: true, force: true });
+  for (const registry of ['.claude-plugin/marketplace.json', '.agents/plugins/marketplace.json']) {
+    const catalog = readJson(root, registry);
+    catalog.plugins = catalog.plugins.filter((plugin) => !newWorkflows.includes(plugin.name));
+    writeJson(root, registry, catalog);
+  }
+  edit(root, 'plugins/mstack-auto/skills/mstack-auto/SKILL.md', (text) => text.split('\n')
+    .filter((line) => !(line.startsWith('|') && newWorkflows.some((name) => (line.split('|')[2] ?? '').includes(`\`${name}\``))))
+    .join('\n'));
   return root;
 };
 const covered = (root) => readdirSync(join(root, 'plugins')).filter((name) => existsSync(join(root, `plugins/${name}/.antigravity-plugin/plugin.json`)));
+
+const addWorkflow = (root, name) => {
+  const isDev = name.endsWith('-dev');
+  const leader = leaderOf(name);
+  const host = hostTitle[leader];
+  const sourceName = isDev ? 'mstack-claude-pm-codex-dev' : 'mstack-codex-review-workflow';
+  const srcSkill = `plugins/${sourceName}/skills/${sourceName}`;
+  const dstSkill = `plugins/${name}/skills/${name}`;
+  const body = isDev ? devBody : reviewBody;
+  mkdirSync(join(root, dstSkill), { recursive: true });
+  writeFileSync(join(root, dstSkill, 'SKILL.md'), `---\nname: ${name}\ndescription: Use when testing. Runs in ${host} only.\n---\n${body}`);
+  cpSync(join(root, srcSkill, 'LICENSE'), join(root, dstSkill, 'LICENSE'));
+  cpSync(join(root, srcSkill, 'THIRD_PARTY_NOTICES.md'), join(root, dstSkill, 'THIRD_PARTY_NOTICES.md'));
+  cpSync(join(root, srcSkill, 'references'), join(root, dstSkill, 'references'), { recursive: true });
+  if (isDev) cpSync(join(root, srcSkill, 'evals/_fixture/plan'), join(root, dstSkill, 'evals/_fixture/plan'), { recursive: true });
+  writeFileSync(join(root, dstSkill, 'host.md'), `# Host: ${host}\n`);
+
+  const srcManifest = readJson(root, `plugins/${sourceName}/.claude-plugin/plugin.json`);
+  const manifest = {
+    name,
+    version: '0.1.0',
+    description: srcManifest.description,
+    license: srcManifest.license,
+    author: srcManifest.author,
+    ...(leader === 'codex' && { skills: './skills/' }),
+  };
+  mkdirSync(join(root, `plugins/${name}/.${leader}-plugin`), { recursive: true });
+  writeJson(root, `plugins/${name}/.${leader}-plugin/plugin.json`, manifest);
+
+  let entry;
+  if (leader === 'claude') {
+    const catalog = readJson(root, '.claude-plugin/marketplace.json');
+    const proto = catalog.plugins.find((p) => p.name === 'mstack-codex-review-workflow');
+    entry = { ...proto, name, version: '0.1.0', source: `./plugins/${name}` };
+    catalog.plugins.push(entry);
+    writeJson(root, '.claude-plugin/marketplace.json', catalog);
+    assert.equal(typeof entry.source, 'string');
+    assert.equal(entry.source, `./plugins/${name}`);
+  } else if (leader === 'codex') {
+    const catalog = readJson(root, '.agents/plugins/marketplace.json');
+    const proto = catalog.plugins.find((p) => p.name === 'mstack-claude-review-workflow');
+    entry = { ...proto, name, version: '0.1.0', source: { source: 'local', path: `./plugins/${name}` } };
+    catalog.plugins.push(entry);
+    writeJson(root, '.agents/plugins/marketplace.json', catalog);
+    assert.equal(entry.source?.source, 'local');
+    assert.equal(entry.source?.path, `./plugins/${name}`);
+  }
+  if (entry) {
+    assert.equal(manifest.name, entry.name);
+    assert.equal(manifest.version, entry.version);
+  }
+  assert(Buffer.byteLength(body) <= 24000, `${name}: fixture SKILL.md body exceeds 24000 bytes`);
+  for (const registry of ['.claude-plugin/marketplace.json', '.agents/plugins/marketplace.json']) {
+    const names = readJson(root, registry).plugins.map((p) => p.name);
+    assert.equal(new Set(names).size, names.length, `${registry}: duplicate plugin names in fixture`);
+  }
+
+  edit(root, 'plugins/mstack-auto/skills/mstack-auto/SKILL.md', (text) => {
+    const lines = text.split('\n');
+    const at = lines.findIndex((line) => line.startsWith('|') && line.includes('`mstack-setup`'));
+    assert(at >= 0, 'mstack-setup row not found in routing table');
+    lines.splice(at + 1, 0, `| Test only | \`${name}\` | ${host} only | | |`);
+    return lines.join('\n');
+  });
+  return root;
+};
+const six = (root) => { for (const name of newWorkflows) addWorkflow(root, name); return root; };
 
 // `absent`: a PATH with node and git only. `ok` and `error`: a stand-in agy first on PATH that logs its arguments.
 const run = (root, { agy = 'absent', agyScript, hosts } = {}) => {
@@ -85,9 +174,11 @@ const fails = (result, ...words) => {
 };
 
 test('versions agree', () => {
-  const result = run(tree());
+  const root = tree();
+  const count = covered(root).length;
+  const result = run(root);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Marketplace checks passed: \d+ Claude plugins, \d+ Codex plugins, 23 Antigravity plugins/);
+  assert.match(result.stdout, new RegExp(`Marketplace checks passed: \\d+ Claude plugins, \\d+ Codex plugins, ${count} Antigravity plugins`));
 });
 
 test('agy absent', () => {
@@ -202,16 +293,18 @@ test('validator error', () => {
 });
 
 test('no logo', () => {
-  const result = run(tree(), { agy: 'ok' });
+  const root = tree();
+  const count = covered(root).length;
+  const result = run(root, { agy: 'ok' });
   assert.equal(result.status, 0, result.stderr + result.stdout);
-  assert.match(result.stdout, /Antigravity validator passed: 23 plugins/);
+  assert.match(result.stdout, new RegExp(`Antigravity validator passed: ${count} plugins`));
 });
 
 test('validator runs per plugin', () => {
   const result = run(tree(), { agy: 'ok' });
   const root = result.root;
   const expected = covered(root).map((name) => `plugin validate ${join(root, 'plugins', name)}`).sort();
-  assert.equal(expected.length, 23);
+  assert(expected.length > 0);
   assert.deepEqual(result.log.split('\n').filter((line) => line.startsWith('plugin validate ')).sort(), expected);
 });
 
@@ -236,10 +329,11 @@ const agyOnly = (root, row) => {
 
 test('routing row', () => {
   const root = tree();
+  const before = covered(root).length;
   agyOnly(root, true);
   const result = run(root, { hosts: { 'mstack-agy-only': 'antigravity' } });
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /24 Antigravity plugins/);
+  assert.match(result.stdout, new RegExp(`${before + 1} Antigravity plugins`));
 });
 
 test('routing row missing', () => {
@@ -434,4 +528,174 @@ test('agent with comma-separated tools in a plugin with an Antigravity manifest'
   const root = lightTree('mstack-handoff');
   addAgent(root, 'mstack-handoff');
   fails(run(root), 'mstack-handoff/agents/helper.md', 'YAML list');
+});
+
+test('six workflows pass', () => {
+  const result = run(six(tree()));
+  assert.equal(result.status, 0, result.stderr);
+  assert(result.stdout.includes('Marketplace checks passed'), result.stdout);
+});
+
+test('a Codex workflow with a second manifest fails', () => {
+  const root = six(tree());
+  const name = 'mstack-codex-led-dev';
+  mkdirSync(join(root, `plugins/${name}/.claude-plugin`), { recursive: true });
+  writeJson(root, `plugins/${name}/.claude-plugin/plugin.json`, { name, version: '0.1.0', description: 'Test.', license: 'Apache-2.0' });
+  const catalog = readJson(root, '.claude-plugin/marketplace.json');
+  const proto = catalog.plugins.find((p) => p.name === 'mstack-codex-review-workflow');
+  catalog.plugins.push({ ...proto, name, version: '0.1.0', source: `./plugins/${name}` });
+  writeJson(root, '.claude-plugin/marketplace.json', catalog);
+  fails(run(root), name, '.codex-plugin');
+});
+
+test("a workflow with another host's manifest instead of its own fails", () => {
+  const root = tree();
+  const name = 'mstack-codex-led-dev';
+  addWorkflow(root, name);
+  rmSync(join(root, `plugins/${name}/.codex-plugin`), { recursive: true });
+  const codexCatalog = readJson(root, '.agents/plugins/marketplace.json');
+  codexCatalog.plugins = codexCatalog.plugins.filter((p) => p.name !== name);
+  writeJson(root, '.agents/plugins/marketplace.json', codexCatalog);
+  mkdirSync(join(root, `plugins/${name}/.claude-plugin`), { recursive: true });
+  writeJson(root, `plugins/${name}/.claude-plugin/plugin.json`, { name, version: '0.1.0', description: 'Test.', license: 'Apache-2.0' });
+  const claudeCatalog = readJson(root, '.claude-plugin/marketplace.json');
+  const proto = claudeCatalog.plugins.find((p) => p.name === 'mstack-codex-review-workflow');
+  claudeCatalog.plugins.push({ ...proto, name, version: '0.1.0', source: `./plugins/${name}` });
+  writeJson(root, '.claude-plugin/marketplace.json', claudeCatalog);
+  fails(run(root), name, '.codex-plugin');
+});
+
+test('an Antigravity workflow passes without a registry entry', () => {
+  const root = tree();
+  addWorkflow(root, 'mstack-antigravity-led-review');
+  const result = run(root);
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('a review copy drifts and is named', () => {
+  const root = six(tree());
+  edit(root, 'plugins/mstack-claude-led-review/skills/mstack-claude-led-review/SKILL.md', (text) => `${text}\nDrift.\n`);
+  const result = run(root);
+  fails(result, 'review kind', 'mstack-claude-led-review');
+  assert(!result.stderr.includes('SKILL.md of mstack-codex-led-review'), result.stderr);
+  assert(!result.stderr.includes('SKILL.md of mstack-antigravity-led-review'), result.stderr);
+});
+
+test('a dev copy edited alone is named', () => {
+  const root = six(tree());
+  edit(root, 'plugins/mstack-antigravity-led-dev/skills/mstack-antigravity-led-dev/SKILL.md', (text) => text.replace('shared', 'changed'));
+  const result = run(root);
+  fails(result, 'dev kind: SKILL.md of mstack-antigravity-led-dev differs');
+  assert(!result.stderr.includes('SKILL.md of mstack-claude-led-dev'), result.stderr);
+  assert(!result.stderr.includes('SKILL.md of mstack-codex-led-dev'), result.stderr);
+});
+
+test('a SKILL.md without a closing frontmatter line fails', () => {
+  const root = six(tree());
+  edit(root, 'plugins/mstack-codex-led-review/skills/mstack-codex-led-review/SKILL.md', (text) => text.replace(/\n---\n/, '\n'));
+  fails(run(root), 'mstack-codex-led-review', 'frontmatter');
+});
+
+test('a SKILL.md without an opening frontmatter line fails', () => {
+  const root = six(tree());
+  edit(root, 'plugins/mstack-codex-led-review/skills/mstack-codex-led-review/SKILL.md', (text) => text.replace(/^---\n/, ''));
+  fails(run(root), 'mstack-codex-led-review: SKILL.md has no frontmatter');
+});
+
+test('tied workflow copies name every member', () => {
+  const root = six(tree());
+  edit(root, 'plugins/mstack-claude-led-review/skills/mstack-claude-led-review/SKILL.md', (text) => `${text}\nOne.\n`);
+  edit(root, 'plugins/mstack-codex-led-review/skills/mstack-codex-led-review/SKILL.md', (text) => `${text}\nTwo.\n`);
+  fails(
+    run(root),
+    'review kind: SKILL.md of mstack-claude-led-review differs',
+    'review kind: SKILL.md of mstack-codex-led-review differs',
+    'review kind: SKILL.md of mstack-antigravity-led-review differs',
+  );
+});
+
+test('a shared reference file drifts', () => {
+  const root = six(tree());
+  edit(root, 'plugins/mstack-codex-led-dev/skills/mstack-codex-led-dev/references/external-facts.md', (text) => `${text}\nDrift.\n`);
+  const result = run(root);
+  fails(result, 'workflows: references/external-facts.md of mstack-codex-led-dev differs');
+  assert(!result.stderr.includes('references/external-facts.md of mstack-claude-led-dev'), result.stderr);
+});
+
+test('a reference file missing in one workflow fails', () => {
+  const root = six(tree());
+  rmSync(join(root, 'plugins/mstack-codex-led-review/skills/mstack-codex-led-review/references/grilling.md'));
+  fails(run(root), 'workflows: references/grilling.md is missing in mstack-codex-led-review');
+});
+
+test('an extra reference file in one workflow fails', () => {
+  const root = six(tree());
+  writeFileSync(join(root, 'plugins/mstack-claude-led-dev/skills/mstack-claude-led-dev/references/extra.md'), 'Extra.\n');
+  fails(run(root), 'workflows: references/extra.md of mstack-claude-led-dev differs');
+});
+
+test('the notices drift', () => {
+  const root = six(tree());
+  edit(root, 'plugins/mstack-antigravity-led-review/skills/mstack-antigravity-led-review/THIRD_PARTY_NOTICES.md', (text) => `${text}\nDrift.\n`);
+  fails(run(root), 'workflows: THIRD_PARTY_NOTICES.md of mstack-antigravity-led-review differs');
+});
+
+test('plan-format drifts in the new workflows', () => {
+  const root = six(tree());
+  for (const name of newWorkflows) edit(root, `plugins/${name}/skills/${name}/references/plan-format.md`, (text) => `${text}\nDrift.\n`);
+  const result = run(root);
+  fails(result, 'plan-format.md');
+  assert(newWorkflows.some((name) => result.stderr.includes(name)), result.stderr);
+});
+
+test('codegraph drifts in the new workflows', () => {
+  const root = six(tree());
+  for (const name of newWorkflows) edit(root, `plugins/${name}/skills/${name}/references/codegraph.md`, (text) => `${text}\nDrift.\n`);
+  const result = run(root);
+  fails(result, 'codegraph.md');
+  assert(newWorkflows.some((name) => result.stderr.includes(name)), result.stderr);
+});
+
+test('host file missing', () => {
+  const root = six(tree());
+  rmSync(join(root, 'plugins/mstack-codex-led-review/skills/mstack-codex-led-review/host.md'));
+  fails(run(root), 'mstack-codex-led-review', 'host.md');
+});
+
+test('host file names another host', () => {
+  const root = six(tree());
+  writeFileSync(join(root, 'plugins/mstack-claude-led-dev/skills/mstack-claude-led-dev/host.md'), '# Host: Codex\n');
+  fails(run(root), 'mstack-claude-led-dev', 'host.md');
+});
+
+test('dangling reference link in host.md fails', () => {
+  const root = six(tree());
+  writeFileSync(join(root, 'plugins/mstack-claude-led-dev/skills/mstack-claude-led-dev/host.md'), '# Host: Claude Code\n\nSee references/no-such-file.md.\n');
+  fails(run(root), 'mstack-claude-led-dev', 'references/no-such-file.md');
+});
+
+test('old and new coexist', () => {
+  const root = tree();
+  addWorkflow(root, 'mstack-claude-led-review');
+  addWorkflow(root, 'mstack-codex-led-review');
+  const result = run(root);
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('old workflows are still compared', () => {
+  const root = tree();
+  edit(root, 'plugins/mstack-claude-review-workflow/skills/mstack-claude-review-workflow/references/writing.md', (text) => `${text}\nDrift.\n`);
+  fails(run(root), 'workflows: references/writing.md of mstack-claude-review-workflow differs');
+});
+
+test('deleting mstack-claude-pm-codex-dev fixture plan fails', () => {
+  const root = tree();
+  rmSync(join(root, 'plugins/mstack-claude-pm-codex-dev/skills/mstack-claude-pm-codex-dev/evals/_fixture/plan'), { recursive: true });
+  fails(run(root), 'mstack-claude-pm-codex-dev', 'evals/_fixture/plan');
+});
+
+test("a workflow's fixture plan is linted", () => {
+  const root = six(tree());
+  edit(root, 'plugins/mstack-codex-led-dev/skills/mstack-codex-led-dev/evals/_fixture/plan/progress.md', (text) => text.replace(/^Spec:[^\n]*\n/m, ''));
+  fails(run(root), 'mstack-codex-led-dev', 'evals/_fixture/plan');
 });

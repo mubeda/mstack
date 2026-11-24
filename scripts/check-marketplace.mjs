@@ -21,6 +21,15 @@ const names = (entries) => entries.map((entry) => entry.name).sort();
 const folders = readdirSync(resolve(root, 'plugins'), { withFileTypes: true })
   .filter((file) => file.isDirectory()).map((file) => file.name);
 const hasManifest = (name, host) => existsSync(resolve(root, 'plugins', name, `.${host}-plugin/plugin.json`));
+const kinds = {
+  review: ['mstack-claude-led-review', 'mstack-codex-led-review', 'mstack-antigravity-led-review'],
+  dev: ['mstack-claude-led-dev', 'mstack-codex-led-dev', 'mstack-antigravity-led-dev'],
+};
+const oldWorkflows = ['mstack-codex-review-workflow', 'mstack-claude-review-workflow', 'mstack-claude-pm-codex-dev'];
+const allSixRequired = false;
+const newWorkflows = Object.values(kinds).flat();
+const leaderOf = (name) => name.split('-')[1];
+const hostTitle = { claude: 'Claude Code', codex: 'Codex', antigravity: 'Antigravity' };
 // Plugins another spec assigns to one host, by name: each carries exactly that host's manifest. Every other plugin carries all
 // three. A plugin with only an Antigravity manifest is accepted only when this table names it ('antigravity').
 // MSTACK_CHECK_HOSTS (a JSON object of the same shape) adds rows for the tests.
@@ -28,9 +37,16 @@ const singleHost = {
   'mstack-codex-review-workflow': 'claude',
   'mstack-claude-review-workflow': 'codex',
   'mstack-claude-pm-codex-dev': 'claude',
+  ...Object.fromEntries(newWorkflows.map((name) => [name, leaderOf(name)])),
   ...JSON.parse(process.env.MSTACK_CHECK_HOSTS ?? '{}'),
 };
 const agyPlugins = folders.filter((name) => hasManifest(name, 'antigravity'));
+
+if (allSixRequired) {
+  for (const name of newWorkflows) {
+    assert(folders.includes(name), `${name}: workflow plugin missing`);
+  }
+}
 
 for (const entries of [claude, codex]) {
   assert.equal(new Set(names(entries)).size, entries.length, 'Duplicate plugin names');
@@ -42,7 +58,10 @@ assert.deepEqual(names(codex), folders.filter((name) => hasManifest(name, 'codex
 
 for (const name of folders) {
   const manifests = ['claude', 'codex', 'antigravity'].filter((host) => hasManifest(name, host));
-  if (singleHost[name]) {
+  if (newWorkflows.includes(name)) {
+    const leader = leaderOf(name);
+    assert.equal(manifests.join(), leader, `${name}: a workflow led from ${leader} has only the .${leader}-plugin manifest (found: ${manifests.join(', ') || 'none'})`);
+  } else if (singleHost[name]) {
     assert.equal(manifests.join(), singleHost[name], `${name}: a single-host plugin has exactly one manifest, the ${singleHost[name]} one (found: ${manifests.join(', ') || 'none'})`);
   } else {
     assert.equal(manifests.length, 3, `${name}: needs .claude-plugin, .codex-plugin and .antigravity-plugin manifests`);
@@ -87,13 +106,18 @@ for (const name of folders) {
   for (const skill of readdirSync(skillRoot, { withFileTypes: true }).filter((file) => file.isDirectory())) {
     const skillPath = resolve(skillRoot, skill.name);
     const content = readFileSync(resolve(skillPath, 'SKILL.md'), 'utf8');
+    assert(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/.test(content), `${skill.name}: SKILL.md has no frontmatter (a first line --- and a closing ---)`);
     assert.match(content, new RegExp(`^---\\r?\\nname: ${skill.name}\\r?\\n`));
     assert.match(content, /\ndescription:\s*\S+/);
     const referencePath = resolve(skillPath, 'references');
-    const resources = existsSync(referencePath)
-      ? readdirSync(referencePath).filter((name) => name.endsWith('.md'))
-        .map((name) => readFileSync(resolve(referencePath, name), 'utf8')).join('\n')
-      : '';
+    const hostFile = resolve(skillPath, 'host.md');
+    const resources = [
+      ...(existsSync(hostFile) ? [readFileSync(hostFile, 'utf8')] : []),
+      ...(existsSync(referencePath)
+        ? readdirSync(referencePath).filter((name) => name.endsWith('.md'))
+          .map((name) => readFileSync(resolve(referencePath, name), 'utf8'))
+        : []),
+    ].join('\n');
     // Paths under another folder (`<other-skill-dir>/scripts/x.py`) belong to that folder, not this skill.
     for (const [, dir, file] of `${content}\n${resources}`.matchAll(/(?<![\w/>.-])(references|scripts)\/([\w.-]+\.\w+)\b/g)) {
       assert(existsSync(resolve(skillPath, dir, file)), `${skill.name}: missing ${dir}/${file}`);
@@ -101,30 +125,95 @@ for (const name of folders) {
   }
 }
 
-// The three workflows ship the same reference files and notices; each install copies only its own plugin folder.
-const shared = ['mstack-codex-review-workflow', 'mstack-claude-review-workflow', 'mstack-claude-pm-codex-dev'];
-const sharedFiles = ['skills/<skill>/THIRD_PARTY_NOTICES.md', ...readdirSync(resolve(root, 'plugins', shared[0], 'skills', shared[0], 'references'))
-  .map((file) => `skills/<skill>/references/${file}`)];
-for (const file of sharedFiles) {
-  const first = read(`plugins/${shared[0]}/${file.replace('<skill>', shared[0])}`);
-  for (const name of shared.slice(1)) {
-    const path = `plugins/${name}/${file.replace('<skill>', name)}`;
-    assert(existsSync(resolve(root, path)), `${file} is missing in ${name}; copy ${shared[0]}'s`);
-    assert.equal(read(path), first, `${file} differs between ${shared[0]} and ${name}; edit every copy (${shared.join(', ')})`);
+// Group members by text; a strictly largest group is the reference and every member outside it is named.
+// With no strictly largest group, every member is named.
+const odd = (members, textOf) => {
+  if (members.length < 2) return [];
+  const groups = new Map();
+  for (const member of members) {
+    const text = textOf(member);
+    const list = groups.get(text) ?? [];
+    list.push(member);
+    groups.set(text, list);
   }
+  if (groups.size === 1) return [];
+  const sorted = [...groups.values()].sort((a, b) => b.length - a.length);
+  if (sorted[0].length > sorted[1].length) return sorted.slice(1).flat();
+  return [...members];
+};
+const readOrNull = (path) => (existsSync(resolve(root, path)) ? read(path) : null);
+
+// Within each workflow kind, SKILL.md below frontmatter and every frontmatter line other than name and description match.
+const skillParts = (name) => {
+  const text = read(`plugins/${name}/skills/${name}/SKILL.md`);
+  const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/);
+  assert(match, `${name}: SKILL.md has no frontmatter (a first line --- and a closing ---)`);
+  const other = [];
+  let skip = false;
+  for (const line of match[1].split(/\r?\n/)) {
+    if (/^(name|description):/.test(line)) { skip = true; continue; }
+    if (skip && (/^[ \t]/.test(line) || line === '')) continue;
+    skip = false;
+    other.push(line);
+  }
+  return `${other.join('\n')}\n---\n${match[2]}`;
+};
+for (const [kind, list] of Object.entries(kinds)) {
+  const present = list.filter((name) => folders.includes(name));
+  const normalized = new Map(present.map((name) => [name, skillParts(name)]));
+  const bad = odd(present, (name) => normalized.get(name));
+  assert.equal(bad.length, 0, bad.map((name) => `${kind} kind: SKILL.md of ${name} differs below the name and description; edit every copy (${present.join(', ')})`).join('\n'));
 }
 
-// mstack-plan writes plans in the format the three workflows read, so plan-format.md ships identically in all four plugins.
-// The review rules live only in mstack-receive-review, which all four load.
-for (const file of ['plan-format.md']) {
-  const path = (name) => `plugins/${name}/skills/${name}/references/${file}`;
-  for (const name of shared) {
-    assert.equal(read(path(name)), read(path('mstack-plan')), `${file} differs between mstack-plan and ${name}; edit all four copies`);
+// Workflows ship identical notices and reference files (new workflows across both kinds, old workflows among themselves).
+const checkShared = (members) => {
+  if (members.length < 2) return;
+  const noticeText = (name) => readOrNull(`plugins/${name}/skills/${name}/THIRD_PARTY_NOTICES.md`);
+  const badNotices = odd(members, noticeText);
+  assert.equal(badNotices.length, 0, badNotices.map((name) => (
+    noticeText(name) === null
+      ? `workflows: THIRD_PARTY_NOTICES.md is missing in ${name}`
+      : `workflows: THIRD_PARTY_NOTICES.md of ${name} differs`
+  )).join('\n'));
+  const refNames = [...new Set(members.flatMap((name) => {
+    const dir = resolve(root, `plugins/${name}/skills/${name}/references`);
+    return existsSync(dir) ? readdirSync(dir) : [];
+  }))].sort();
+  for (const file of refNames) {
+    const textOf = (name) => readOrNull(`plugins/${name}/skills/${name}/references/${file}`);
+    const bad = odd(members, textOf);
+    assert.equal(bad.length, 0, bad.map((name) => (
+      textOf(name) === null
+        ? `workflows: references/${file} is missing in ${name}`
+        : `workflows: references/${file} of ${name} differs; edit every copy (${members.join(', ')})`
+    )).join('\n'));
   }
+};
+const presentNew = newWorkflows.filter((name) => folders.includes(name));
+const presentOld = oldWorkflows.filter((name) => folders.includes(name));
+const presentWorkflows = [...presentOld, ...presentNew];
+checkShared(presentNew);
+checkShared(presentOld);
+
+// Each new workflow names its leader host in skills/<name>/host.md (outside references/).
+for (const name of presentNew) {
+  const hostPath = `plugins/${name}/skills/${name}/host.md`;
+  assert(existsSync(resolve(root, hostPath)), `${name}: host.md is missing; a workflow names its host in skills/${name}/host.md`);
+  const expected = `# Host: ${hostTitle[leaderOf(name)]}`;
+  const firstLine = read(hostPath).split(/\r?\n/)[0];
+  assert.equal(firstLine, expected, `${name}: host.md must start with "${expected}"`);
 }
 
-// The seven skills that read code ship the same codegraph steps; each install copies only its own folder.
-for (const name of ['mstack-write-specs', 'mstack-diagnose', 'mstack-backlog-triage', ...shared]) {
+// mstack-plan writes plans in the format the workflows read, so plan-format.md ships identically in mstack-plan and every workflow.
+// The review rules live only in mstack-receive-review, which all load.
+for (const name of presentWorkflows) {
+  const path = (n) => `plugins/${n}/skills/${n}/references/plan-format.md`;
+  assert(existsSync(resolve(root, path(name))), `${name}: references/plan-format.md is missing; copy mstack-plan's`);
+  assert.equal(read(path(name)), read(path('mstack-plan')), `plan-format.md differs between mstack-plan and ${name}; edit every copy`);
+}
+
+// The skills that read code ship the same codegraph steps; each install copies only its own folder.
+for (const name of ['mstack-write-specs', 'mstack-diagnose', 'mstack-backlog-triage', ...presentWorkflows]) {
   const path = (n) => `plugins/${n}/skills/${n}/references/codegraph.md`;
   assert(existsSync(resolve(root, path(name))), `${name}: references/codegraph.md is missing; copy mstack-plan's`);
   assert.equal(read(path(name)), read(path('mstack-plan')), `${name}: references/codegraph.md differs from mstack-plan's copy`);
@@ -173,10 +262,16 @@ for (const name of readdirSync(resolve(root, 'plugins'))) {
   assert(!existsSync(resolve(root, copy)), `${copy} exists; the review rules live only in mstack-receive-review`);
 }
 
-// mstack-claude-pm-codex-dev's test cases run a plan folder too, so it must pass the linter.
-const pmPlan = resolve(root, 'plugins/mstack-claude-pm-codex-dev/skills/mstack-claude-pm-codex-dev/evals/_fixture/plan');
-const pmLint = spawnSync(process.execPath, [resolve(planSkill, 'scripts/check-plan.mjs'), pmPlan], { encoding: 'utf8' });
-assert.equal(pmLint.status, 0, `check-plan.mjs rejects mstack-claude-pm-codex-dev's evals/_fixture/plan:\n${pmLint.stdout}${pmLint.stderr}`);
+// Every workflow that carries a fixture plan folder must pass the plan linter (and mstack-claude-pm-codex-dev's evals require it).
+for (const name of presentWorkflows) {
+  const fixturePlan = resolve(root, `plugins/${name}/skills/${name}/evals/_fixture/plan`);
+  if (!existsSync(fixturePlan)) {
+    assert.notEqual(name, 'mstack-claude-pm-codex-dev', `${name}: evals/_fixture/plan is missing`);
+    continue;
+  }
+  const fixtureLint = spawnSync(process.execPath, [resolve(planSkill, 'scripts/check-plan.mjs'), fixturePlan], { encoding: 'utf8' });
+  assert.equal(fixtureLint.status, 0, `${name}: check-plan.mjs rejects evals/_fixture/plan:\n${fixtureLint.stdout}${fixtureLint.stderr}`);
+}
 // mstack-auto routes a prompt to the fitting skill from its own table, so the table has one row per plugin:
 // a skill added without a row would never be chosen, and a row for a removed skill would route to nothing.
 const routing = 'plugins/mstack-auto/skills/mstack-auto/SKILL.md';

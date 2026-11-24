@@ -97,3 +97,22 @@ test('git failing on an existing base manifest is an error, not a waived bump', 
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /mstack-agy-only/);
 });
+
+test('a new single-host plugin is new, not compared', () => {
+  const dir = repo();
+  put(dir, 'plugins/mstack-new-dev/.codex-plugin/plugin.json', JSON.stringify({ version: '0.1.0' }));
+  put(dir, 'plugins/mstack-new-dev/skills/mstack-new-dev/SKILL.md', 'one\n');
+  const result = run(dir);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /0 changed plugin\(s\)/);
+});
+
+test('a new single-host plugin still requires a marketplace bump', () => {
+  const dir = repo();
+  put(dir, '.claude-plugin/marketplace.json', JSON.stringify({ metadata: { version: '0.1.0' }, plugins: [] }));
+  put(dir, 'plugins/mstack-new-dev/.codex-plugin/plugin.json', JSON.stringify({ version: '0.1.0' }));
+  put(dir, 'plugins/mstack-new-dev/skills/mstack-new-dev/SKILL.md', 'one\n');
+  const result = run(dir);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /marketplace: plugins changed/);
+});
