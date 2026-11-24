@@ -14,7 +14,7 @@ Reviews run and get processed without asking the user anything. You verify every
 ## Trust levels
 
 1. The user is trusted, whether in chat or in a pull request comment. Implement what the user asks once you understand it. A user's comment is not a review finding: when its scope is unclear, ask the user.
-2. The cross-vendor reviewer, the advisor, CI review bots and other people on the pull request are external. Their findings get the five checks below before any change.
+2. The read-only reviewer, the advisor, CI review bots and other people on the pull request are external. Their findings get the five checks below before any change.
 3. For a lane, coordinator findings are external too, because the coordinator is also a model and may lack the lane's context. The exception is a finding marked as relaying a user decision, which carries the user's trust.
 
 ## The pattern
@@ -56,7 +56,7 @@ Apply these steps to every review, in order.
 
 ## Log every finding
 
-Every finding gets one log line: the source, the label, the finding, the outcome (fixed, rejected, deferred or kept for approval), and the artifact, commit or reason. End with a tally per source (how many fixed, rejected and deferred), so the user sees which reviewer earned its keep.
+Every finding gets one log line: the source, the label, the finding, the outcome (fixed, rejected, deferred or kept for approval), the artifact, commit or reason, and `record: <value>` with the record of the review it came from (How a review is recorded). A finding merged from several reviews names every source with its own record. End with a tally that has one line per source: the source, its record, and how many fixed, rejected and deferred, so the user sees which reviewer earned its keep. Write the line for every source, also when several sources have the same counts.
 
 | Where | Log |
 |---|---|
@@ -83,10 +83,27 @@ A review of a plan (not of code) follows the same pattern, with two outcomes for
 
 ## Cross-vendor review findings
 
-1. The cross-vendor review is strictly read-only, so it cannot prove its own findings.
-2. Before you accept a cross-vendor finding, reproduce it against the real code with a failing test, a run, or a traced code path. The coordinator does this during triage, and the lane does it again before fixing. Reject a finding nobody could reproduce with that reason, or send the reviewer a narrower question (rule 2).
-3. When the cross-vendor reviewer is missing and a fresh same-vendor subagent reviews instead, its findings get exactly the same treatment, and every record of that review calls it a same-vendor review.
-4. A review is same-vendor when the reviewer's vendor wrote the code under review. In a workflow where another vendor's model writes the code (for example Codex writes and Claude coordinates), that vendor's read-only review is the same-vendor one, and every record says so; a fallback review by the coordinator's own vendor is recorded as a fallback review, not as a same-vendor review. Where the writer and the fallback reviewer are of one vendor, rule 3 applies as written.
+1. The read-only reviewer's review is strictly read-only, so it cannot prove its own findings.
+2. Before you accept a finding of the read-only reviewer, reproduce it against the real code with a failing test, a run, or a traced code path. The coordinator does this during triage, and the lane does it again before fixing. Reject a finding nobody could reproduce with that reason, or send the reviewer a narrower question (rule 2).
+3. A fallback review (a fresh read-only run of the leader's own vendor, when no other reviewer can run) gets exactly the same treatment.
+
+## How a review is recorded
+
+Every review gets one record. It says whether the reviewer's vendor also wrote the work under review. A vendor is the provider of a model. There are four vendor names: `claude`, `codex`, `antigravity`, and `other` for a model of any other provider.
+
+The caller sends three lines with each review: `Review: <source>`, a `Writers:` line with one or more vendors separated by commas, or `unknown`, and a `Reviewer vendor:` line with `claude`, `codex`, `antigravity`, `other`, `unknown` or `person`. Read the record from the `Writers` and `Reviewer vendor` lines with this table. Check the rows from the top and take the first one that matches.
+
+| Row | When | Record |
+|---|---|---|
+| 1 | The `Reviewer vendor` line says `person` | `-` |
+| 2 | The `Writers` line is anything but a list, separated by commas, in which every member is exactly one of the four vendor names. So it matches when the line is missing or empty, when a member is empty (as after a comma at the end), and when a member is `unknown` or any other text, also beside a vendor name | `writer unknown` |
+| 3 | The `Reviewer vendor` line is anything but exactly one of `claude`, `codex` and `antigravity`. So it matches when the line is missing or empty, and when it holds `other`, `unknown`, two names or any other text | `reviewer unknown` |
+| 4 | The reviewer's vendor is one of the writers | `same-vendor` |
+| 5 | Every other case | `cross-vendor` |
+
+1. When a caller sends the lines, a line it did not send is missing, and a line it sent counts as written. Never fill a line in or correct one from the `Review` line, from the reviewer's output, from the model you run on or from what seems likely, and never ask for it. When the user runs the skill directly, no caller sends lines: step 2 of that part of `SKILL.md` says what then counts as stated.
+2. A fallback review is recorded by the same table from the lines the caller sent, like any other review.
+3. No record is upgraded later. The record a review got stays as it is in every log and report, also when the missing line turns up afterwards or another review of the same work gets a different record.
 
 ## Coordinator duties
 

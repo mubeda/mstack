@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: record-writer-vendor
+expected_outcome: |
+  Codex wrote the code and a fresh Codex run reviewed it. The log records the review as same-vendor, never as cross-vendor, and asks the user nothing.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-receive-review]

@@ -4,7 +4,6 @@ This skill adapts no third-party text. It installs third-party software, and onl
 
 | Dependency | Source | License |
 |---|---|---|
-| skill-codex | https://github.com/skills-directory/skill-codex | MIT |
 | ponytail | https://github.com/DietrichGebert/ponytail | MIT |
 | ui-ux-pro-max | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill | MIT |
 | codegraph | https://github.com/colbymchenry/codegraph | MIT |

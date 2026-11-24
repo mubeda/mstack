@@ -31,18 +31,21 @@ A skill that calls `mstack-setup` names the rows it needs in a `Needs:` line (`S
 
 | Group | Rows | For a caller that |
 |---|---|---|
-| `reviewer` | `reviewer-plugin` (Claude Code only), `reviewer-cli`, `reviewer-login`; Antigravity has no reviewer row, so the group is no name there | starts the cross-vendor reviewer |
+| `reviewer` | the vendor rows of the host: `codex-cli` and `codex-login` in Claude Code, `claude-cli` and `claude-login` in Codex, all four in Antigravity | starts a reviewer of another vendor |
 | `codegraph` | `codegraph-cli`, `codegraph-connected` | reads code through the code index |
 
-The reviewer rows are optional for the user, who can work without an account at the other vendor. A caller that sends no `Needs:` line is still stopped by them, as it was when they were mandatory, so no caller starts passing without its reviewer. `node` always blocks, because the check itself runs on it. A caller that starts no reviewer and reads no code names neither group, and a reviewer that is not logged in then does not stop it. When a row of a group is renamed or added, the group changes here and in `scripts/check-setup.mjs`, and no caller changes.
+A channel is ready when a vendor's `-cli` row and its `-login` row are both `ok`. One ready channel meets the group `reviewer`: the rows of the first ready channel block, and the other vendor rows are reported and block nothing; when no channel is ready, every vendor row blocks. A ready channel says only that the client is installed and signed in. Whether that vendor can review a given piece of work depends on who leads and who wrote it, and `mstack-vendors` answers that; this skill never does.
+
+The vendor rows are optional on every host: the mstack skills work with one client installed, and a review by another vendor falls back to a fresh subagent of the same vendor. Without a `Needs:` line the vendor rows block nothing and never fail the status; only a caller that names them (a row ID or the group `reviewer`) is stopped by them. `node` always blocks, because the check itself runs on it. A caller that starts no reviewer and reads no code names neither group, and a client that is not signed in then does not stop it. When a row of a group is renamed or added, the group changes here and in `scripts/check-setup.mjs`, and no caller changes.
 
 ## Optional
 
 | ID | For | Claude Code | Codex | Antigravity |
 |---|---|---|---|---|
-| `reviewer-plugin` | the cross-vendor reviewer: the second opinion of the planning and review workflows, which review with a fresh subagent of the same vendor without it | skill-codex: `claude plugin marketplace add skills-directory/skill-codex`, then `claude plugin install skill-codex@skill-codex --scope user` | not for this host: in Codex the reviewer is the `claude` client itself, the two rows below | not for this host |
-| `reviewer-cli` | the reviewer's command-line tool | `npm install -g @openai/codex` | `npm install -g @anthropic-ai/claude-code` | not for this host |
-| `reviewer-login` | the reviewer can run | manual step: `codex login`, then `codex login status` | manual step: `claude auth login`, then `claude auth status` | not for this host |
+| `codex-cli` | the channel to `codex`: a second opinion from another vendor for the planning and review workflows, which review with a fresh subagent of the same vendor without one | `npm install -g @openai/codex` | not for this host | a step for the user, which this skill never runs in Antigravity: `npm install -g @openai/codex` |
+| `codex-login` | the `codex` client is signed in | manual step: `codex login`, then `codex login status` | not for this host | manual step: `codex login`, then `codex login status` |
+| `claude-cli` | the channel to `claude`, for the same use | not for this host | `npm install -g @anthropic-ai/claude-code` | a step for the user, which this skill never runs in Antigravity: `npm install -g @anthropic-ai/claude-code` |
+| `claude-login` | the `claude` client is signed in | not for this host | manual step: `claude auth login`, then `claude auth status` | manual step: `claude auth login`, then `claude auth status` |
 | `ui-ux-pro-max` | web and UI work | `claude plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill`, then `claude plugin install ui-ux-pro-max@ui-ux-pro-max-skill --scope user` (it also installs six companion design skills) | no plugin: `npm install -g ui-ux-pro-max-cli`, then `uipro init --ai codex --global`. Where that puts the skill was not verified; check with `uipro init --ai codex --global --dry-run` first | none: not available in Antigravity (a warning row that does not count against the setup) |
 | `archify` | the diagrams `mstack-explain-me-better` offers | no plugin: `npx -y skills@latest add https://archify.si --skill archify --agent claude-code --global --copy --yes` | no plugin: `npx -y skills@latest add https://archify.si --skill archify --agent codex --global --copy --yes` | a step for the user, which this skill never runs in Antigravity (the yes covers only the code-index install, its connect command and `agy plugin install`): `npx -y skills@latest add https://archify.si --skill archify --agent antigravity --global --copy --yes` |
 | `gh` | GitHub issues and pull requests | none: install from https://cli.github.com, then the user runs `gh auth login` | same | same |
@@ -59,9 +62,11 @@ A skill without a plugin for the host would go through the skills command with i
 
 Only the user can do these. Name each with its command in the final report.
 
-- Logins: `codex login` (Claude Code host), `claude auth login` (Codex host).
+- Logins: `codex login` for a `codex-login` row (Claude Code and Antigravity hosts), `claude auth login` for a `claude-login` row (Codex and Antigravity hosts).
 - ponytail on Codex: open `/hooks` in Codex and trust ponytail's hooks.
 - A new session: every skill or plugin installed during this session loads only in a new session. In Antigravity that holds after every `agy plugin install`.
-- In Antigravity, every install that is not the code-index install, its connect command or an `agy plugin install`: show its command under "Steps for you" and do not run it.
+- In Antigravity, a vendor row that was not checked because the run outside the sandbox was not approved (`SKILL.md` section 1; the script is then run with `--vendors not-checked`): no step and no command; its state is `not checked`.
+- A `LOGIN` row whose detail starts with "sign-in could not be checked": the client's status command did not complete (it could not start, gave no answer in time or was ended). No login step; the user runs `codex login status` or `claude auth status` to see why.
+- In Antigravity, every install that is not the code-index install, its connect command or an `agy plugin install` (the skills command for `archify`, the `npm` install of the `claude` or the `codex` client): show its command under "Steps for you" and do not run it.
 - ponytail in Antigravity: nothing to do; its hooks do not run there, and only its skills load.
 - `node`, `git`, `gh`, Python 3: install from the vendor's page or the system package manager.

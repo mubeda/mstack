@@ -16,7 +16,6 @@ skill() { mkdir -p "$H/$1"; printf -- "---\nname: x\ndescription: Use when testi
 C=.claude/plugins/cache
 
 skill "$C/ponytail/ponytail/5.3.3/skills/ponytail"
-mkdir -p "$H/$C/skill-codex/skill-codex/1.3.1/skills/codex"; echo "Run codex exec." > "$H/$C/skill-codex/skill-codex/1.3.1/skills/codex/SKILL.md"
 for s in mstack-best-model-for mstack-receive-review mstack-research mstack-setup mstack-plan mstack-write-specs mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-codex-review-workflow; do skill "$C/mstack/$s/0.1.0/skills/$s"; done
 skill "$C/ui-ux-pro-max-skill/ui-ux-pro-max/1.0.0/skills/ui-ux-pro-max"
 skill ".agents/skills/archify"
@@ -27,7 +26,7 @@ stub claude; stub codex; stub npm; stub npx; stub codegraph
 # The install record: the plugins the case installs elsewhere, plus one "<skill>@mstack" entry per cached mstack skill,
 # because a skill in the cache counts only when its plugin is recorded.
 mkdir -p "$H/.claude/plugins"
-rec='{"version":2,"plugins":{"ponytail@ponytail":[{}],"skill-codex@skill-codex":[{}],"ui-ux-pro-max@ui-ux-pro-max-skill":[{}]}}'
+rec='{"version":2,"plugins":{"ponytail@ponytail":[{}],"ui-ux-pro-max@ui-ux-pro-max-skill":[{}]}}'
 for d in "$H/$C"/mstack/*/; do rec="${rec%\}\}},\"$(basename "$d")@mstack\":[{}]}}"; done
 echo "$rec" > "$H/.claude/plugins/installed_plugins.json"
 chmod +x "$B"/*

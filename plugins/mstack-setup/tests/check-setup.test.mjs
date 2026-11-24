@@ -1,17 +1,22 @@
 // Tests for scripts/check-setup.mjs. Each test builds a throwaway home folder and a bin folder of stubs,
 // and runs the script with only those on PATH, so nothing on the real machine is read or changed.
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const script = resolve(dirname(fileURLToPath(import.meta.url)), '../skills/mstack-setup/scripts/check-setup.mjs');
 
+// Every throwaway machine is removed when the file's tests are done, so a run leaves nothing in the temporary directory.
+const roots = [];
+after(() => { for (const r of roots) rmSync(r, { recursive: true, force: true }); });
+
 function machine() {
   const root = mkdtempSync(join(tmpdir(), 'check-setup-'));
+  roots.push(root);
   const home = join(root, 'home'), bin = join(root, 'bin');
   mkdirSync(home, { recursive: true }); mkdirSync(bin, { recursive: true });
   const m = {
@@ -39,17 +44,15 @@ function run(m, args, env = {}) {
   return { status: r.status, out: `${r.stdout}${r.stderr}`, json, state };
 }
 
-const MANDATORY_CLAUDE = ['node', 'git', 'codegraph-cli', 'codegraph-connected', 'ponytail', 'reviewer-plugin',
-  'reviewer-cli', 'mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup'];
+const MANDATORY_CLAUDE = ['node', 'git', 'codegraph-cli', 'codegraph-connected', 'ponytail',
+  'codex-cli', 'mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup'];
 
 function completeClaude(m, base = '.claude') {
   m.stub('node').stub('git').stub('codegraph').stub('codex');
   const cache = `${base}/plugins/cache`;
   m.skill(`${cache}/ponytail/ponytail/5.3.3/skills/ponytail`);
-  m.file(`${cache}/skill-codex/skill-codex/1.3.1/skills/codex/SKILL.md`, 'Run codex exec.');
   for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup']) m.skill(`${cache}/mstack/${s}/0.1.0/skills/${s}`);
-  m.file(`${base}/plugins/installed_plugins.json`, JSON.stringify({ version: 2, plugins: { 'ponytail@ponytail': [{}], 'skill-codex@skill-codex': [{}],
-    'mstack-find-skills@mstack': [{}], 'mstack-best-model-for@mstack': [{}], 'mstack-receive-review@mstack': [{}], 'mstack-research@mstack': [{}], 'mstack-setup@mstack': [{}] } }));
+  m.file(`${base}/plugins/installed_plugins.json`, JSON.stringify({ version: 2, plugins: { 'ponytail@ponytail': [{}],  'mstack-find-skills@mstack': [{}], 'mstack-best-model-for@mstack': [{}], 'mstack-receive-review@mstack': [{}], 'mstack-research@mstack': [{}], 'mstack-setup@mstack': [{}] } }));
   const cfg = base === '.claude' ? '.claude.json' : `${base}/.claude.json`;
   m.file(cfg, JSON.stringify({ mcpServers: { codegraph: { command: 'codegraph', args: ['serve', '--mcp'] } } }));
   return m;
@@ -61,19 +64,19 @@ function listing(dir) {
   walk(dir); return out.sort().join('\n');
 }
 
-test('(a) empty machine: mandatory items missing, reviewer login skipped', () => {
+test('(a) empty machine: mandatory items missing, codex login skipped', () => {
   const m = machine();
   const r = run(m, ['--host', 'claude']);
   assert.equal(r.status, 1, r.out);
   for (const id of MANDATORY_CLAUDE) assert.equal(r.state(id), 'MISSING', `${id}: ${r.out}`);
-  assert.equal(r.state('reviewer-login'), 'SKIP');
+  assert.equal(r.state('codex-login'), 'SKIP');
 });
 
 test('(b) complete Claude Code machine: every mandatory item ok', () => {
   const m = completeClaude(machine());
   const r = run(m, ['--host', 'claude', '--platform', 'linux']);
   assert.equal(r.status, 0, r.out);
-  for (const id of [...MANDATORY_CLAUDE, 'reviewer-login']) assert.equal(r.state(id), 'ok', `${id}: ${r.out}`);
+  for (const id of [...MANDATORY_CLAUDE, 'codex-login']) assert.equal(r.state(id), 'ok', `${id}: ${r.out}`);
 });
 
 test('(c) codegraph on PATH but not connected', () => {
@@ -83,40 +86,39 @@ test('(c) codegraph on PATH but not connected', () => {
   assert.equal(r.state('codegraph-connected'), 'MISSING');
 });
 
-test('(d) Codex host: the reviewer is the claude client, codegraph in config.toml', () => {
+test('(d) Codex host: the claude client and its sign-in are the vendor rows, codegraph in config.toml', () => {
   const m = machine().stub('codegraph').stub('claude');
   const codexHome = join(m.root, 'codex-home');
   mkdirSync(codexHome, { recursive: true });
   writeFileSync(join(codexHome, 'config.toml'), '[mcp_servers.codegraph]\ncommand = "codegraph"\n');
   const r = run(m, ['--host', 'codex'], { CODEX_HOME: codexHome });
   assert.equal(r.state('codegraph-connected'), 'ok', r.out);
-  assert.equal(r.state('reviewer-cli'), 'ok');
-  assert.equal(r.state('reviewer-login'), 'ok');
-  assert.equal(r.state('reviewer-plugin'), undefined, 'Codex has no reviewer plugin row');
+  assert.equal(r.state('claude-cli'), 'ok');
+  assert.equal(r.state('claude-login'), 'ok');
 });
 
 test('(d2) Codex host: the reviewer group is the client and its login, and no plugin row exists', () => {
   const m = machine().stub('node').stub('claude', 1);
   const r = run(m, ['--host', 'codex', '--needs', 'reviewer']);
   assert.equal(r.status, 1, r.out);
-  assert.deepEqual(r.json.items.filter((i) => i.blocking).map((i) => i.id), ['node', 'reviewer-cli', 'reviewer-login']);
-  assert.equal(r.state('reviewer-login'), 'LOGIN');
+  assert.deepEqual(r.json.items.filter((i) => i.blocking).map((i) => i.id), ['node', 'claude-cli', 'claude-login']);
+  assert.equal(r.state('claude-login'), 'LOGIN');
   assert.equal(run(m.stub('claude'), ['--host', 'codex', '--needs', 'reviewer']).status, 0);
-  assert.equal(run(m, ['--host', 'codex', '--needs', 'reviewer-plugin']).status, 2);
+  assert.equal(run(m, ['--host', 'codex', '--needs', 'codex-plugin']).status, 2);
 });
 
 test('(e) Claude host without codex on PATH', () => {
   const m = machine();
   const r = run(m, ['--host', 'claude']);
-  assert.equal(r.state('reviewer-cli'), 'MISSING', r.out);
-  assert.equal(r.state('reviewer-login'), 'SKIP');
+  assert.equal(r.state('codex-cli'), 'MISSING', r.out);
+  assert.equal(r.state('codex-login'), 'SKIP');
 });
 
 test('(f) codex not logged in', () => {
   const m = completeClaude(machine()).stub('codex', 1);
   const r = run(m, ['--host', 'claude', '--platform', 'linux']);
-  assert.equal(r.state('reviewer-login'), 'LOGIN', r.out);
-  assert.equal(r.status, 1);
+  assert.equal(r.state('codex-login'), 'LOGIN', r.out);
+  assert.equal(r.status, 0, 'a signed-out client of another vendor never fails a run without --needs');
 });
 
 test('(g) Windows: executables through PATHEXT, home from USERPROFILE', () => {
@@ -181,7 +183,7 @@ test('(l) macOS: same result as Linux, home from HOME', () => {
   const m = completeClaude(machine());
   const r = run(m, ['--host', 'claude', '--platform', 'darwin'], { USERPROFILE: join(m.root, 'elsewhere') });
   assert.equal(r.status, 0, r.out);
-  for (const id of [...MANDATORY_CLAUDE, 'reviewer-login']) assert.equal(r.state(id), 'ok', `${id}: ${r.out}`);
+  for (const id of [...MANDATORY_CLAUDE, 'codex-login']) assert.equal(r.state(id), 'ok', `${id}: ${r.out}`);
 });
 
 test('(m) CLAUDE_CONFIG_DIR replaces ~/.claude', () => {
@@ -278,19 +280,20 @@ test('codex: a cached skill whose plugin is switched off is MISSING, and ok when
 });
 
 // ---- --needs: the rows one calling skill needs (issue 23) ----
+const ALL_VENDOR = ['claude-cli', 'claude-login', 'codex-cli', 'codex-login'];
 const blocking = (r) => r.json.items.filter((i) => i.blocking).map((i) => i.id);
 
-test('needs: without --needs every mandatory row and every reviewer row blocks, and only those', () => {
+test('needs: without --needs every mandatory row blocks, and only those', () => {
   const r = run(completeClaude(machine()), ['--host', 'claude']);
-  assert.deepEqual(blocking(r), r.json.items.filter((i) => i.tier === 'mandatory' || i.id.startsWith('reviewer-')).map((i) => i.id));
+  assert.deepEqual(blocking(r), r.json.items.filter((i) => i.tier === 'mandatory').map((i) => i.id));
 });
 
 test('needs: a caller that needs no reviewer is not stopped by a reviewer that is not logged in', () => {
   const m = completeClaude(machine()).stub('codex', 1);
-  assert.equal(run(m, ['--host', 'claude']).status, 1);
+  assert.equal(run(m, ['--host', 'claude']).status, 0);
   const r = run(m, ['--host', 'claude', '--needs', 'git,mstack-find-skills']);
   assert.equal(r.status, 0, r.out);
-  assert.equal(r.state('reviewer-login'), 'LOGIN');
+  assert.equal(r.state('codex-login'), 'LOGIN');
   assert.deepEqual(blocking(r), ['node', 'git', 'mstack-find-skills']);
 });
 
@@ -298,9 +301,9 @@ test('needs: a caller that needs the reviewer is stopped when it is not logged i
   const m = completeClaude(machine()).stub('codex', 1);
   const r = run(m, ['--host', 'claude', '--needs', 'reviewer']);
   assert.equal(r.status, 1, r.out);
-  assert.deepEqual(blocking(r), ['node', 'reviewer-plugin', 'reviewer-cli', 'reviewer-login']);
+  assert.deepEqual(blocking(r), ['node', 'codex-cli', 'codex-login']);
   const bare = machine().stub('node');
-  assert.equal(run(bare, ['--host', 'claude', '--needs', 'reviewer-login']).status, 1);
+  assert.equal(run(bare, ['--host', 'claude', '--needs', 'codex-login']).status, 1);
 });
 
 test('needs: the codegraph group, and an optional row that a caller needs blocks it', () => {
@@ -312,9 +315,9 @@ test('needs: the codegraph group, and an optional row that a caller needs blocks
 });
 
 test('needs: a name that is no row and no group is a usage error, never a pass', () => {
-  const r = run(completeClaude(machine()), ['--host', 'claude', '--needs', 'git,reviewer-logon']);
+  const r = run(completeClaude(machine()), ['--host', 'claude', '--needs', 'git,codex-logon']);
   assert.equal(r.status, 2, r.out);
-  assert.match(r.out, /reviewer-logon/);
+  assert.match(r.out, /codex-logon/);
 });
 
 test('needs: a name every object inherits, such as constructor, is no group', () => {
@@ -323,14 +326,13 @@ test('needs: a name every object inherits, such as constructor, is no group', ()
   }
 });
 
-test('the three reviewer rows are optional, and still block a caller that sends no --needs', () => {
+test('the vendor rows are optional, and block nothing for a caller that sends no --needs', () => {
   const r = run(completeClaude(machine()).stub('codex', 1), ['--host', 'claude']);
-  for (const id of ['reviewer-plugin', 'reviewer-cli', 'reviewer-login']) {
+  for (const id of ['codex-cli', 'codex-login']) {
     const row = r.json.items.find((i) => i.id === id);
-    assert.deepEqual([row.tier, row.blocking], ['optional', true], id);
+    assert.deepEqual([row.tier, row.blocking], ['optional', false], id);
   }
-  assert.equal(r.status, 1, r.out);
-  assert.ok(r.json.items.filter((i) => i.tier === 'mandatory').every((i) => i.state === 'ok'), r.out);
+  assert.equal(r.status, 0, r.out);
 });
 
 // Antigravity: skills in ~/.gemini/config/skills, in plugins/<plugin>/skills/<name>, never in ~/.agents/skills (the skills CLI's global folder
@@ -476,17 +478,18 @@ test('antigravity: a caller that needs ui-ux-pro-max is blocked by its WARN row'
   assert.equal(r.status, 1, r.out);
 });
 
-test('antigravity: no reviewer, codex-plugin or workflow row', () => {
+test('antigravity: the four vendor rows, and no codex-plugin or workflow row', () => {
   const r = run(completeAnti(machine()), ANTI);
-  const bad = r.json.items.map((i) => i.id).filter((id) => /^reviewer-|^codex-plugin$|review-workflow$|pm-codex-dev$/.test(id));
+  for (const id of ALL_VENDOR) assert.equal(item(r, id)?.tier, 'optional', id);
+  const bad = r.json.items.map((i) => i.id).filter((id) => /^codex-plugin$|review-workflow$|pm-codex-dev$/.test(id));
   assert.deepEqual(bad, []);
   for (const id of ['archify', 'gh', 'python3']) assert.equal(item(r, id)?.tier, 'optional', id);
 });
 
-test('antigravity: --needs reviewer exits 2 with the message', () => {
+test('antigravity: --needs reviewer names the group of the four vendor rows', () => {
   const r = run(completeAnti(machine()), [...ANTI, '--needs', 'reviewer']);
-  assert.equal(r.status, 2);
-  assert.match(r.out, /--needs names no row and no group of this host: reviewer/);
+  assert.equal(r.status, 1, r.out);
+  assert.deepEqual(blocking(r), ['node', ...ALL_VENDOR]);
 });
 
 test('antigravity: --needs codegraph still works', () => {
@@ -501,4 +504,216 @@ test('antigravity: the status runs no agy command', () => {
 
 test('claude: a missing ui-ux-pro-max is MISSING, not WARN', () => {
   assert.equal(run(machine(), ['--host', 'claude']).state('ui-ux-pro-max'), 'MISSING');
+});
+
+// ---- Vendor rows: the client and the sign-in of each of claude and codex that is not the host's own ----
+// logStub: a client stand-in that appends its arguments to <root>/<name>-calls.log and exits with `code`.
+function logStub(m, name, code = 0) {
+  writeFileSync(join(m.bin, name), `#!/bin/sh\necho "$@" >> "${m.root}/${name}-calls.log"\nexit ${code}\n`); chmodSync(join(m.bin, name), 0o755);
+  return m;
+}
+const calls = (m, name) => { try { return readFileSync(join(m.root, `${name}-calls.log`), 'utf8').trim().split('\n'); } catch { return null; } };
+const vendorIds = (r) => r.json.items.map((i) => i.id).filter((id) => ALL_VENDOR.includes(id));
+const states = (r, ids) => ids.map((id) => r.state(id));
+
+test('claude: codex ready: codex-cli and codex-login are ok', () => {
+  const r = run(logStub(machine(), 'codex'), ['--host', 'claude']);
+  assert.deepEqual(states(r, ['codex-cli', 'codex-login']), ['ok', 'ok'], r.out);
+  assert.deepEqual([item(r, 'codex-cli').tier, item(r, 'codex-login').tier], ['optional', 'optional']);
+  assert.equal(item(r, 'codex-login').detail, 'codex signed in: the codex channel is ready');
+});
+
+test('claude: no codex: codex-cli is MISSING and codex-login is SKIP', () => {
+  const r = run(machine(), ['--host', 'claude']);
+  assert.deepEqual(states(r, ['codex-cli', 'codex-login']), ['MISSING', 'SKIP'], r.out);
+  assert.equal(item(r, 'codex-login').detail, 'needs codex first');
+});
+
+test('codex: claude ready: claude rows ok; a failing claude auth status is LOGIN', () => {
+  const m = logStub(machine(), 'claude');
+  assert.deepEqual(states(run(m, ['--host', 'codex']), ['claude-cli', 'claude-login']), ['ok', 'ok']);
+  assert.deepEqual(calls(m, 'claude'), ['auth status']);
+  const out = run(logStub(machine(), 'claude', 1), ['--host', 'codex']);
+  assert.deepEqual(states(out, ['claude-cli', 'claude-login']), ['ok', 'LOGIN'], out.out);
+  assert.equal(item(out, 'claude-login').detail, 'not signed in: run claude auth login');
+});
+
+test('antigravity: codex signed in and claude signed out: the codex rows are ok, and claude-login is LOGIN and says run claude auth login', () => {
+  const m = logStub(logStub(agy(machine()), 'codex'), 'claude', 1);
+  const r = run(m, ANTI);
+  assert.deepEqual(states(r, ALL_VENDOR), ['ok', 'LOGIN', 'ok', 'ok'], r.out);
+  assert.match(item(r, 'claude-login').detail, /run claude auth login/);
+  assert.deepEqual([calls(m, 'codex'), calls(m, 'claude')], [['login status'], ['auth status']]);
+  const signedOut = run(logStub(agy(machine()), 'codex', 1), ANTI);
+  assert.equal(item(signedOut, 'codex-login').detail, 'not signed in: run codex login');
+});
+
+test('claude and codex hosts: the vendor rows are those of the one other vendor', () => {
+  const m = () => logStub(logStub(agy(machine()), 'codex'), 'claude');
+  assert.deepEqual(vendorIds(run(m(), ['--host', 'claude'])), ['codex-cli', 'codex-login']);
+  assert.deepEqual(vendorIds(run(m(), ['--host', 'codex'])), ['claude-cli', 'claude-login']);
+  assert.deepEqual(vendorIds(run(m(), ANTI)), ALL_VENDOR);
+});
+
+test('no host has a row whose ID or detail names a bridge, a companion script or the Antigravity sign-in', () => {
+  for (const host of ['claude', 'codex', 'antigravity']) {
+    const r = run(logStub(logStub(agy(machine()), 'codex'), 'claude'), ['--host', host]);
+    for (const i of r.json.items) {
+      assert.doesNotMatch(`${i.id} ${i.detail}`, /bridge|companion|\bagy\b|antigravity[- ](cli|login|client|sign)|(sign|logg?ed?)[- ]?in (to|in) antigravity/i, `${host} ${i.id}`);
+    }
+  }
+});
+
+test('the skill-codex plugin and a claude plugin of another marketplace are not rows', () => {
+  const m = machine().file('.claude/plugins/cache/skill-codex/skill-codex/1.3.1/skills/codex/SKILL.md', 'Run codex exec.')
+    .file('.claude/plugins/installed_plugins.json', JSON.stringify({ version: 2, plugins: { 'skill-codex@skill-codex': [{}] } }))
+    .skill('.codex/plugins/cache/other/claude/1.0.0/skills/review').file('.codex/config.toml', '[plugins."claude@other"]\nenabled = true\n');
+  for (const host of ['claude', 'codex', 'antigravity']) {
+    const r = run(m, ['--host', host]);
+    const ids = r.json.items.map((i) => i.id);
+    assert.deepEqual(ids.filter((id) => /plugin|skill-codex|^review$|^reviewer/.test(id)), host === 'claude' ? ['codex-plugin'] : [], host);
+    assert.ok(r.json.items.every((i) => !/skill-codex/.test(i.detail)), host);
+  }
+});
+
+test('antigravity: needs reviewer: codex ready and no claude meets the need, and the claude rows block nothing', () => {
+  const r = run(logStub(agy(machine()), 'codex').stub('node'), [...ANTI, '--needs', 'reviewer']);
+  assert.equal(r.status, 0, r.out);
+  assert.deepEqual(blocking(r), ['node', 'codex-cli', 'codex-login']);
+  assert.deepEqual([item(r, 'claude-cli').state, item(r, 'claude-cli').tier, item(r, 'claude-cli').blocking, item(r, 'claude-login').blocking], ['MISSING', 'optional', false, false]);
+});
+
+test('antigravity: needs reviewer: claude ready and no codex meets the need', () => {
+  const r = run(logStub(agy(machine()), 'claude').stub('node'), [...ANTI, '--needs', 'reviewer']);
+  assert.equal(r.status, 0, r.out);
+  assert.deepEqual(blocking(r), ['node', 'claude-cli', 'claude-login']);
+});
+
+test('antigravity: needs reviewer: with both ready the first ready channel blocks', () => {
+  const r = run(logStub(logStub(agy(machine()), 'codex'), 'claude').stub('node'), [...ANTI, '--needs', 'reviewer']);
+  assert.deepEqual([r.status, blocking(r)], [0, ['node', 'claude-cli', 'claude-login']], r.out);
+});
+
+test('no detail of any row says that a vendor can review', () => {
+  for (const host of ['claude', 'codex', 'antigravity']) {
+    const r = run(logStub(logStub(agy(machine()), 'codex'), 'claude'), ['--host', host]);
+    for (const i of r.json.items) assert.doesNotMatch(i.detail, /can review (this|the|your)/i, `${host} ${i.id}`);
+    for (const id of vendorIds(r).filter((v) => v.endsWith('-cli'))) {
+      const v = id.slice(0, -4);
+      assert.equal(item(r, id).detail, `${v} command-line tool: the channel to ${v}; mstack-vendors answers whether it can review a given piece of work`);
+    }
+  }
+});
+
+test('needs reviewer: no ready channel blocks on every vendor row', () => {
+  const r = run(logStub(agy(machine()), 'codex', 1).stub('node'), [...ANTI, '--needs', 'reviewer']);
+  assert.deepEqual([r.status, blocking(r)], [1, ['node', ...ALL_VENDOR]], r.out);
+  const c = run(machine().stub('node'), ['--host', 'claude', '--needs', 'reviewer']);
+  assert.deepEqual([c.status, blocking(c)], [1, ['node', 'codex-cli', 'codex-login']], c.out);
+});
+
+// One client installed is enough (the user's rule of 2026-11-24): another vendor's client is never needed without --needs.
+function completeCodex(m) {
+  m.stub('node').stub('git').stub('codegraph');
+  const names = ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup'];
+  m.skill('.codex/plugins/cache/ponytail/ponytail/5.3.3/skills/ponytail');
+  for (const n of names) m.skill(`.codex/plugins/cache/mstack/${n}/0.1.0/skills/${n}`);
+  m.file('.codex/config.toml', ['[mcp_servers.codegraph]', 'command = "codegraph"', '[plugins."ponytail@ponytail"]', 'enabled = true',
+    ...names.flatMap((n) => [`[plugins."${n}@mstack"]`, 'enabled = true'])].join('\n') + '\n');
+  return m;
+}
+for (const [host, build] of [['claude', (m) => { completeClaude(m); rmSync(join(m.bin, 'codex')); return m; }], ['codex', completeCodex], ['antigravity', completeAnti]]) {
+  test(`${host}: only this host's things and no other vendor's client: without --needs the run exits 0 and no vendor row blocks`, () => {
+    const r = run(build(machine()), ['--host', host]);
+    assert.ok(r.json.items.filter((i) => i.tier === 'mandatory').every((i) => i.state === 'ok'), r.out);
+    assert.equal(r.status, 0, r.out);
+    assert.ok(vendorIds(r).length >= 2, r.out);
+    for (const id of vendorIds(r)) assert.deepEqual([item(r, id).blocking, item(r, id).state === 'ok'], [false, false], id);
+  });
+}
+
+test('antigravity: without --needs, no ready channel does not fail the run', () => {
+  const r = run(logStub(completeAnti(machine()), 'codex', 1), ANTI);
+  assert.equal(r.status, 0, r.out);
+  assert.deepEqual(states(r, ALL_VENDOR), ['MISSING', 'SKIP', 'ok', 'LOGIN']);
+  for (const id of ALL_VENDOR) assert.equal(item(r, id).blocking, false, id);
+});
+
+test('needs reviewer,codex-login: the explicit row blocks beside the group\'s rule', () => {
+  const r = run(logStub(logStub(agy(machine()), 'claude'), 'codex', 1).stub('node'), [...ANTI, '--needs', 'reviewer,codex-login']);
+  assert.deepEqual([r.status, blocking(r)], [1, ['node', 'claude-cli', 'claude-login', 'codex-login']], r.out);
+});
+
+test('an old reviewer row ID in --needs is a usage error', () => {
+  for (const host of ['claude', 'codex', 'antigravity']) for (const id of ['plugin', 'cli', 'login']) {
+    const r = run(logStub(logStub(agy(machine()), 'codex'), 'claude').stub('node'), ['--host', host, '--needs', `reviewer-${id}`]);
+    assert.equal(r.status, 2, `${host} ${id}`);
+    assert.match(r.out, /--needs names no row and no group of this host/);
+  }
+});
+
+test('the status installs nothing and sends no prompt', () => {
+  for (const host of ['claude', 'codex', 'antigravity']) {
+    const m = logStub(logStub(agy(machine()), 'codex', 1), 'claude', 1);
+    const before = listing(m.home);
+    run(m, ['--host', host]); run(m, ['--host', host, '--needs', 'reviewer']);
+    for (const l of calls(m, 'claude') ?? []) assert.equal(l, 'auth status', host);
+    for (const l of calls(m, 'codex') ?? []) assert.equal(l, 'login status', host);
+    assert.equal(existsSync(join(m.root, 'agy-calls.log')), false, host);
+    assert.equal(listing(m.home), before, host);
+  }
+});
+
+// ---- A client that cannot run is no client (which), and a sign-in check that did not complete is no "signed out" ----
+test('a client file without execute permission is not found, and a usable one later on PATH is', () => {
+  const m = machine().stub('node');
+  writeFileSync(join(m.bin, 'claude'), '#!/bin/sh\nexit 0\n'); chmodSync(join(m.bin, 'claude'), 0o644);
+  const r = run(m, ['--host', 'codex', '--needs', 'claude-cli']);
+  assert.deepEqual([r.state('claude-cli'), r.state('claude-login'), r.status], ['MISSING', 'SKIP', 1], r.out);
+  const later = join(m.root, 'bin2'); mkdirSync(later);
+  writeFileSync(join(later, 'claude'), '#!/bin/sh\nexit 0\n'); chmodSync(join(later, 'claude'), 0o755);
+  const r2 = run(m, ['--host', 'codex', '--needs', 'reviewer'], { PATH: `${m.bin}:${later}` });
+  assert.deepEqual([r2.state('claude-cli'), r2.state('claude-login'), r2.status], ['ok', 'ok', 0], r2.out);
+});
+
+test('windows: a PATHEXT match needs no execute permission', () => {
+  const m = machine();
+  writeFileSync(join(m.bin, 'codex.cmd'), '@echo off\r\n'); chmodSync(join(m.bin, 'codex.cmd'), 0o644);
+  assert.equal(run(m, ['--host', 'claude', '--platform', 'win32'], { PATHEXT: '.CMD;.EXE' }).state('codex-cli'), 'ok');
+});
+
+test('a sign-in check that could not complete is LOGIN with its reason and no instruction to log in', () => {
+  const m = machine().stub('node');
+  // a client that kills itself: the check ends by a signal, not by an exit code
+  writeFileSync(join(m.bin, 'codex'), '#!/bin/sh\nkill -9 $$\n'); chmodSync(join(m.bin, 'codex'), 0o755);
+  const r = run(m, ['--host', 'claude', '--needs', 'reviewer']);
+  assert.deepEqual([r.state('codex-login'), item(r, 'codex-login').blocking, r.status], ['LOGIN', true, 1], r.out);
+  assert.match(item(r, 'codex-login').detail, /^sign-in could not be checked: .*SIGKILL/);
+  assert.doesNotMatch(item(r, 'codex-login').detail, /run codex login/);
+  // an executable whose interpreter line names a program that does not exist: the command cannot start
+  writeFileSync(join(m.bin, 'codex'), '#!/nonexistent/interpreter\n'); chmodSync(join(m.bin, 'codex'), 0o755);
+  const r2 = run(m, ['--host', 'claude', '--needs', 'reviewer']);
+  assert.deepEqual([r2.state('codex-cli'), r2.state('codex-login'), r2.status], ['ok', 'LOGIN', 1], r2.out);
+  assert.equal(item(r2, 'codex-login').detail, 'sign-in could not be checked: the command could not start (ENOENT)');
+  const out = run(machine().stub('codex', 1), ['--host', 'claude']);
+  assert.equal(item(out, 'codex-login').detail, 'not signed in: run codex login');
+});
+
+// ---- --vendors not-checked: the Antigravity run inside the sandbox after the run outside it was refused ----
+test('--vendors not-checked: no client is probed, the four rows read not checked, and the reviewer group blocks on all of them', () => {
+  const m = logStub(logStub(completeAnti(machine()), 'codex'), 'claude');
+  const r = run(m, [...ANTI, '--vendors', 'not-checked', '--needs', 'reviewer']);
+  assert.equal(r.status, 1, r.out);
+  assert.deepEqual(blocking(r), ['node', ...ALL_VENDOR]);
+  for (const id of ALL_VENDOR) assert.deepEqual([r.state(id), item(r, id).detail, item(r, id).tier], ['not checked', 'the run outside the sandbox was not approved', 'optional'], id);
+  assert.deepEqual([calls(m, 'claude'), calls(m, 'codex')], [null, null]);
+  const plain = run(m, [...ANTI, '--vendors=not-checked']);
+  assert.equal(plain.status, 0, plain.out);
+  for (const id of ALL_VENDOR) assert.deepEqual([plain.state(id), item(plain, id).blocking], ['not checked', false], id);
+  assert.equal(run(m, [...ANTI, '--vendors', 'not-checked', '--needs', 'codex-cli']).status, 1);
+  assert.equal(run(m, [...ANTI, '--vendors', 'not-checked', '--needs', 'codegraph']).status, 0);
+});
+
+test('--vendors takes only not-checked', () => {
+  for (const v of ['', 'checked', 'off']) assert.equal(run(machine().stub('node'), [...ANTI, '--vendors', v]).status, 2, v);
 });

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds a throwaway Antigravity machine under the target folder (default: the current folder): home/ and bin/ of stand-ins.
-# Every Antigravity row is installed; ui-ux-pro-max is absent, which Antigravity cannot offer.
+# Every Antigravity row is installed, the claude and codex clients among them; ui-ux-pro-max is absent, which Antigravity cannot offer.
 # Every stand-in appends its arguments to calls.log and writes only under this folder's home/, never under the real home folder.
 set -eu
 T="$(cd "${1:-.}" && pwd)"
@@ -23,6 +23,8 @@ skill ".gemini/config/skills/archify"
 printf "%s\n" "$CG" > "$B/codegraph"
 printf '{"mcpServers":{"codegraph":{"command":"codegraph","args":["serve","--mcp"]}}}\n' > "$A/mcp_config.json"
 stub agy; stub npm; stub npx; stub gh; stub python3
+# Both other vendors' clients are installed and signed in (each stand-in exits 0 for its status command), so no row is left to install.
+stub claude; stub codex
 chmod +x "$B"/*
 # testenv runs one command on this test machine only: its own home folder and a PATH of stand-ins and a few basic tools.
 for t in sh cat ls grep head tail chmod mkdir; do p="$(command -v "$t")" && ln -sf "$p" "$B/$t"; done

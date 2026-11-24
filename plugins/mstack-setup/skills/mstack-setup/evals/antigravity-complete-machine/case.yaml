@@ -1,7 +1,7 @@
 schema_version: "1.1"
 name: antigravity-complete-machine
 expected_outcome: |
-  One turn. Every Antigravity row is installed and ui-ux-pro-max is absent. The report says the setup is complete,
+  One turn. Every Antigravity row is installed, the claude and codex clients are signed in, and ui-ux-pro-max is absent. The report says the setup is complete,
   shows ui-ux-pro-max once as not available in Antigravity, proposes no command and calls.log holds no install call.
 context:
   scaffold_script: place-files.sh

@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: record-dev-workflow
+expected_outcome: |
+  Codex wrote the code and the Claude leader's fresh read-only run reviewed it. The log records the review as cross-vendor, and asks the user nothing.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-receive-review]

@@ -1,20 +1,26 @@
 #!/usr/bin/env node
 // Report what the mstack skills need on this machine, for one host. Reads the environment and the disk; writes nothing.
-//   node check-setup.mjs --host <claude|codex|antigravity> [--platform <linux|darwin|win32>] [--needs <ids and groups>] [--json]
-// Each line: <state>  <tier>  <id>  <detail>, state ok | MISSING | LOGIN | SKIP | WARN.
+//   node check-setup.mjs --host <claude|codex|antigravity> [--platform <linux|darwin|win32>] [--needs <ids and groups>] [--vendors not-checked] [--json]
+// Each line: <state>  <tier>  <id>  <detail>, state ok | MISSING | LOGIN | SKIP | WARN | not checked.
 // WARN is a row the host cannot offer at all (ui-ux-pro-max in Antigravity): it never fails a run without --needs.
-// Antigravity has no reviewer, codex-plugin or workflow rows; a --needs group with no row on the host is a usage error.
+// Vendor rows: <vendor>-cli and <vendor>-login for each of claude and codex that is not the host's own (Antigravity has all
+// four). A channel is ready when both of its rows are ok. No row reports a way to reach Antigravity. They are optional:
+// mstack works with one client installed, so without --needs they never block and never fail a run.
+// --vendors not-checked is for a run that cannot see the clients (inside Antigravity's sandbox, after the run outside it was
+// refused): no client is looked for or started, and the vendor rows read `not checked`, which is not ok for a caller that needs them.
+// Antigravity has no codex-plugin or workflow rows.
 // --needs is for one calling skill: a comma-separated list of row IDs and of the groups `reviewer` and `codegraph`.
-// Only those rows and `node` then block, whatever their tier. Without it, every mandatory row blocks, and so do
-// the reviewer rows, which are optional for the user but were mandatory for callers before --needs existed.
+// Only those rows and `node` then block, whatever their tier. The group `reviewer` is the host's vendor rows, and one ready
+// channel meets it: the first ready channel's rows block and the other vendor rows do not; with none ready, all of them block.
+// Without --needs, every mandatory row blocks and no other row does, on every host.
 // Exit 0 when no blocking item is MISSING or LOGIN (with --needs: when every blocking item is ok), 1 otherwise,
 // 2 on a usage error, which includes a name in --needs that is no row and no group, and a --needs with no name in it.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { accessSync, constants, existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { delimiter as hostDelimiter, join } from 'node:path';
 
 const args = process.argv.slice(2);
-let host = '', platform = process.platform, json = false, needs = null;
+let host = '', platform = process.platform, json = false, needs = null, vendors = null;
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === '--host') host = args[++i] ?? '';
@@ -23,11 +29,13 @@ for (let i = 0; i < args.length; i++) {
   else if (a.startsWith('--platform=')) platform = a.slice(11);
   else if (a === '--needs') needs = args[++i] ?? '';
   else if (a.startsWith('--needs=')) needs = a.slice(8);
+  else if (a === '--vendors') vendors = args[++i] ?? '';
+  else if (a.startsWith('--vendors=')) vendors = a.slice(10);
   else if (a === '--json') json = true;
   else { console.error(`unknown option: ${a}`); process.exit(2); }
 }
-if (!['claude', 'codex', 'antigravity'].includes(host)) {
-  console.error('usage: check-setup.mjs --host <claude|codex|antigravity> [--platform <linux|darwin|win32>] [--needs <ids and groups>] [--json]');
+if (!['claude', 'codex', 'antigravity'].includes(host) || (vendors !== null && vendors !== 'not-checked')) {
+  console.error('usage: check-setup.mjs --host <claude|codex|antigravity> [--platform <linux|darwin|win32>] [--needs <ids and groups>] [--vendors not-checked] [--json]');
   process.exit(2);
 }
 const supported = ['linux', 'darwin', 'win32'].includes(platform);
@@ -51,7 +59,8 @@ function which(name) {
     for (const ext of exts) {
       for (const cand of win ? [name + ext, name + ext.toLowerCase()] : [name]) {
         const p = join(dir, cand);
-        try { if (statSync(p).isFile()) return p; } catch { /* not here */ }
+        // On POSIX a file that may not be executed is no program: go on to the next folder. Windows decides by PATHEXT.
+        try { if (statSync(p).isFile()) { if (!win) accessSync(p, constants.X_OK); return p; } } catch { /* not here, or not executable */ }
       }
     }
   }
@@ -110,13 +119,6 @@ function pluginRecorded(key) {
   const end = rest.findIndex((l) => /^\s*\[/.test(l));
   return !(end < 0 ? rest : rest.slice(0, end)).some((l) => /^\s*enabled\s*=\s*false/.test(l));
 }
-// skill-codex ships a skill folder named `codex`; match its plugin path, or a standalone copy that runs `codex exec`.
-function hasCodexSkill() {
-  if (pluginInstalled('skill-codex') && cacheSkills.some((p) => p.includes('skill-codex') && p.endsWith('/skills/codex/SKILL.md'))) return true;
-  return skillRoots.some((r) => {
-    try { return readFileSync(join(r, 'codex', 'SKILL.md'), 'utf8').includes('codex exec'); } catch { return false; }
-  });
-}
 // A plugin is installed when the host records it: Claude Code in plugins/installed_plugins.json, Codex in config.toml.
 // That record is what the host's own plugin list reads; a cache folder alone is not taken as proof.
 function pluginInstalled(name) {
@@ -143,10 +145,14 @@ function codegraphConnected() {
   }
   try { return /^\s*\[mcp_servers\.codegraph\]/m.test(readFileSync(join(codexDir, 'config.toml'), 'utf8')); } catch { return false; }
 }
+// true when the client's own status command exits 0, false when it completes with another code (signed out), and a
+// sentence when it did not complete (it could not start, timed out or was ended by a signal): then nothing is known.
 function loggedIn(path, cmdArgs) {
   // A .cmd shim on real Windows only starts through the shell.
   const shell = process.platform === 'win32' && /\.(cmd|bat)$/i.test(path);
   const r = spawnSync(path, cmdArgs, { stdio: 'ignore', timeout: 15000, shell });
+  if (r.error) return r.error.code === 'ETIMEDOUT' ? 'the command gave no answer within 15 seconds' : `the command could not start (${r.error.code ?? r.error.message})`;
+  if (r.signal) return `the command was ended by ${r.signal}`;
   return r.status === 0;
 }
 
@@ -167,18 +173,23 @@ if (host === 'antigravity') add('ponytail', 'mandatory', hasSkill('ponytail'), '
 else add('ponytail', 'mandatory', ponytailPlugin, ponytailPlugin || !hasSkill('ponytail')
   ? (host === 'codex' ? 'ponytail plugin (its hooks need a trust step in Codex)' : 'ponytail plugin')
   : 'ponytail skill found without the plugin, so its hooks are missing');
-if (host !== 'antigravity') {
-  // In Codex the reviewer is the claude client itself (reviewer-cli and reviewer-login), so there is no plugin row.
-  if (host === 'claude') add('reviewer-plugin', 'optional', hasCodexSkill(), 'skill-codex plugin (Codex reviews)');
-  const cliName = host === 'claude' ? 'codex' : 'claude';
-  const cli = which(cliName);
-  add('reviewer-cli', 'optional', cli, `${cliName} command-line tool`);
-  if (!cli) add('reviewer-login', 'optional', false, `needs ${cliName} first`, 'SKIP');
+// The channels to the other vendors: each client and its sign-in. Whether a vendor can review a given piece of work is not
+// decided here (mstack-vendors answers that from the leader and the writers).
+const SIGN_IN = { claude: 'auth', codex: 'login' };
+const channels = Object.keys(SIGN_IN).filter((v) => v !== host).map((v) => {
+  const ids = [`${v}-cli`, `${v}-login`];
+  if (vendors) { for (const id of ids) add(id, 'optional', false, 'the run outside the sandbox was not approved', 'not checked'); return ids; }
+  const cli = which(v);
+  add(ids[0], 'optional', cli, `${v} command-line tool: the channel to ${v}; mstack-vendors answers whether it can review a given piece of work`);
+  if (!cli) add(ids[1], 'optional', false, `needs ${v} first`, 'SKIP');
   else {
-    const ok = loggedIn(cli, host === 'claude' ? ['login', 'status'] : ['auth', 'status']);
-    add('reviewer-login', 'optional', ok, `${cliName} logged in`, ok ? 'ok' : 'LOGIN');
+    const ok = loggedIn(cli, [SIGN_IN[v], 'status']);
+    const detail = ok === true ? `${v} signed in: the ${v} channel is ready` : ok === false ? `not signed in: run ${v} ${v === 'claude' ? 'auth login' : 'login'}`
+      : `sign-in could not be checked: ${ok}`;
+    add(ids[1], 'optional', ok === true, detail, ok === true ? 'ok' : 'LOGIN');
   }
-}
+  return ids;
+});
 for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup']) add(s, 'mandatory', hasSkill(s), 'mstack skill');
 const uiOk = hasSkill('ui-ux-pro-max');
 add('ui-ux-pro-max', 'optional', uiOk, host === 'antigravity' && !uiOk ? 'UI design skill: not available in Antigravity' : 'UI design skill', host === 'antigravity' && !uiOk ? 'WARN' : undefined);
@@ -193,18 +204,20 @@ for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'msta
   add(s, 'optional', hasSkill(s), 'mstack skill');
 }
 
-// Which rows block: every mandatory one and the reviewer rows, or with --needs the rows the calling skill named, and node.
-const GROUPS = { __proto__: null, reviewer: ['reviewer-plugin', 'reviewer-cli', 'reviewer-login'], codegraph: ['codegraph-cli', 'codegraph-connected'] };
+// Which rows block: every mandatory one, or with --needs the rows the calling skill named, and node.
+// A caller that names the group `reviewer` is blocked through its first ready channel, or through every vendor row when none is ready.
+const isOk = (id) => items.find((i) => i.id === id).state === 'ok';
+const GROUPS = { __proto__: null, reviewer: channels.find((c) => c.every(isOk)) ?? channels.flat(), codegraph: ['codegraph-cli', 'codegraph-connected'] };
 let needed = null;
 if (needs !== null) {
   const names = needs.split(',').map((n) => n.trim()).filter(Boolean);
-  const known = (n) => GROUPS[n]?.some((g) => items.some((i) => i.id === g)) || items.some((i) => i.id === n);
+  const known = (n) => Boolean(GROUPS[n]) || items.some((i) => i.id === n);
   if (!names.length) { console.error('--needs holds no name: give row IDs or groups, separated by commas'); process.exit(2); }
   const unknown = names.filter((n) => !known(n));
   if (unknown.length) { console.error(`--needs names no row and no group of this host: ${unknown.join(', ')}`); process.exit(2); }
   needed = new Set(['node', ...names.flatMap((n) => GROUPS[n] ?? [n])]);
 }
-for (const i of items) i.blocking = needed ? needed.has(i.id) : i.tier === 'mandatory' || GROUPS.reviewer.includes(i.id);
+for (const i of items) i.blocking = needed ? needed.has(i.id) : i.tier === 'mandatory';
 const failed = items.some((i) => i.blocking && (needed ? i.state !== 'ok' : i.state === 'MISSING' || i.state === 'LOGIN'));
 if (json) console.log(JSON.stringify({ host, platform, supported, items }, null, 2));
 else {

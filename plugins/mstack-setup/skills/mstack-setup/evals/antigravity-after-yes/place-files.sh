@@ -22,6 +22,8 @@ for s in mstack-best-model-for mstack-receive-review mstack-setup mstack-write-s
 # archify is missing on purpose: in Antigravity its skills command is a step for the user, which the skill never runs.
 echo "{}" > "$A/mcp_config.json"
 stub npx; stub gh; stub python3
+# Both other vendors' clients are installed and signed in (each stand-in exits 0 for its status command), so the vendor rows are ok.
+stub claude; stub codex
 # The npm stand-in "installs" codegraph by dropping the codegraph stand-in, so the later connect command works and is logged.
 {
   echo '#!/bin/sh'
