@@ -1,9 +1,20 @@
 schema_version: "1.1"
 name: plugin-target
 expected_outcome: |
-  The run recognizes skills-repo as a plugin target, adds a plugin with both manifests, both registry entries, the
-  license copy, the notices file and a README row at equal versions, runs the repository check after writing and it
-  passes with 2 plugins, reports every workflow step with its outcome and fallbacks, records the review as same-vendor,
-  and keeps every path inside the skill folder.
+  The run recognizes skills-repo as a plugin target, adds a plugin with three manifests (Claude Code, Codex and
+  Antigravity), both registry entries, the license copy, the notices file and a README row at equal versions, runs the
+  repository check after writing and it passes with 2 plugins, reports every workflow step with its outcome and
+  fallbacks, records the review as same-vendor, and keeps every path inside the skill folder. The prompt names only
+  Claude Code and Codex as hosts, and the repository's rules and its newest plugin have no Antigravity manifest: the
+  case tests that the Antigravity manifest is added in any case. The report quotes the result line of
+  `agy plugin validate` when `agy` is on PATH, and says the manifest was not validated when it is not.
 context:
   scaffold_script: place-files.sh
+notes: |
+  The skill stops before writing when a required shared skill is missing, so the run loads the branch copies of four
+  plugins: mstack-skill-creator, mstack-find-skills, mstack-best-model-for and mstack-research. In Claude Code that is
+  one `--plugin-dir <plugin folder> --add-dir <plugin folder>` pair per plugin; in Codex each skill folder is copied to
+  the run folder's `.agents/skills/`. Run the case twice: once with `agy` on PATH, once with the folder that holds
+  `agy` removed from PATH. Grader 07 is read against the variant that ran. Give the run no subagent tool and no
+  `claude` or `codex` command, so the comparison test and the review stay inside the run. Only the Claude Code
+  registry of the fixture holds a version per entry, so the version stands in four places.

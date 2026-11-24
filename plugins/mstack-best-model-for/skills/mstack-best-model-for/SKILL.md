@@ -14,7 +14,7 @@ Answers which model and effort fit a task, for Claude, Codex or Antigravity, one
 ## Two modes
 
 - **User mode**: the user invoked the skill. If the task or the vendor is missing, ask for both in one question with your question tool and wait. Do nothing else until the answer arrives. Ask nothing when the message gives both, for example by naming the host the model runs in ("in Antigravity"). The vendor is one of the values under "Vendors".
-- **Called mode**: another skill loaded this one and said which skill is calling. Ask nothing, ever. Answer every request in the message and end with the result block. A request with no vendor gets a row for Claude and one for Codex.
+- **Called mode**: another skill loaded this one and said which skill is calling. Ask nothing, ever. Answer every request in the message and give the result block as this skill's last output. The block ends this skill, not the calling skill's work: the caller reads it and goes on with its own next step in the same turn. A request with no vendor gets a row for Claude and one for Codex.
 
 A called message gives, per request: a vendor (one of the values under "Vendors"), a tier (`cheap`, `standard`, `most capable`) or a task description, and optional limits `never: <models>` and `max effort: <level>`.
 
@@ -69,7 +69,7 @@ In both modes, end with this block. Fill Next step in every row with the one act
 | <tier or task, as asked> | claude | <model> | <effort> | <the setting from "How to set it"> | <one line> | <one action> | yes/no | <Last verified date> | yes/no |
 ```
 
-Write the header line exactly as shown. Callers read the first nine columns by their place, so `Expensive` stays the tenth and last, and no column changes its name or order.
+Write one block for all requests: one header, then every row of every request, never one block per request. Keep the rows in the order of the requests, and the rows of one request together, in the order the vendors were named. Write the header line exactly as shown. Callers read the first nine columns by their place, so `Expensive` stays the tenth and last, and no column changes its name or order.
 
 Expensive is `yes` when the row's model, or for a Gemini id its family without the effort suffix, is listed under "Expensive models" in the table file. It is `no` for every other model and for `no model fits`.
 
@@ -77,7 +77,7 @@ How to set gives the exact setting for that vendor:
 
 - Claude: for a subagent the `model` and `effort` parameters with the alias, and for a headless run the full model id from the table's `Claude headless id` column, never the alias. Model always holds the alias alone; name the full id in How to set, in every Claude row that has one.
 - Codex: the `-m` and `-c model_reasoning_effort=` flags.
-- Antigravity: `the full model id, chosen when the Antigravity session is started or in its model setting (agy models lists the ids); subagent: invoke_subagent on the tier flash|pro`, with the one tier that "How to set it" gives for the row. For a named model that no tier holds, give the first part and write `subagent: no tier holds this model` instead of the second.
+- Antigravity: the cell text given under "Antigravity" in "How to set it" in the table file, copied exactly, with the one tier that section gives for the row. For a named model that no tier holds, give the first part of that text and write `subagent: no tier holds this model` instead of the second.
 
 In user mode, add one line after the block on what the Capped and Next step columns mean when either is not obvious.
 

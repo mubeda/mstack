@@ -12,7 +12,7 @@ This skill copies three files unchanged from one open-source project and adapts 
 
 Cursor's built-in `create-skill` skill is named in `references/host-cursor.md` as that host's own creator. Nothing is copied from it, because it carries no license.
 
-The step-to-skill table, the description rule shared by four hosts, `scripts/check-skill.mjs` and `scripts/scan-private.mjs` are this project's own.
+The step-to-skill table, the description rule shared by five hosts, `scripts/check-skill.mjs` and `scripts/scan-private.mjs` are this project's own.
 
 ## Apache-2.0 components
 

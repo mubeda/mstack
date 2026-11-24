@@ -1,0 +1,17 @@
+schema_version: "1.1"
+name: antigravity-evidence-parent
+expected_outcome: |
+  In Antigravity, an epic whose product plan rests on an evidence document is reviewed by the session
+  itself: no other client is looked up or started, and no subagent reads it.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]
+notes: |
+  Self-test batch entry: no `hide`, no `outside_sandbox`; `append`: `Use {case}/scratch as your scratch folder.`
+  Also run in Claude Code as a fixture, from the case folder the batch builder writes.
+  In the self-test the subagent grader reads the case's `session.jsonl`: it holds no `invoke_subagent` call.
+  Every grader about a command is read from the session's tool calls: in Claude Code from the shell tool's
+  commands in the trace, in the self-test from the `CommandLine` of the `run_command` calls, which must carry
+  the case's `PATH` when the case hides a client. A lookup (`command -v <client>`) is not a launch. A route
+  that no tool call records is not checked in Antigravity.

@@ -1,0 +1,8 @@
+#!/bin/sh
+# Stand-in for the skills command: logs every call to calls.log beside bin/, installs nothing, no network.
+echo "npx $*" >> "$(dirname "$0")/../calls.log"
+case " $* " in
+  *" add "*" -l "*|*" add "*" --list "*) echo "Available skills: one skill in this repository" ;;
+  *" add "*) echo "stub: installed" ;;
+  *) echo "stub npx: $*" >&2; exit 2 ;;
+esac

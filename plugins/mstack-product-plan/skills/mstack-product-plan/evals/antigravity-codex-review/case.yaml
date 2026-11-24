@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: antigravity-codex-review
+expected_outcome: |
+  In Antigravity, with the Codex client installed and no evidence or decisions document among the sources,
+  Codex reviews the written product plan read-only, and no Claude run is started.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]
+notes: |
+  Self-test batch entry: no `hide`; `outside_sandbox`: `command -v codex`, `codex exec`; `append`: `Use {case}/scratch as your scratch folder.`
+  Also run in Claude Code as a fixture, from the case folder the batch builder writes.
+  Every grader about a command is read from the session's tool calls: in Claude Code from the shell tool's
+  commands in the trace, in the self-test from the `CommandLine` of the `run_command` calls, which must carry
+  the case's `PATH` when the case hides a client. A lookup (`command -v <client>`) is not a launch. A route
+  that no tool call records is not checked in Antigravity.

@@ -1,0 +1,20 @@
+schema_version: "1.1"
+name: antigravity-claude-review
+expected_outcome: |
+  In Antigravity, with no Codex client and the Claude client installed, Claude reviews the written product
+  plan in one read-only headless run with the flags the skill gives, and the session reports only after
+  that run completed.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]
+notes: |
+  Self-test batch entry: `hide`: `codex`; `outside_sandbox`: `command -v codex`, `command -v claude`,
+  `claude -p`; `append`: `Use {case}/scratch as your scratch folder.`
+  Also run in Claude Code as a fixture, from the case folder the batch builder writes.
+  The fixture's session is a Claude model, so its `Review:` line says "same-vendor"; the self-test runs on a
+  Gemini model, where it says "cross-vendor".
+  Every grader about a command is read from the session's tool calls: in Claude Code from the shell tool's
+  commands in the trace, in the self-test from the `CommandLine` of the `run_command` calls, which must carry
+  the case's `PATH` when the case hides a client. A lookup (`command -v <client>`) is not a launch. A route
+  that no tool call records is not checked in Antigravity.

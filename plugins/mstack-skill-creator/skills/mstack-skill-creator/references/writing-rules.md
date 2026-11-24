@@ -4,7 +4,7 @@ Read this in Phase 3, before you write or change any file of the created skill, 
 
 ## Frontmatter
 
-1. Write only `name` and `description` by default. They are the two fields all four hosts read the same way. (checked: any other field gives a warning)
+1. Write only `name` and `description` by default. They are the two fields all five hosts read the same way. (checked: any other field gives a warning)
 2. `name` is lowercase letters, digits and single hyphens, at most 64 characters, and equal to the folder name. (checked)
 3. Add a host-only field only when the user asks for the behavior it gives. Then tell the user which hosts ignore it, from the "Frontmatter fields" section of each host file. Examples: limiting the skill to some files (`paths`, Cursor and Claude Code), only the user may start it (`disable-model-invocation: true`, or `agents/openai.yaml` for Codex), running it in a forked subagent (`context: fork`, Claude Code only).
 
@@ -46,16 +46,16 @@ A skill that only gives instructions needs no host table and is portable as writ
 Add one when a step needs a host tool: a question tool, a subagent tool, a way to load another skill, or a reviewer. Rows are roles, columns are the hosts the user chose:
 
 ```text
-| Role              | Claude Code       | Codex                         | OpenCode            | Cursor              |
-|-------------------|-------------------|-------------------------------|---------------------|---------------------|
-| Question tool     | AskUserQuestion   | numbered round in chat, wait  | numbered round      | numbered round      |
-| Subagent tool     | Agent (set model) | session agent tool, or codex exec | none: do it yourself | none: do it yourself |
-| Loading a skill   | Skill tool        | read its SKILL.md             | skill tool          | by description or /<name> |
+| Role              | Claude Code       | Codex                         | Antigravity                     | OpenCode            | Cursor              |
+|-------------------|-------------------|-------------------------------|---------------------------------|---------------------|---------------------|
+| Question tool     | AskUserQuestion   | numbered round in chat, wait  | ask_question, then wait         | numbered round      | numbered round      |
+| Subagent tool     | Agent (set model) | session agent tool, or codex exec | invoke_subagent (set the tier) | none: do it yourself | none: do it yourself |
+| Loading a skill   | Skill tool        | read its SKILL.md             | read its SKILL.md with read_file | skill tool          | by description or /<name> |
 ```
 
 Take each cell from the "Tools" section of the host file. Outside the table, the skill names roles ("your question tool"), never a host's tool. (checked for the tool names the check knows)
 
-The check reads only `SKILL.md`, and only for the names `AskUserQuestion`, `codex exec`, `claude -p`, `opencode run` and `cursor-agent`, skipping table rows. A host file in `references/` may name its host's tools, because only an agent on that host reads it. Words such as "Agent" or "Skill" are not checked, because they are ordinary words in skill text; read for them yourself.
+The check reads only `SKILL.md`, and only for the names `AskUserQuestion`, `codex exec`, `claude -p`, `opencode run`, `cursor-agent`, `ask_question` and `invoke_subagent`, skipping table rows. A host file in `references/` may name its host's tools, because only an agent on that host reads it. Words such as "Agent" or "Skill" are not checked, because they are ordinary words in skill text; read for them yourself.
 
 ## Self-contained folders
 

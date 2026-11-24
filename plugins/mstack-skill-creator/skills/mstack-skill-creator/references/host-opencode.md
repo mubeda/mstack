@@ -39,8 +39,26 @@ None. OpenCode ships no skill creator, so this skill does every step itself.
 
 ## Cross-vendor reviewer
 
-The agent-bridges plugin of another vendor when one is installed (its `claude` plugin for a Claude review). Otherwise warn the user and run the review prompt through `opencode run` in a fresh session, recorded as a same-vendor review.
+A read-only run of another vendor's own client that is installed, of a vendor other than the one this session's model comes from. Check with `command -v codex` and `command -v claude`.
+
+Codex first, with the prompt on stdin from a file:
+
+```bash
+codex exec --sandbox read-only --skip-git-repo-check -C "<working folder>" - < "<prompt file>" > "<result file>"
+```
+
+`--skip-git-repo-check` lets the run start in a folder that is not a Git repository, such as a local skill's folder; leave it out inside one. Keep the quotes: a folder name may hold a space.
+
+Else Claude, by a read-only run of the Claude Code client:
+
+```bash
+cd "<working folder>" && claude -p --safe-mode --model <model> --effort <effort> --output-format json --permission-mode plan --tools "Read,Grep,Glob" --settings '{"advisorModel":"off"}' < "<prompt file>" > "<result file>"
+```
+
+`<model>` is a full Claude model id and `<effort>` an effort, both named by the user: ask once, and never pass an alias, because an alias can run another model. Put what the reviewer reads in the working folder. The review is the `result` field of the JSON in `<result file>`; `is_error` must be `false`, and `modelUsage` should name only `<model>`. Wait for the command to end and read its output before you report. Claude Code loads the user's own setup (settings, plugins, hooks, a second advisor model) unless these flags are used, so copy the command whole. The flags were confirmed on 2026-11-23 with Claude Code 2.1.330 from a clean shell; a run started from this host was not confirmed.
+
+When neither client is installed, warn the user and run the review prompt through `opencode run` in a fresh session, recorded as a same-vendor review.
 
 ## mstack skills supported here
 
-As of 2026-11-10, only this skill. The other mstack skills are written for Claude Code and Codex, so every step they cover uses the built-in fallback in `references/workflow-steps.md`.
+As of 2026-11-10, only this skill. The other mstack skills are written for Claude Code, Codex and Antigravity, so every step they cover uses the built-in fallback in `references/workflow-steps.md`.

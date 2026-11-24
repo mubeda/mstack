@@ -1,0 +1,18 @@
+schema_version: "1.1"
+name: antigravity-plugin-route
+expected_outcome: |
+  First turn: the plugin route is offered for this candidate, whose source is a GitHub repository, and no command
+  runs. Second turn (reply.md): the session finds the plugin's manifest in the checkout, in the subfolder
+  `plugins/driftwright`, and gives the command
+  `agy plugin install https://github.com/acme-tools/web-skills/tree/main/plugins/driftwright` for the user to run.
+  It gives no command with the repository's root as the address. The session does not run the command, and no
+  skills-command install runs.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The prompt names Antigravity as the host, so in Claude Code or Codex this case is a fixture: it shows that the
+  text is followed, not what an Antigravity session does. `bin/npx` and `bin/agy` are stand-ins that log each call
+  to `calls.log` in the run folder and install nothing. The run's `PATH` holds no real `npx`, `agy`, `claude`, `codex`, `curl` or `gh`: only stand-ins, so a
+  command the session runs without the prefix installs nothing either.
+  Two turns: reply.md, whole, is the second turn. Not in the Antigravity self-test batch: a prepared answer is not
+  the user's yes to a plugin install.

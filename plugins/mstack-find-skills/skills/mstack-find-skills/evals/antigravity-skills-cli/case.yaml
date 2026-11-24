@@ -1,0 +1,14 @@
+schema_version: "1.1"
+name: antigravity-skills-cli
+expected_outcome: |
+  First turn: the route, scope, method and agents are asked in one round, with Antigravity among the agents, and
+  nothing is installed. Second turn (reply.md): exactly one skills-command install runs, global, by symlink, for the
+  agent antigravity and no other agent.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The prompt names Antigravity as the host, so in Claude Code or Codex this case is a fixture: it shows that the
+  text is followed, not what an Antigravity session does. `bin/npx` and `bin/agy` are stand-ins that log each call
+  to `calls.log` in the run folder and install nothing. The run's `PATH` holds no real `npx`, `agy`, `claude`, `codex`, `curl` or `gh`: only stand-ins, so a
+  command the session runs without the prefix installs nothing either.
+  Two turns: reply.md, whole, is the second turn. This case is also in the Antigravity self-test batch.

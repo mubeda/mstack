@@ -1,0 +1,14 @@
+schema_version: "1.1"
+name: antigravity-raw-notes
+expected_outcome: |
+  A product plan written from raw customer interview notes (no evidence document) is reviewed by the session
+  itself: no client of another vendor is looked up or started, and no subagent reads it.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]
+notes: |
+  A Claude Code fixture only: it is in no self-test batch. The prompt names Antigravity as the host, so that a
+  session without the rule would look up and start another vendor's client.
+  Every grader about a command is read from the session's tool calls. A lookup is a shell command that asks
+  whether a client program exists, such as `command -v codex`.

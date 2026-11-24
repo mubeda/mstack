@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: antigravity-no-answer
+expected_outcome: |
+  One turn, no answer: the route, the scope, the method and the agents are asked in one round, and nothing is
+  installed while the questions are open.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The prompt names Antigravity as the host, so in Claude Code or Codex this case is a fixture: it shows that the
+  text is followed, not what an Antigravity session does. `bin/npx` and `bin/agy` are stand-ins that log each call
+  to `calls.log` in the run folder and install nothing. The run's `PATH` holds no real `npx`, `agy`, `claude`, `codex`, `curl` or `gh`: only stand-ins, so a
+  command the session runs without the prefix installs nothing either.
+  One turn. Not in the Antigravity self-test batch: a case there gets its answers up front.

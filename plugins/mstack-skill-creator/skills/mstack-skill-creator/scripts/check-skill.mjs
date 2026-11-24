@@ -12,7 +12,7 @@ const fails = [];
 const warns = [];
 const fail = (m) => fails.push(m);
 const warn = (m) => warns.push(m);
-const HOST_TOOLS = ['AskUserQuestion', 'codex exec', 'claude -p', 'opencode run', 'cursor-agent'];
+const HOST_TOOLS = ['AskUserQuestion', 'codex exec', 'claude -p', 'opencode run', 'cursor-agent', 'ask_question', 'invoke_subagent'];
 
 function finish() {
   for (const m of fails) console.log(`FAIL  ${m}`);
@@ -95,10 +95,21 @@ function nested(d) {
 for (const p of nested(dir)) fail(`nested SKILL.md at ${p}; name test data SKILL.md.fixture`);
 
 // Host tools are named only in the host table, so the rest of the file works on every host.
+// The host table is the table whose header row names a host. A table is a header row, a row of dashes,
+// then every following line that holds a "|"; leading pipes are optional, as in Markdown.
 const lines = text.split(/\r?\n/);
+const HOSTS = /Claude Code|Codex|Antigravity|OpenCode|Cursor/;
+const DASHES = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$/;
+const inHostTable = new Set();
+for (let i = 1; i < lines.length; i++) {
+  if (!DASHES.test(lines[i]) || !lines[i].includes('|') || !lines[i - 1].includes('|') || !HOSTS.test(lines[i - 1])) continue;
+  inHostTable.add(i - 1);
+  for (let j = i; j < lines.length && lines[j].includes('|'); j++) inHostTable.add(j);
+}
+const whole = (tool) => new RegExp(`(?<![A-Za-z0-9_])${tool.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![A-Za-z0-9_])`);
 lines.forEach((line, i) => {
-  if (/^\s*\|/.test(line)) return;
-  for (const tool of HOST_TOOLS) if (line.includes(tool)) fail(`SKILL.md:${i + 1} names the host tool "${tool}" outside the host table`);
+  if (inHostTable.has(i)) return;
+  for (const tool of HOST_TOOLS) if (whole(tool).test(line)) fail(`SKILL.md:${i + 1} names the host tool "${tool}" outside the host table`);
 });
 if (lines.length > 500) warn(`SKILL.md has ${lines.length} lines; move detail into references/ (aim for under 500)`);
 

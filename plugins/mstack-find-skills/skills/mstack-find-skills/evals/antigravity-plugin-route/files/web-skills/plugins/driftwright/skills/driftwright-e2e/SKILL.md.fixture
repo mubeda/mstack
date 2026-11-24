@@ -1,0 +1,7 @@
+---
+name: driftwright-e2e
+description: Use when writing Driftwright end-to-end tests.
+license: MIT
+---
+
+Write Driftwright tests with locators and fixtures.

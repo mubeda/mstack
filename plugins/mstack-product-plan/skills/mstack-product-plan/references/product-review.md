@@ -6,13 +6,13 @@ Read this when the document is written. Every product plan and every epic is rev
 
 Use the first that this host has:
 
-1. **The cross-vendor reviewer**: a model from another vendor, when your host table names one and it is installed and logged in. The `Review:` line records the reviewer and "cross-vendor".
+1. **The cross-vendor reviewer**: a model from another vendor, when your host table names one and it is installed and logged in. The `Review:` line records the reviewer, and "cross-vendor" only when the reviewer's vendor is not the vendor of the model that wrote the document; when both are the same vendor, it records "same-vendor".
 2. **A fresh read by your subagent tool**: a subagent with a fresh context that gets only the prompt below. The `Review:` line records "same-vendor".
 3. **Your own second read**: when the host has neither, or when you cannot write files at all, read the document yourself against the checklist, one item at a time, and write down a finding for each item that fails. The `Review:` line records "same-vendor, by the author".
 
 A same-vendor review tends to miss more than a cross-vendor one, which is why the line says which kind ran.
 
-One case skips the first choice. When an evidence document or a decisions document is among the document's sources, never use the cross-vendor reviewer. The same holds for an epic whose product plan rests on one (the plan's `Source:` line names it, or its `Review:` line ends with the reason below), because the epic's review reads that plan. In both cases start at the second choice, say so in the one line before the review, and end the `Review:` line with "same-vendor, because a source holds customer feedback or meeting notes". Those sources hold what customers and colleagues said, the product plan or epic carries counts and quotes from them, and a reviewer that runs in the same folder can open any path it sees. Their own skills never send them to another company, and this review does not either.
+One case skips the first choice. When any source of the document holds what customers or colleagues said, never use the cross-vendor reviewer, and send nothing of that source to another vendor. Such a source is an evidence document, a decisions document, customer feedback, an interview, or meeting notes or a transcript, whether it came as a file, an attachment or text pasted into the chat. The same holds for an epic whose product plan rests on one (the plan's `Source:` line names it, or its `Review:` line ends with the reason below), because the epic's review reads that plan. When you are not sure whether a source holds such material, treat it as if it does. In all these cases start at the second choice, say so in the one line before the review, and end the `Review:` line with "same-vendor, because a source holds customer feedback or meeting notes". The product plan or epic carries counts and quotes from such sources, and a reviewer that runs in the same folder can open any path it sees. The skills that write evidence and decisions documents never send them to another company, and this review does not either.
 
 Before the review starts, tell the user in one line who will read the document. The document goes to that reviewer and nowhere else.
 
@@ -20,7 +20,7 @@ Before the review starts, tell the user in one line who will read the document. 
 
 Write the prompt to a scratch folder outside the document's folder. (For your own second read there is no prompt file: use the instructions below as your checklist, on the text in the chat when nothing was saved.) It has three parts.
 
-1. **Reading list.** The document's path, and the sources it names (the product plan for an epic, a brief, notes that were read). An evidence document or a decisions document among the sources goes on the list too, because its review is always a same-vendor one (see Who reviews). Then paste the whole of `references/product-format.md` into the prompt, because the reviewer cannot read this skill's folder and the epic's rules build on the product plan's.
+1. **Reading list.** The document's path, and the sources it names (the product plan for an epic, a brief, notes that were read). A source that holds what customers or colleagues said goes on the list too, because the review is then always a same-vendor one (see Who reviews). Then paste the whole of `references/product-format.md` into the prompt, because the reviewer cannot read this skill's folder and the epic's rules build on the product plan's.
 2. **Instructions.**
 
    ```text

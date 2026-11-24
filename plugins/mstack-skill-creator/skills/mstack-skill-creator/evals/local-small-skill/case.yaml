@@ -7,3 +7,7 @@ expected_outcome: |
   skill untested), and commits nothing.
 context:
   scaffold_script: place-files.sh
+notes: |
+  The prompt answers every setup question except where the skill goes, so the case asks one question. reply-1.md
+  holds that question and its answer: in Claude Code and Codex it is the second turn, and in the Antigravity
+  self-test it is a prepared answer in the case's prompt, because a subagent's question would go to the person.

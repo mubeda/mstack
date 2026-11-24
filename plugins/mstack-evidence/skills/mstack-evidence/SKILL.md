@@ -11,12 +11,12 @@ You turn customer feedback into evidence a product plan can rest on: the problem
 
 This file is the same on every host. It names roles, and this table says what plays each role.
 
-| Role | Claude Code | Codex | Claude desktop | ChatGPT desktop |
-|---|---|---|---|---|
-| Your question tool | A numbered question in chat, then wait | A numbered question in chat, then wait | A numbered question in chat, then wait | A numbered question in chat, then wait |
-| Your subagent tool | `Agent`, with a fresh context | The session's agent tool, if it has one | None | None |
-| Running a script | Your shell tool, with `node` | Your shell tool, with `node` | The code tool when the session has one, otherwise check by reading | The code tool when the session has one, otherwise check by reading |
-| Saving a file | Your file tool | Your file tool | Your file tool when the session has one, otherwise print the document | Your file tool when the session has one, otherwise print the document |
+| Role | Claude Code | Codex | Antigravity | Claude desktop | ChatGPT desktop |
+|---|---|---|---|---|---|
+| Your question tool | A numbered question in chat, then wait | A numbered question in chat, then wait | A numbered question with `ask_question`, then wait | A numbered question in chat, then wait | A numbered question in chat, then wait |
+| Your subagent tool | `Agent`, with a fresh context | The session's agent tool, if it has one | None: you read it yourself, because no source says which vendor runs an Antigravity subagent | None | None |
+| Running a script | Your shell tool, with `node` | Your shell tool, with `node` | Your shell tool, with `node` | The code tool when the session has one, otherwise check by reading | The code tool when the session has one, otherwise check by reading |
+| Saving a file | Your file tool | Your file tool | Your file tool | Your file tool when the session has one, otherwise print the document | Your file tool when the session has one, otherwise print the document |
 
 ## Files in this skill
 

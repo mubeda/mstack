@@ -34,18 +34,26 @@ Codex reads `name` and `description` and nothing else from the frontmatter. Code
 Run each comparison run with the test repository as the working folder, so its `.agents/skills/` loads.
 
 ```bash
-codex exec -C <test repository> --sandbox workspace-write -o <run>/outputs/reply.md - < <run>/prompt.md 2> <run>/stderr.txt
+codex exec -C "<test repository>" --sandbox workspace-write -o "<run>/outputs/reply.md" - < "<run>/prompt.md" 2> "<run>/stderr.txt"
 ```
 
-Write the prompt to a file with the file tool and pass it on stdin, so no shell expands anything in it. For the baseline, run the same command in a copy of the repository without the skill. Keep `--skip-git-repo-check` off inside a Git repository.
+Write the prompt to a file with the file tool and pass it on stdin, so no shell expands anything in it. For the baseline, run the same command in a copy of the repository without the skill. Keep `--skip-git-repo-check` off inside a Git repository, and add it when the test folder is not one. Keep the quotes: a folder name may hold a space.
 
 ## Native skill creator
 
-`skill-creator` is a system skill on every Codex install. Its `init_skill.py` scaffolds a folder and its `quick_validate.py` lints frontmatter. When the user wants the `agents/openai.yaml` file, offer the Codex creator's script that generates it. This skill's own `scripts/check-skill.mjs` replaces the linter for the four-host rules.
+`skill-creator` is a system skill on every Codex install. Its `init_skill.py` scaffolds a folder and its `quick_validate.py` lints frontmatter. When the user wants the `agents/openai.yaml` file, offer the Codex creator's script that generates it. This skill's own `scripts/check-skill.mjs` replaces the linter for the five-host rules.
 
 ## Cross-vendor reviewer
 
-Claude, through the `claude-review` skill of the agent-bridges `claude` plugin, run as an approved command. When it is missing, warn the user and use a separate read-only `codex exec --sandbox read-only` run on the model and effort `mstack-best-model-for` returns for the tier `most capable`, recorded as a same-vendor review.
+Claude, by a read-only run of the Claude Code client with the review prompt on stdin. It needs the network, so run it as an approved command:
+
+```bash
+cd "<working folder>" && claude -p --safe-mode --model <model> --effort <effort> --output-format json --permission-mode plan --tools "Read,Grep,Glob" --settings '{"advisorModel":"off"}' < "<prompt file>" > "<result file>"
+```
+
+`<model>` is the full model id and `<effort>` the effort that `mstack-best-model-for` returns for the vendor `claude` and the tier `most capable`. The id is in its "How to set" column; never pass the alias, because an alias can run another model. When that row says `Expensive: yes`, ask the user before the run. Put what the reviewer reads in the working folder. The review is the `result` field of the JSON in `<result file>`; `is_error` must be `false`, and `modelUsage` should name only `<model>`. Wait for the command to end and read its output before you report. Claude Code loads the user's own setup (settings, plugins, hooks, a second advisor model) unless these flags are used, so copy the command whole. The flags were confirmed on 2026-11-23 with Claude Code 2.1.330 from a clean shell; a run started from this host was not confirmed.
+
+When the `claude` command is not installed, or the run still fails after one rerun, warn the user and use a separate read-only `codex exec --sandbox read-only` run (with `--skip-git-repo-check` when the folder is not a Git repository) on the model and effort `mstack-best-model-for` returns for the tier `most capable`, recorded as a same-vendor review.
 
 ## mstack skills supported here
 
