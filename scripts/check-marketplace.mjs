@@ -219,7 +219,8 @@ const pinned = {
   'plugins/mstack-research/agents/antigravity-reader/agent.md': ['read_file', 'search_web'],
 };
 const agentFiles = new Set(Object.keys(pinned));
-for (const name of folders) {
+// The block-list syntax is Antigravity's rule, so only a plugin with an Antigravity manifest has its agent files read; the pinned readers always are.
+for (const name of agyPlugins) {
   const dir = resolve(root, 'plugins', name, 'agents');
   if (!existsSync(dir)) continue;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

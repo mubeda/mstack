@@ -440,6 +440,15 @@ test('antigravity: a linked plugin folder and a linked SKILL.md count, a folder 
   assert.deepEqual(['mstack-plan', 'mstack-epic', 'mstack-auto', 'mstack-diagnose', 'mstack-handoff'].map((id) => r.state(id)), ['ok', 'ok', 'MISSING', 'MISSING', 'MISSING'], r.out);
 });
 
+test('antigravity: a plugin skill counts only directly under <plugin>/skills/<name>, not deeper in the plugin', () => {
+  const P = '.gemini/config/plugins';
+  const m = agy(machine()).skill(`${P}/mstack-plan/skills/mstack-plan`)
+    .skill(`${P}/mstack-epic/examples/skills/mstack-epic`).skill(`${P}/vendor/1.0.0/skills/mstack-auto`).skill(`${P}/skills/mstack-diagnose`);
+  const r = run(m, ANTI);
+  assert.deepEqual(['mstack-plan', 'mstack-epic', 'mstack-auto', 'mstack-diagnose'].map((id) => r.state(id)), ['ok', 'MISSING', 'MISSING', 'MISSING'], r.out);
+  assert.equal(run(m, [...ANTI, '--needs', 'mstack-epic']).status, 1);
+});
+
 test('needs: a value with no name in it is a usage error, on every host', () => {
   for (const host of ['claude', 'codex', 'antigravity']) for (const v of ['', ' , ', ',']) {
     assert.equal(run(machine().stub('node'), ['--host', host, '--needs', v]).status, 2, `${host} "${v}"`);

@@ -416,3 +416,22 @@ test('linked skill folder with a body of 24001 bytes', () => {
   setBody(root, 'mstack-handoff', 24001);
   fails(run(root), 'mstack-handoff/SKILL.md', '24001');
 });
+
+// The block-list rule is Antigravity's, so it applies only to plugins that have an Antigravity manifest.
+const addAgent = (root, plugin) => {
+  mkdirSync(join(root, `plugins/${plugin}/agents`));
+  writeFileSync(join(root, `plugins/${plugin}/agents/helper.md`), '---\nname: helper\ndescription: Test only.\ntools: Read, Grep\n---\nBody\n');
+};
+
+test('agent with comma-separated tools in a single-host plugin', () => {
+  const root = lightTree('mstack-claude-review-workflow');
+  addAgent(root, 'mstack-claude-review-workflow');
+  const result = run(root);
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('agent with comma-separated tools in a plugin with an Antigravity manifest', () => {
+  const root = lightTree('mstack-handoff');
+  addAgent(root, 'mstack-handoff');
+  fails(run(root), 'mstack-handoff/agents/helper.md', 'YAML list');
+});

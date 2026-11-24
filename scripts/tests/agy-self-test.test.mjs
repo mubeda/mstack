@@ -90,11 +90,11 @@ function lines(model, tools, args = { Path: '"/abs/made-up/file"' }) {
 }
 
 // A made-up Antigravity data folder next to <out>. A subagent: { id, role, typeName, parent, spawn, model, tools, transcript }.
-function gemini(out, { session = 'sess-1', sessionTranscript = true, sessionFull, subagents = [] } = {}) {
+function gemini(out, { session = 'sess-1', sessionTranscript = true, sessionText, sessionFull, subagents = [] } = {}) {
   const dir = join(dirname(out), 'gemini');
   const sys = (id) => join(dir, 'antigravity-cli/brain', id, '.system_generated');
   mkdirSync(sys(session), { recursive: true });
-  if (sessionTranscript) put(join(sys(session), 'logs/transcript.jsonl'), lines('gemini-test-session', ['invoke_subagent']));
+  if (sessionTranscript) put(join(sys(session), 'logs/transcript.jsonl'), sessionText ?? lines('gemini-test-session', ['invoke_subagent']));
   if (sessionFull !== undefined) put(join(sys(session), 'logs/transcript_full.jsonl'), sessionFull);
   for (const s of subagents) {
     put(join(sys(s.parent ?? session), 'subagents', `${s.id}.json`), JSON.stringify({ conversationId: s.id, spawnStepIndex: s.spawn ?? 1,
@@ -696,7 +696,7 @@ test('a missing transcript is not run', () => {
   const c = collect(b.out, g.dir);
   assert.match(c.row('| a.one |'), /\| not run: no transcript \|/);
   assert.match(c.row('| a.two |'), /\| not run: transcript names no model \|/);
-  assert.match(c.row('| b.three |'), /\| not run: transcript unreadable \|/);
+  assert.equal(c.row('| b.three |'), '| b.three | sub-3 |  |  | not run: b.three/session.jsonl: line 5 is not valid JSON | short |');
   assert.match(c.text, /^collected: 0 complete, 3 not run$/m);
 });
 
@@ -965,4 +965,50 @@ test('a short transcript is copied when there is no full one, and a cut record i
   assert.equal(c.row('| a.two | sub-2 |'), '| a.two | sub-2 | gemini-test-flash | read_file | complete | short |');
   assert.equal(c.row('| a.two | subagent-1 |'), '| a.two | subagent-1 | kid-1 | 1 | self | reader | short-kid | read_file | short, arguments may be cut |');
   assert.match(c.log, /^- Session transcript: short$/m);
+});
+
+// A transcript of four good lines and a fifth that is not JSON.
+const broken = (model = 'gemini-test-flash') => lines(model, ['read_file']) + '{ cut off\n';
+
+test('an unreadable line in the session transcript makes every case not run', () => {
+  for (const [form, options, file] of [['short', { sessionText: broken() }, 'transcript'], ['full', { sessionFull: broken() }, 'full']]) {
+    const b = ran([ONE, { ...TWO, self: true }]);
+    const g = gemini(b.out, { ...options, subagents: [{ id: 'sub-1', role: 'a.one' }] });
+    const c = collect(b.out, g.dir);
+    assert.equal(c.status, 1, `${form}: ${c.text}`);
+    assert.match(c.text, /^session transcript not readable: session\.jsonl: line 5 is not valid JSON$/m);
+    assert.equal(c.row('| a.one |'), '| a.one |  |  |  | not run: session.jsonl: line 5 is not valid JSON |  |', form);
+    assert.equal(c.row('| a.two |'), '| a.two |  |  |  | not run: session.jsonl: line 5 is not valid JSON |  |', form);
+    assert.match(c.text, /^collected: 0 complete, 2 not run$/m);
+    assert.match(c.log, /^- Session transcript: session\.jsonl: line 5 is not valid JSON$/m);
+    assert.equal(b.read('results/transcripts/session.jsonl'), readFileSync(g[file]('sess-1'), 'utf8'), 'the copy is still byte for byte');
+  }
+});
+
+test("an unreadable line in a case's own or a nested transcript makes its case not run", () => {
+  const b = ran([ONE, TWO, THREE]);
+  const g = gemini(b.out, { subagents: [{ id: 'sub-1', role: 'a.one', full: broken() }, { id: 'sub-2', role: 'a.two' }, { id: 'sub-3', role: 'b.three' },
+    { id: 'kid-1', parent: 'sub-2', role: 'reader', text: '{"step_index":0}\nnot json\n' }, { id: 'kid-2', parent: 'sub-3', role: 'reader', full: broken() }] });
+  const c = collect(b.out, g.dir);
+  assert.equal(c.status, 0, c.text);
+  assert.equal(c.row('| a.one |'), '| a.one | sub-1 |  |  | not run: a.one/session.jsonl: line 5 is not valid JSON | full |');
+  assert.equal(c.row('| a.two | sub-2 |'), '| a.two | sub-2 | gemini-test-flash | read_file | not run: a.two/subagent-1.jsonl: line 2 is not valid JSON | short |');
+  assert.equal(c.row('| b.three | sub-3 |'), '| b.three | sub-3 | gemini-test-flash | read_file | not run: b.three/subagent-1.jsonl: line 5 is not valid JSON | short |');
+  assert.match(c.text, /^collected: 0 complete, 3 not run$/m);
+  assert.equal(b.read('results/transcripts/b.three/subagent-1.jsonl'), readFileSync(g.full('kid-2'), 'utf8'));
+});
+
+test('a nested record that is not JSON, or names no conversation id, makes its case not run', () => {
+  for (const text of ['{ cut off', JSON.stringify({ spawnStepIndex: 3, subagentDescriptor: { typeName: 'self', role: 'reader' } }), JSON.stringify({ conversationId: '../sub-1' })]) {
+    const b = ran();
+    const g = gemini(b.out, { subagents: [{ id: 'sub-1', role: 'a.one' }, { id: 'kid-1', parent: 'sub-1', role: 'reader' }] });
+    const record = join(g.dir, 'antigravity-cli/brain/sub-1/.system_generated/subagents/kid-1.json');
+    writeFileSync(record, text);
+    const c = collect(b.out, g.dir);
+    assert.equal(c.status, 0, c.text);
+    assert.equal(c.row('| a.one | sub-1 |'), '| a.one | sub-1 | gemini-test-flash | read_file | not run: a.one/subagent-1.json: not a readable subagent record | short |', text);
+    assert.equal(c.row('| a.one | subagent-1 |'), '| a.one | subagent-1 |  |  |  |  |  |  |  |');
+    assert.equal(b.read('results/transcripts/a.one/subagent-1.json'), text);
+    assert.ok(!existsSync(join(b.out, 'results/transcripts/a.one/subagent-1.jsonl')), 'the transcript named like the record file is not taken');
+  }
 });

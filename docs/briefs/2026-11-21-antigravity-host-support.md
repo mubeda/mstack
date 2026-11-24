@@ -2,6 +2,8 @@
 
 Status: Approved 2026-11-21 (approved in chat by the user)
 
+Note of 2026-11-23, added when the work was re-scoped: two parts of this brief no longer hold, and the three specs that followed it are the authority (`docs/specs/2026-11-21-add-antigravity-host.md`, decisions D26 to D28 and D34 to D37). First, no agent and no script starts or drives an Antigravity session; the evidence for Antigravity comes from sessions a person opens. Second, no mstack skill reaches another client through a bridge of another repository: Claude is reached with the Claude Code client itself and Codex with `codex exec`. The passages below that describe reaching a client through such a bridge, and the permission to file issues in that repository, are kept as the record of what was approved on 2026-11-21 and are not instructions.
+
 ## Intent
 
 The mstack skills run today in Claude Code and Codex. The user wants them to run in the Antigravity CLI (`agy`) as well, and wants the review and development workflows to work with whichever vendors are installed: any of the three hosts can lead, and the other vendors review or develop. Today the workflows are fixed pairs (Claude leads and Codex reviews, Codex leads and Claude reviews, Claude manages and Codex writes). After this work, a user with one, two or three of the vendors installed gets the same behavior from any host, and the strongest review the machine allows.

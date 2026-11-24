@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-A plan review ran (cross-vendor, or the same-vendor fallback recorded as such) with its record under reviews/, execute-plan.md offers inline execution and the mstack review workflows with a recommended mode, the plan Status is still Draft, and no file under shop/app changed.
+A plan review ran (cross-vendor, or the same-vendor fallback recorded as such) with its record under reviews/, execute-plan.md offers inline execution and, for Claude Code and Codex, the mstack review workflows, says that in Antigravity only inline execution is offered, and gives a recommended mode, the plan Status is still Draft, and no file under shop/app changed.

@@ -41,7 +41,7 @@ Skills:
 - <name> (<where installed>, <loads now | loads in a new session | repository, not installed>): <reason of six to twelve words>
 Gaps:
 - <what is missing> (searched: "<query>", "<query>")
-  - <owner/repo>@<skill>: installs <N>, first seen <date>, audits <vendor verdict (categories), ... | not audited>, license <license>, <skills.sh link>
+  - <source>@<skill>: installs <N>, first seen <date>, audits <vendor verdict (categories), ... | not audited>, license <license>, <skills.sh link>
     Install: <the commands from references/install.md>
 
 Online search: ran | not run (<reason>)

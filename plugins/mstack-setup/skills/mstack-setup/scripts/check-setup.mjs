@@ -59,17 +59,14 @@ function which(name) {
 }
 
 // Every SKILL.md path under a folder, at most `depth` levels down.
-function findFiles(root, match, depth = 7, follow = host === 'antigravity') {
+function findFiles(root, match, depth = 7) {
   const out = [];
   const walk = (d, n) => {
     let names; try { names = readdirSync(d, { withFileTypes: true }); } catch { return; }
     for (const e of names) {
       const p = join(d, e.name);
-      // In Antigravity a plugin folder or a SKILL.md may be a link: follow it to an existing target (the depth ends a loop).
-      let st = e;
-      if (follow && e.isSymbolicLink()) { try { st = statSync(p); } catch { continue; } }
-      if (st.isDirectory() && n > 0) walk(p, n - 1);
-      else if (st.isFile() && match(p)) out.push(p);
+      if (e.isDirectory() && n > 0) walk(p, n - 1);
+      else if (e.isFile() && match(p)) out.push(p);
     }
   };
   walk(root, depth);
@@ -86,8 +83,14 @@ function hasSkill(name) {
   // In Antigravity a folder named SKILL.md is no skill; the other hosts keep the plain existence check.
   const there = (p) => { if (host !== 'antigravity') return existsSync(p); try { return statSync(p).isFile(); } catch { return false; } };
   if (skillRoots.some((r) => there(join(r, name, 'SKILL.md')))) return true;
+  // Antigravity: only <plugins>/<plugin>/skills/<name>/SKILL.md, the layout `agy plugin install` is documented to write and
+  // mstack-find-skills reads. statSync follows a linked plugin folder or SKILL.md; a dangling link or a folder fails it.
+  if (host === 'antigravity') {
+    let plugins; try { plugins = readdirSync(cache); } catch { return false; }
+    return plugins.some((pl) => there(join(cache, pl, 'skills', name, 'SKILL.md')));
+  }
   // A cache folder alone proves nothing (leftover clones and old versions stay there): the host must record the plugin.
-  return cacheSkills.some((p) => p.endsWith(`/skills/${name}/SKILL.md`) && (host === 'antigravity' || recorded(p)));
+  return cacheSkills.some((p) => p.endsWith(`/skills/${name}/SKILL.md`) && recorded(p));
 }
 // True when the cache path sits under <cache>/<marketplace>/<plugin>/ and the host records "<plugin>@<marketplace>".
 function recorded(path) {

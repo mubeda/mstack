@@ -69,17 +69,18 @@ function copy(from, to) {
 }
 
 // The models and tool names of one transcript, which file it was read from, or the reason it cannot stand as evidence.
-function read(id) {
+// A line that is not JSON may hide a start or a call, so it is a reason of its own (bad), named by the copy's path.
+function read(id, label) {
   const kind = source(id) === transcript(id) ? 'short' : 'full';
   let text, cut = false;
   const away = outside(source(id));
   if (away) return { model: '', tools: '', from: '', reason: away };
   try { text = readFileSync(source(id), 'utf8'); } catch { return { model: '', tools: '', from: '', reason: 'no transcript' }; }
   const models = new Set(), tools = new Set();
-  for (const line of text.split('\n')) {
+  for (const [n, line] of text.split('\n').entries()) {
     if (!line.trim()) continue;
     let step;
-    try { step = JSON.parse(line); } catch { return { model: '', tools: '', from: kind, reason: 'transcript unreadable' }; }
+    try { step = JSON.parse(line); } catch { return { model: '', tools: '', from: kind, reason: `${label}: line ${n + 1} is not valid JSON`, bad: true }; }
     if (kind === 'short' && Array.isArray(step?.truncated_fields) && step.truncated_fields.length) cut = true;
     if (typeof step?.model === 'string' && step.model) models.add(step.model);
     if (Array.isArray(step?.tool_calls)) for (const call of step.tool_calls) tools.add(String(call?.name));
@@ -95,8 +96,9 @@ function records(id) {
   try { found = readdirSync(dir); } catch (e) { if (e.code !== 'ENOENT') return Object.assign([], { reason: `cannot read ${dir}: ${e.code ?? e.message}` }); }
   return found.filter((n) => n.endsWith('.json')).map((n) => {
     const file = join(dir, n), away = outside(file), record = away ? null : json(file);
-    return { file, id: plain(record?.conversationId) ? record.conversationId : n.slice(0, -5), record, reason: away };
-  }).filter((r) => plain(r.id)).sort((a, b) => (a.record?.spawnStepIndex ?? 0) - (b.record?.spawnStepIndex ?? 0) || a.id.localeCompare(b.id));
+    // The id is the record's own conversationId. A record that cannot be read has none: its file name is never taken for it.
+    return { file, name: n.slice(0, -5), id: plain(record?.conversationId) ? record.conversationId : away && plain(n.slice(0, -5)) ? n.slice(0, -5) : null, record, reason: away };
+  }).sort((a, b) => (a.record?.spawnStepIndex ?? 0) - (b.record?.spawnStepIndex ?? 0) || a.name.localeCompare(b.name));
 }
 
 // Copies every subagent below one conversation; returns the first reason one of them cannot stand as evidence, or null.
@@ -105,14 +107,20 @@ function below(parent, caseId, seen) {
   const list = records(parent);
   let reason = list.reason ?? null;
   for (const r of list) {
-    if (seen.has(r.id)) continue;
-    seen.add(r.id);
+    if (seen.has(r.id ?? r.file)) continue;
+    seen.add(r.id ?? r.file);
     const name = `subagent-${seen.size}`;
-    const record = copy(r.file, join(copies, caseId, `${name}.json`)), text = copy(source(r.id), join(copies, caseId, `${name}.jsonl`));
-    const t = read(r.id);
+    const record = copy(r.file, join(copies, caseId, `${name}.json`));
+    if (!r.id) {
+      nested.push([caseId, name, '', '', '', '', '', '', '']);
+      reason ??= record ?? `${caseId}/${name}.json: not a readable subagent record`;
+      continue;
+    }
+    const text = copy(source(r.id), join(copies, caseId, `${name}.jsonl`));
+    const t = read(r.id, `${caseId}/${name}.jsonl`);
     nested.push([caseId, name, r.record?.conversationId ?? '', r.record?.spawnStepIndex ?? '', r.record?.subagentDescriptor?.typeName ?? '', r.record?.subagentDescriptor?.role ?? '', t.model, t.tools, t.from]);
     const deeper = below(r.id, caseId, seen);
-    reason ??= record ?? text ?? (t.reason && `${name}: ${t.reason}`) ?? deeper;
+    reason ??= record ?? text ?? (t.reason && (t.bad ? t.reason : `${name}: ${t.reason}`)) ?? deeper;
   }
   return reason;
 }
@@ -122,18 +130,22 @@ rmSync(copies, { recursive: true, force: true }); // an earlier run's copies are
 // The first collection knows the path the session used; a later one may run on an archived copy.
 if (!existsSync(batchRoot)) writeFileSync(batchRoot, `${out}\n`);
 const sessionCopy = sessionFound ? copy(source(sid), join(copies, 'session.jsonl')) : null;
+// The session's own transcript holds every start, so a line of it that cannot be read leaves no case standing.
+const sessionRead = sessionFound && !sessionCopy ? read(sid, 'session.jsonl') : null;
+const sessionBad = sessionRead?.bad ? sessionRead.reason : null;
 const top = sessionFound ? records(sid) : [];
 const rows = expected.cases.map((c) => {
   if (!sessionFound) return [c.id, '', '', '', 'not run: no session transcript', ''];
   if (sessionCopy) return [c.id, '', '', '', `not run: session transcript: ${sessionCopy}`, ''];
+  if (sessionBad) return [c.id, '', '', '', `not run: ${sessionBad}`, ''];
   const meta = json(join(results, c.id, 'meta.json'));
   // A record that is not valid JSON matches no case; one outside the data folder matches by its file name and is reported.
-  const r = c.self ? null : top.find((x) => x.record?.subagentDescriptor?.role === c.id) ?? top.find((x) => (x.record || x.reason) && x.id === meta?.subagent_id);
+  const r = c.self ? null : top.find((x) => x.id && x.record?.subagentDescriptor?.role === c.id) ?? top.find((x) => x.id && x.id === meta?.subagent_id);
   const id = c.self ? sid : r?.id;
   let t = { model: '', tools: '', from: '', reason: 'no subagent record' }, why = null;
   if (id) {
     why = r?.reason ?? copy(source(id), join(copies, c.id, 'session.jsonl'));
-    t = read(id);
+    t = read(id, `${c.id}/session.jsonl`);
     const deeper = below(id, c.id, new Set());
     why ??= t.reason ?? deeper;
   } else why = top.reason ?? t.reason;
@@ -148,7 +160,7 @@ writeFileSync(runLog, `# Self-test run log
 - Batch: ${expected.batch ?? 'unknown'}
 - Date: ${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)} (the local day of this collection)
 - Session: ${sid ?? 'unknown'}
-- Session transcript: ${sessionFound ? sessionCopy ?? read(sid).from : 'not found'}
+- Session transcript: ${sessionFound ? sessionCopy ?? sessionBad ?? sessionRead.from : 'not found'}
 - Model: ${known(session?.model) ? session.model : 'unknown'}
 - Client version: ${known(session?.client_version) ? session.client_version : agyVersion ? `${agyVersion} (from agy --version)` : 'unknown'}
 - Mode: ${known(session?.mode) ? session.mode : 'unknown'}
@@ -168,5 +180,9 @@ if (!sessionFound) {
 }
 if (sessionCopy) {
   console.error(`session transcript not copied: ${sessionCopy}`);
+  process.exit(1);
+}
+if (sessionBad) {
+  console.error(`session transcript not readable: ${sessionBad}`);
   process.exit(1);
 }

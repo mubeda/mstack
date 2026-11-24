@@ -15,8 +15,8 @@ This file is the same on every host. It names roles, and this table says what pl
 |---|---|---|---|---|---|
 | Your question tool | A numbered question in chat, then wait | A numbered question in chat, then wait | A numbered question with `ask_question`, then wait | A numbered question in chat, then wait | A numbered question in chat, then wait |
 | Your subagent tool | `Agent`, with a fresh context | The session's agent tool, if it has one | None: you read it yourself, because no source says which vendor runs an Antigravity subagent | None | None |
-| Running a script | Your shell tool, with `node` | Your shell tool, with `node` | Your shell tool, with `node` | The code tool when the session has one, otherwise check by reading | The code tool when the session has one, otherwise check by reading |
-| Saving a file | Your file tool | Your file tool | Your file tool | Your file tool when the session has one, otherwise print the document | Your file tool when the session has one, otherwise print the document |
+| Running a script | Your shell tool, with `node` | Your shell tool, with `node` | `run_command`, with `node` | The code tool when the session has one, otherwise check by reading | The code tool when the session has one, otherwise check by reading |
+| Saving a file | Your file tool | Your file tool | `write_file` | Your file tool when the session has one, otherwise print the document | Your file tool when the session has one, otherwise print the document |
 
 ## Files in this skill
 
