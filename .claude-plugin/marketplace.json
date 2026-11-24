@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Daily-driver agent skills for Claude Code and Codex CLI, packaged as independently installable plugins.",
-    "version": "0.14.2"
+    "version": "0.14.3"
   },
   "plugins": [
     {
@@ -31,7 +31,7 @@
     {
       "name": "mstack-diagnose",
       "description": "Diagnose crashes, bugs, regressions, flaky failures, performance problems, hangs and leaks with evidence: intake, a signal from a live loop or a saved crash record, ranked falsifiable hypotheses, one-variable probes, a regression test before the fix, graded root-cause tiers and fix verdicts. One skill for Claude Code and Codex.",
-      "version": "0.3.2",
+      "version": "0.3.3",
       "author": {
         "name": "mubeda"
       },
@@ -41,7 +41,7 @@
     {
       "name": "mstack-brainstorm",
       "description": "Turn an unformed idea into a design brief the user approved: reads before asking, asks one open question at a time until the reason is known, then numbered rounds, lays out whole-shape approaches, generates ideas before judging them in ideas mode, and hands the approved brief to mstack-write-specs. One skill for Claude Code and Codex.",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "author": {
         "name": "mubeda"
       },
@@ -51,7 +51,7 @@
     {
       "name": "mstack-write-specs",
       "description": "Turn an idea, feature, bug class or refactor into an approved, testable specification: grilling interview rounds that settle every decision, approaches before drafting, EARS requirements with SHALL and a scenario each, a quality checklist, an independent read, and explicit approval before any build. One skill for Claude Code and Codex.",
-      "version": "0.4.2",
+      "version": "0.4.3",
       "author": {
         "name": "mubeda"
       },
@@ -61,7 +61,7 @@
     {
       "name": "mstack-plan",
       "description": "Turn an approved spec into a reviewed implementation plan: phases and tasks sized for one agent session each, red-green test steps, dependencies and parallel rounds, the best installed skills named per task (with vetted online suggestions for gaps), a review of every plan (cross-vendor, or a same-vendor fallback when that reviewer is missing), a shared progress file, and an execute-plan.md that starts inline or multi-agent execution. One skill for Claude Code and Codex.",
-      "version": "0.3.4",
+      "version": "0.3.5",
       "author": {
         "name": "mubeda"
       },
@@ -71,7 +71,7 @@
     {
       "name": "mstack-handoff",
       "description": "Write one resumable handoff file so a fresh agent session, in Claude Code or Codex, continues long work exactly where it stopped: branch, HEAD, uncommitted paths, pull request, issue status, gates green and due with exact commands, approved and blocked decisions, next commands first. Never commits, stashes or leaks secrets, checks the file mechanically, and resumes from it with staleness rules. One skill for Claude Code and Codex.",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "author": {
         "name": "mubeda"
       },
@@ -81,7 +81,7 @@
     {
       "name": "mstack-backlog-triage",
       "description": "Triage a tracker's open issues into now, next and defer with evidence: read every issue in full, classify each (bug with or without a reproduction, feature, chore, duplicate, not actionable), require a duplicate search before anything goes in the current batch, route items to mstack-write-specs or mstack-diagnose, and output a table the mstack review workflows accept. Drafts comments and label changes, and posts only text the user approved word for word. One skill for Claude Code and Codex.",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "author": {
         "name": "mubeda"
       },
@@ -91,7 +91,7 @@
     {
       "name": "mstack-skill-creator",
       "description": "Create or improve agent skills (SKILL.md folders) that Claude Code, Codex, OpenCode and Cursor all load: an interview, a check for an existing skill, writing by portable rules, a static check, a comparison test against a baseline, and for an mstack-style repository the full plugin packaging and cross-vendor review. Uses the other mstack skills when they are installed. Never commits or publishes on its own.",
-      "version": "0.3.10",
+      "version": "0.3.11",
       "author": {
         "name": "mubeda"
       },
@@ -101,7 +101,7 @@
     {
       "name": "mstack-best-model-for",
       "description": "Pick the model and effort for a task, for Claude or Codex: one table of tiers and tasks with how to set each choice, a reason and a next step, in a user mode that asks and a called mode other mstack skills use, with the caller's limits applied. One skill for Claude Code and Codex.",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "author": {
         "name": "mubeda"
       },
@@ -111,7 +111,7 @@
     {
       "name": "mstack-find-skills",
       "description": "Find the skills that fit a job: the installed skills scored per task, then vetted public candidates from skills.sh for the gaps only (audits, installs, license and the skill's own text), installed only after the user's yes. Called by the other mstack skills for their tasks. One skill for Claude Code and Codex.",
-      "version": "0.2.10",
+      "version": "0.2.11",
       "author": {
         "name": "mubeda"
       },
@@ -121,7 +121,7 @@
     {
       "name": "mstack-setup",
       "description": "Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: a status script for the host, then one list of install commands (codegraph, ponytail, the cross-vendor reviewer, the mstack skills) that runs only after one yes, and a final check. One skill for Claude Code and Codex.",
-      "version": "0.2.11",
+      "version": "0.2.12",
       "author": {
         "name": "mubeda"
       },
@@ -131,7 +131,7 @@
     {
       "name": "mstack-receive-review",
       "description": "Process any code review as claims to check: verify each finding against the code with the method its type calls for, fix what holds with a failing test first and in every place with the same mistake, reject what does not with evidence, and log every outcome with a drafted reply, without asking the user. The other mstack skills call it for every review. One skill for Claude Code and Codex.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "author": {
         "name": "mubeda"
       },
@@ -141,7 +141,7 @@
     {
       "name": "mstack-chief-of-staff",
       "description": "Own a long-running goal across many sessions: a release, a backlog, a multi-step project. Keeps the goal, its done criteria and every decision in a wiki of dated claims that the next session starts from, cites a commit for every claim about code, marks changed claims superseded instead of rewriting them, lints the wiki with a script, delegates substantial work to subagents through briefs that point at files, improves the environment after each task, and runs every procedure through the other mstack skills. One skill for Claude Code and Codex.",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "author": {
         "name": "mubeda"
       },
@@ -151,7 +151,7 @@
     {
       "name": "mstack-explain-me-better",
       "description": "A mode that explains AI answers and reports in everyday language. Once started it explains the answer in front of you again, bottom line first, in full short sentences and in your language, and keeps that style until you stop it. Numbers, commands, warnings, risks and stated uncertainty are never dropped, and it says what it left out. When the optional archify skill is installed it offers a diagram for explanations with real structure, and draws one only after a yes. One skill for Claude Code and Codex.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "author": {
         "name": "mubeda"
       },
@@ -161,7 +161,7 @@
     {
       "name": "mstack-product-plan",
       "description": "Product-level planning for product and management people. Interviews in numbered rounds until every product decision is settled, then writes a product plan: the initiative (problem and evidence, who it is for, outcome and measure, what is out, fixed limits, risks) and its epics ordered as now, next and later (above nine it proposes a split), each with a measurable result and a rough size. No code and no development steps. Works with no repository and no other skill, reads and writes an Obsidian vault, and has the plan reviewed before approval. One skill for Claude Code and Codex.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "author": {
         "name": "mubeda"
       },
@@ -171,7 +171,7 @@
     {
       "name": "mstack-epic",
       "description": "Details one epic for product and management people, from an approved product plan or from a description in chat. Interviews only what the detailed epic adds, then writes one document: outcome, who it is for, what is in and out, acceptance as plain statements, a measurable result, size, fixed limits, user stories and open questions for developers. It never edits the product plan and lists what changed. No code and no development steps. mstack-write-specs accepts the approved epic as its source. One skill for Claude Code and Codex.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "author": {
         "name": "mubeda"
       },
@@ -181,7 +181,7 @@
     {
       "name": "mstack-evidence",
       "description": "Turns customer feedback (support tickets, interview notes, survey answers) into evidence for product people: the problems people have, each with a count whose items are listed, exact quotes with their place, and a strength by a written rule. It records what people asked for without recommending a solution, says what the sample cannot show, replaces customers' personal data with roles, and checks every quote and count against the sources with a script before showing anything. Nothing is sent to another vendor's model. mstack-product-plan, mstack-epic and mstack-write-specs take the approved document as a source. One skill for Claude Code and Codex.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "mubeda"
       },
@@ -191,7 +191,7 @@
     {
       "name": "mstack-decisions",
       "description": "Turns the notes or transcript of one meeting into a decisions document for product people: what was decided, by whom and why, with an exact quote and its place; what only seems decided and needs confirmation; open points; and action items with their owner and date as given. It never guesses a speaker, an owner, a date or an agreement, lists what the decisions change in a product plan or epic without editing it, and checks every quote against the notes with a script. Nothing is sent to another vendor's model. mstack-product-plan, mstack-epic and mstack-write-specs take the approved document as settled decisions. One skill for Claude Code and Codex.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "mubeda"
       },
@@ -201,7 +201,7 @@
     {
       "name": "mstack-auto",
       "description": "A router for the mstack skills. Give it any prompt and it starts the one mstack skill that fits, after one line that says which skill and why. It picks the earliest missing step of a chain (brainstorm, spec, plan, delivery), asks one question on a real tie, names a fitting skill that is missing or runs only on the other host, and hands a job no mstack skill covers to mstack-find-skills. It starts only when asked and never does the job itself. One skill for Claude Code and Codex.",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "author": {
         "name": "mubeda"
       },
@@ -211,7 +211,7 @@
     {
       "name": "mstack-research",
       "description": "Research outside the repository with sources you can check. It answers a question from official documentation, source code, changelogs, issue trackers and forums, and every claim names the page it came from. For a package or SDK it starts from the version in the lockfile and reports the documentation for that version, what changed since, known issues with their fix versions, and security advisories. Readers get search and reading tools only where the host allows it, text in a fetched page is never followed as an instruction, and a run that could not search says so. In Claude Code a broad question from the user goes to Claude's deep-research when it is installed. Called by mstack-plan, the delivery workflows and mstack-skill-creator. One skill for Claude Code and Codex.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "mubeda"
       },
@@ -221,7 +221,7 @@
     {
       "name": "mstack-write-issue",
       "description": "Well-formed tracker issues from what the session already knows. It searches open and closed issues before it drafts, and turns a match into a comment with only the new evidence. It writes in the repository's own issue template, or in a fixed outline for a bug, a feature or a follow-up, and ends every issue with a line that says when it is done. A bug that does not happen every time gets its counts and conditions, never steps that pretend to reproduce it. Credentials, private hosts, names and home paths are replaced before anything is shown. It posts only after you approve the exact text in a later message, with gh on GitHub, through a connected tool on another tracker, or as a draft to paste. The delivery workflows offer it for deferred follow-ups. One skill for Claude Code and Codex.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "mubeda"
       },
@@ -231,7 +231,7 @@
     {
       "name": "mstack-anonymize",
       "description": "Replaces identifying values in a file or a text before it goes to an AI model or to other people. A script in the skill folder does the work on your machine: the agent never opens the raw file, your terms file or a result written to disk, and reports only a count per kind. It finds values by their form (e-mail addresses, phone numbers, cards, IBANs, IP addresses, hosts, credentials, amounts, identifiers), by the name of a column or a JSON key in English, German and Spanish, and by a list of names you keep. The same value gets the same placeholder, so the data stays usable, and no file links a placeholder to its original. Text, Markdown, logs, CSV, TSV and JSON in, Markdown out, as a file or in the chat. Every result says that it may still be personal data: this is pseudonymisation, not legal anonymization. Node.js 18 or later, nothing to install. One skill for Claude Code and Codex.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "mubeda"
       },
@@ -241,7 +241,7 @@
     {
       "name": "mstack-web-ui",
       "description": "Builds and reviews web interfaces. Every page, screen, component or form it builds meets a floor: it works with a keyboard and on a phone, every control has a readable name and its states, every data view handles no data, loading, an error and long content, and motion is used with restraint. A new page with no design system gets a direction that is chosen and stated, not the default look, and nothing in it is invented. In an existing project the design system, components and stack win over every default of the skill. A React project also gets rules for component structure, rendering and loading, matched to the installed React version. A review returns ranked findings with file and line and changes nothing. Text only: no script, no data and nothing to install. One skill for Claude Code and Codex.",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "author": {
         "name": "mubeda"
       },

@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { delimiter, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
+const root = process.env.MSTACK_CHECK_ROOT ?? fileURLToPath(new URL('../', import.meta.url));
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
 const json = (path) => JSON.parse(read(path));
 const claudeCatalog = json('.claude-plugin/marketplace.json');
@@ -21,6 +21,16 @@ const names = (entries) => entries.map((entry) => entry.name).sort();
 const folders = readdirSync(resolve(root, 'plugins'), { withFileTypes: true })
   .filter((file) => file.isDirectory()).map((file) => file.name);
 const hasManifest = (name, host) => existsSync(resolve(root, 'plugins', name, `.${host}-plugin/plugin.json`));
+// Plugins another spec assigns to one host, by name: each carries exactly that host's manifest. Every other plugin carries all
+// three. A plugin with only an Antigravity manifest is accepted only when this table names it ('antigravity').
+// MSTACK_CHECK_HOSTS (a JSON object of the same shape) adds rows for the tests.
+const singleHost = {
+  'mstack-codex-review-workflow': 'claude',
+  'mstack-claude-review-workflow': 'codex',
+  'mstack-claude-pm-codex-dev': 'claude',
+  ...JSON.parse(process.env.MSTACK_CHECK_HOSTS ?? '{}'),
+};
+const agyPlugins = folders.filter((name) => hasManifest(name, 'antigravity'));
 
 for (const entries of [claude, codex]) {
   assert.equal(new Set(names(entries)).size, entries.length, 'Duplicate plugin names');
@@ -31,11 +41,17 @@ assert.deepEqual(names(codex), folders.filter((name) => hasManifest(name, 'codex
   'Codex registry and plugins with a .codex-plugin manifest differ');
 
 for (const name of folders) {
-  assert(hasManifest(name, 'claude') || hasManifest(name, 'codex'), `${name}: no plugin manifest`);
+  const manifests = ['claude', 'codex', 'antigravity'].filter((host) => hasManifest(name, host));
+  if (singleHost[name]) {
+    assert.equal(manifests.join(), singleHost[name], `${name}: a single-host plugin has exactly one manifest, the ${singleHost[name]} one (found: ${manifests.join(', ') || 'none'})`);
+  } else {
+    assert.equal(manifests.length, 3, `${name}: needs .claude-plugin, .codex-plugin and .antigravity-plugin manifests`);
+  }
   const source = `./plugins/${name}`;
   const cc = claude.find((plugin) => plugin.name === name);
   const cx = codex.find((plugin) => plugin.name === name);
   const versions = [];
+  const labels = [];
   if (cc) {
     assert.equal(cc.source, source, `${name}: source must be its plugins/ folder`);
     const ccManifest = json(`${source}/.claude-plugin/plugin.json`);
@@ -43,6 +59,7 @@ for (const name of folders) {
     assert(isVersion(cc.version), `${name}: Claude registry entry has no valid version`);
     assert.equal(ccManifest.version, cc.version, `${name}: Claude manifest version differs`);
     versions.push(cc.version);
+    labels.push(`${cc.version} (.claude-plugin/plugin.json)`);
   }
   if (cx) {
     assert.equal(cx.source.source, 'local');
@@ -53,8 +70,19 @@ for (const name of folders) {
     assert(isVersion(cx.version), `${name}: Codex registry entry has no valid version`);
     assert.equal(cx.version, cxManifest.version, `${name}: Codex registry version differs from its manifest`);
     versions.push(cxManifest.version);
+    labels.push(`${cxManifest.version} (.codex-plugin/plugin.json)`);
   }
-  assert.equal(new Set(versions).size, 1, `${name}: Claude and Codex versions differ`);
+  if (agyPlugins.includes(name)) {
+    const agyManifest = json(`${source}/.antigravity-plugin/plugin.json`);
+    assert.equal(agyManifest.name, name, `${name}: .antigravity-plugin/plugin.json name differs from its folder`);
+    for (const field of ['description', 'license']) {
+      assert(typeof agyManifest[field] === 'string' && agyManifest[field].trim(), `${name}: .antigravity-plugin/plugin.json has no ${field}`);
+    }
+    assert(isVersion(agyManifest.version), `${name}: .antigravity-plugin/plugin.json has no valid version`);
+    versions.push(agyManifest.version);
+    labels.push(`${agyManifest.version} (.antigravity-plugin/plugin.json)`);
+  }
+  assert(versions.length && new Set(versions).size === 1, `${name}: manifest versions differ or are missing: ${labels.join(', ')}`);
   const skillRoot = resolve(root, source, 'skills');
   for (const skill of readdirSync(skillRoot, { withFileTypes: true }).filter((file) => file.isDirectory())) {
     const skillPath = resolve(skillRoot, skill.name);
@@ -163,7 +191,7 @@ const routed = rows.slice(2).map((row) => {
 });
 assert(routed.length, `${routing}: mstack-auto's routing table has no rows`);
 assert.equal(new Set(routed).size, routed.length, `mstack-auto's routing table names a skill twice: ${routed.sort().join(', ')}`);
-const routable = [...new Set([...names(claude), ...names(codex)])].filter((name) => name !== 'mstack-auto');
+const routable = [...new Set([...names(claude), ...names(codex), ...agyPlugins])].filter((name) => name !== 'mstack-auto');
 for (const name of routable) {
   assert(routed.includes(name), `${name}: no row in mstack-auto's routing table (${routing})`);
 }
@@ -171,4 +199,37 @@ for (const name of routed) {
   assert(routable.includes(name), `${name}: mstack-auto's routing table has a row for a skill no registry has`);
 }
 
-console.log(`Marketplace checks passed: ${claude.length} Claude plugins, ${codex.length} Codex plugins`);
+// An agent's `tools` must be a YAML list (Antigravity's validator rejects the one-line string form), and the
+// mstack-research reader keeps search and reading tools only, so a tool added to it is caught here.
+const readerTools = ['Glob', 'Grep', 'Read', 'WebFetch', 'WebSearch'];
+for (const name of folders) {
+  const dir = resolve(root, 'plugins', name, 'agents');
+  if (!existsSync(dir)) continue;
+  for (const file of readdirSync(dir).filter((entry) => entry.endsWith('.md'))) {
+    const path = `plugins/${name}/agents/${file}`;
+    const front = read(path).match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? '';
+    const block = front.match(/^tools:[ \t]*(.*)\r?\n?((?:[ \t]+- .*\r?\n?)*)/m);
+    if (!block) continue;
+    assert(!block[1].trim() && block[2], `${path}: tools must be a YAML list (a "tools:" line, then "  - <name>" lines), not a one-line string`);
+    const tools = block[2].split(/\r?\n/).filter(Boolean).map((line) => line.replace(/^[ \t]+- /, '').trim());
+    if (path === 'plugins/mstack-research/agents/reader.md') {
+      for (const tool of tools.filter((tool) => !readerTools.includes(tool))) assert.fail(`${path}: tool ${tool} is not allowed; the reader has search and reading tools only`);
+      for (const tool of readerTools.filter((tool) => !tools.includes(tool))) assert.fail(`${path}: tool ${tool} is missing from the reader's tools`);
+    }
+  }
+}
+
+// Antigravity's own validator, where it is installed. Version 1.5.15 exits non-zero on an error and 0 on a notice such as a missing logo.
+// "Not found" means no file named agy in a PATH folder; an agy that exists but cannot start fails the check.
+// shortcut: a Windows agy.exe or agy.cmd is not looked for, add the PATHEXT names when the checks run there.
+const agyFound = (process.env.PATH ?? '').split(delimiter).some((dir) => dir && existsSync(join(dir, 'agy')));
+let validated = agyFound ? 0 : -1;
+if (!agyFound) console.log('Antigravity validator step skipped: agy was not found on PATH');
+for (const name of agyFound ? agyPlugins : []) {
+  const run = spawnSync('agy', ['plugin', 'validate', resolve(root, 'plugins', name)], { encoding: 'utf8' });
+  assert(!run.error && run.status === 0, `${name}: agy plugin validate failed:\n${run.stdout}${run.stderr}${run.error ?? ''}`);
+  validated++;
+}
+if (validated >= 0) console.log(`Antigravity validator passed: ${validated} plugins`);
+
+console.log(`Marketplace checks passed: ${claude.length} Claude plugins, ${codex.length} Codex plugins, ${agyPlugins.length} Antigravity plugins`);
