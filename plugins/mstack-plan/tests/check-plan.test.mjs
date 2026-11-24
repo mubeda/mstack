@@ -103,3 +103,19 @@ test('a general planning placeholder left in a phase file still fails', () => {
   assert.equal(r.status, 1, `${r.stdout}${r.stderr}`);
   assert.match(`${r.stdout}${r.stderr}`, /PHASE-01-greet\.md: unfilled placeholder/);
 });
+
+// Antigravity loads only the first 24,000 bytes of a skill's body, so SKILL.md stays below that and its long parts
+// live in reference files that the Files table names.
+test('the body of SKILL.md is at most 24,000 bytes', () => {
+  const text = readFileSync(join(skill, 'SKILL.md'), 'utf8');
+  const body = text.slice(text.indexOf('\n---', 3) + 4);
+  assert.ok(Buffer.byteLength(body) <= 24000, `body is ${Buffer.byteLength(body)} bytes`);
+});
+for (const file of ['references/expensive-choices.md', 'references/resume.md', 'references/research.md', 'references/required-skills.md']) {
+  test(`${file} exists and is named in the Files table`, () => {
+    assert.ok(readFileSync(join(skill, file), 'utf8').length > 0);
+    const text = readFileSync(join(skill, 'SKILL.md'), 'utf8');
+    const table = text.slice(text.indexOf('## Files in this skill'), text.indexOf('## Ground rules'));
+    assert.match(table, new RegExp(`^\\| \`${file.replace(/[.]/g, '\\.')}\` \\|`, 'm'));
+  });
+}

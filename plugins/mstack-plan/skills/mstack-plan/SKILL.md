@@ -34,16 +34,9 @@ Tiers: cheap, standard, most capable
 
 In Antigravity the second line says `Vendor: all` instead, and the block then has three rows per tier: `both` returns only the `claude` and `codex` rows, and a missing row is never an answer. This host's vendor is `claude` in Claude Code, `codex` in Codex and `antigravity` in Antigravity.
 
-Rule 8 of phase 3 governs every model named here and below: no flagged model runs or is written without its own yes. A lookup that runs before rule 8's round uses a model that is not flagged: when the `cheap` row of this host says Expensive `yes`, make the second call below first and use the first model it returns that is not flagged; the cheap-helper slot still gets its question in the round, and after a no later lookups keep that alternative.
+Rule 8 of phase 3 governs every model named here and below: no flagged model runs or is written without its own yes. Before the first lookup, read "Before the round" in `references/expensive-choices.md`: it says which model a lookup takes while the `cheap` row is flagged, and gives the second call for the alternatives.
 
 Its `cheap` answer for this host's vendor, as rule 8 settled it, goes on every read-only search or lookup; the same answers fill `execute-plan.md` in phase 5 and the same-vendor fallback reviewer in phase 7. The plan review is the exception and uses the model `references/plan-review.md` names.
-
-One second called-mode call follows only when a row of that block says Expensive `yes`. It holds one request per such row, and its answer for a row is that row's alternative (phase 3, rule 8):
-
-```text
-Called by: mstack-plan
-Vendor: <the row's vendor>, Tier: <the row's tier>, never: <the row's model>        (one line per row that says yes)
-```
 
 A called skill's result block ends that skill, never your turn. Write the block and start your next step, with its tool call, in the same message: a message that holds only the block ends the turn before the plan exists.
 
@@ -54,6 +47,10 @@ A called skill's result block ends that skill, never your turn. Write the block 
 | `references/plan-format.md` | Phases 3 and 5. The plan's file layout, fields, states and resume rules. The three mstack workflows that execute plans (`mstack-codex-review-workflow`, `mstack-claude-review-workflow`, `mstack-claude-pm-codex-dev`) ship the same file |
 | `references/codegraph.md` | Phase 1, before reading the code |
 | `references/plan-review.md` | Phase 7 |
+| `references/expensive-choices.md` | The rest of rule 8: section 0 (a flagged reviewer option), before the first lookup, phase 3 after rule 7, and whenever a stage or slot appears or changes |
+| `references/resume.md` | Section 0, when the plan folder already holds a plan |
+| `references/research.md` | Phase 1, step 6 |
+| `references/required-skills.md` | Section 0, before anything else, and Preflight, after the script ran |
 | `references/execute-plan-template.md` | Phase 5 |
 | `scripts/check-required-skills.sh` | Preflight |
 | `scripts/check-plan.mjs` | Phases 6 and 7 |
@@ -70,21 +67,7 @@ A called skill's result block ends that skill, never your turn. Write the block 
 
 ## 0. Start
 
-**Required skills, first.** Before any question or other work, check the four shared skills this skill calls: `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `mstack-research`. For each one:
-
-1. It is in this session's skill list (as `<name>` or `<plugin>:<name>`): continue.
-2. It is not in the list, but `scripts/check-required-skills.sh` (Preflight) reports it `ok` on disk: it was installed after this session started. Say that a new session is needed, and stop.
-3. Otherwise it is not installed. Print this and stop, with nothing else done:
-
-   ```text
-   mstack-plan needs <name>, which is not installed.
-   Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install <name>@mstack
-   Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add <name>@mstack
-   Antigravity: agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/<name>
-   Skills CLI:  npx skills add mubeda/mstack --skill <name> -g -a <claude-code|codex|antigravity> -y
-   Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
-   Then start a new session.
-   ```
+**Required skills, first.** Before any question or other work, check the four shared skills this skill calls: `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `mstack-research`. Follow `references/required-skills.md` now, before anything else: it gives the three cases and the install block to print before you stop. Its rules bind.
 
 There is no built-in fallback for any of them.
 
@@ -93,9 +76,9 @@ Then send one message that restates the user's goal in a sentence and asks these
 1. **Where should the plan go?** Recommend, in this order: the folder the spec already sits in when it is a plan folder of its own, the repository's existing plans folder if it has one (look for `docs/plans/`, `plans/`, `docs/specs/`), or `docs/plans/<yyyy-mm-dd>-<slug>/`. Accept any path.
 2. **Which spec?** Only when the request names none. Offer the specs you find (`rg -l --glob '*.md' '^### R1\b'`, `docs/specs/`), newest first.
 3. **External sources.** Ask whether there is any information outside the repository the plan should use, such as links, wiki pages, design files, tracker issues, API or vendor documentation, or earlier decisions. Recommend "none" only when the spec's Source line and the repository docs already cover the work.
-4. **Reviewer model and effort.** In Claude Code, the Codex model (recommend `gpt-6.2-sol`, alternative `gpt-6.2-astra`) and effort (recommend `high`, then `medium`, `xhigh`, `max`). In Codex, the Claude model (recommend `opus`, alternative `sonnet`) and effort (recommend `medium`, then `high`, `low`). Accept any other name the user types. Write "(expensive)" after an option whose model is flagged (phase 3, rule 8). A reviewer model the user names in their answer is the user's choice. An answer that only points at an offered option ("the alternative", "the second one") names no model: when that option is flagged, the plan reviewer gets its own question under phase 3, rule 8, and no file names that model before its yes. Ask this also when the preflight warned that the reviewer is missing, because the user may install it before phase 7; never ask for a model of the same-vendor fallback, which takes its model from the model call. In Antigravity, skip this question and put this line into your first message to the user, whatever else that message holds: "The plan review will be a same-vendor review by a fresh subagent, because this skill has no cross-vendor reviewer in Antigravity yet."
+4. **Reviewer model and effort.** In Claude Code, the Codex model (recommend `gpt-6.2-sol`, alternative `gpt-6.2-astra`) and effort (recommend `high`, then `medium`, `xhigh`, `max`). In Codex, the Claude model (recommend `opus`, alternative `sonnet`) and effort (recommend `medium`, then `high`, `low`). Accept any other name the user types. For an option whose model is flagged, and for an answer that only points at an option, follow "The reviewer question" in `references/expensive-choices.md`. Ask this also when the preflight warned that the reviewer is missing, because the user may install it before phase 7; never ask for a model of the same-vendor fallback, which takes its model from the model call. In Antigravity, skip this question and put this line into your first message to the user, whatever else that message holds: "The plan review will be a same-vendor review by a fresh subagent, because this skill has no cross-vendor reviewer in Antigravity yet."
 
-When the folder already holds a plan (`plan.md` and `progress.md`), read both and resume instead. Before a Draft plan continues, make the model call of Host tools and check every stage and slot its files record against rule 8 of phase 3: each flagged tier or model that has no Decisions line of rule 8 gets its question now, whatever phase comes next. A Decisions line counts only when it names every model the current block flags for that stage or slot; for the ones it does not name, ask once. Then the Draft continues from its first unfinished phase of this skill. An Approved plan stays as it is unless the user asks for a change, and that change sets it back to Draft. A plan whose tasks are already In progress or Closed is being executed, so change only tasks that are still Open and log why. An `execute-plan.md` written by an earlier version of this skill tells the inline executor to switch to another reviewer model when the chosen one is rejected: when you resume such a folder, replace rule 3 of its "Rules for the whole run" and the whole failure bullet of its review step (the one that begins "An empty output or a non-zero exit") with the text of `references/execute-plan-template.md`, filling the placeholders from the old file, and log it in `progress.md`. An `execute-plan.md` whose review step reaches Claude from Codex through a plugin's script, and not through the Claude Code client itself, is also from an earlier version: replace that Codex bullet and the reviewer question (question 2 of "Ask the user first") with the template's the same way, and log it. Where such a file records or recommends a Claude reviewer by an alias, write the full model id in its place, from the "How to set" cell of the `claude` row that names the alias in the model block: a migrated start file never hands an alias to the Claude client. A value copied from the old file is no consent: before either edit writes a flagged model into a new instruction, also in an Approved plan, ask that slot's question of rule 8 once, and after a no write the alternative. Neither edit sets an Approved plan back to Draft, and a recorded reviewer model that is not flagged stays.
+When the folder already holds a plan (`plan.md` and `progress.md`), read both and resume instead: read `references/resume.md` first and follow it before any other step. Its rules bind.
 
 ## Preflight
 
@@ -105,9 +88,7 @@ bash <skill-folder>/scripts/check-required-skills.sh --host <host>
 
 It checks `node`, `git` and the four shared skills, warns when the cross-vendor reviewer is missing, and notes the recommended mstack skills. In Claude Code, also confirm the reviewer skill appears in this session's skill list, because a skill installed mid-session loads only in a new session.
 
-If `node` or `git` is missing (a `MISSING` line), tell the user and stop until it is installed, because no fallback replaces them. A `MISSING` shared skill is handled by the required-skills step of section 0. If the checker warns that the cross-vendor reviewer is missing (a `WARN` line), tell the user that `mstack-setup` installs it (the login stays a step for the user), and continue without waiting. Warn the user that the plan review will run as a same-vendor review by a fresh subagent, which tends to miss more than a review by another vendor, and continue with the fallback in `references/plan-review.md` › When the run fails. The plan says so. In Antigravity the checker always prints that line, because this skill has no cross-vendor reviewer there: give the warning, name no install, and continue.
-
-For any other missing item, the user runs `mstack-setup`: it installs the missing skills, plugins and command-line tools at user scope after one yes, and lists what it cannot install (`node`, `git`, logins) as steps for the user. This skill installs nothing itself.
+Then read "What the preflight found" in `references/required-skills.md` and do what it says for each `MISSING` and `WARN` line; its rules bind. This skill installs nothing itself.
 
 ## 1. Ground
 
@@ -127,24 +108,7 @@ Read before you ask. Send broad searches to your subagent tool and ask it for fi
    - every package, SDK or external API that the spec's work adds, upgrades or uses in a way the repository does not use yet;
    - every name, signature, command, flag, limit or behavior of something outside the repository that a task's steps would state, and that the spec, the repository and the user's sources do not give.
 
-   With no item, write "Research: none needed" under `plan.md` › Sources and continue. Otherwise load `mstack-research` with a message in exactly this form, at most 8 items per call and a second call for more:
-
-   ```text
-   Called by: mstack-plan
-   Project: <path of the repository>
-   Online search: off (<reason>)        (only when the user or the session says the network is off)
-   Depth: quick                         (only when every item is a single package fact)
-
-   <ID>: <question>
-   Package: <name>                      (under each item about a package)
-   ```
-
-   Read its result block, which ends with a `Search:` line. Read that line whole: check for `Search: ran, pages not opened (<reason>)` before you take it as `Search: ran`, because both begin the same way.
-   - A claim whose fourth field says `not opened` is open, not confirmed, under either closing line: the claim's own field decides. It goes under `plan.md` › Sources with its address and the words `not opened`, and never into a step or a Global constraint as a fact. Every task that needs it gets the line `unconfirmed: <claim> (<address>)` in Read first, and its steps leave that value to be confirmed.
-   - Every other claim, whether from an opened page or from a file, goes under `plan.md` › Sources with its link or file path, the version it holds for and the date, and into the Read first line of every phase and task it affects. A claim read from a file keeps that file as its source, also when the pages were not opened. For a package, the `Version:` line of the block (the version in use and the file it was read from) goes into Global constraints.
-   - A conflict, or a "Not found" that changes a task, becomes a question of phase 2, with the evidence.
-   - When the block says `Search: not run`, continue, write "Research: not run (<reason>)" under Sources, and name it in the approval summary of phase 8.
-   - When the block says `Search: ran, pages not opened (<reason>)`, continue, write "Research: pages not opened (<reason>)" under Sources, and name `pages not opened (<reason>)` in the approval summary of phase 8.
+   With no item, or with one, follow `references/research.md`: it holds the exact message for `mstack-research` and the rules for reading its result block. Its rules bind.
 
    Never state a call, a flag or a default of an external package in a task when neither the repository nor a claim of the block supports it.
 
@@ -170,32 +134,7 @@ Follow `references/plan-format.md`.
 5. **File map and traceability.** Every file and external change appears once with one owning phase. Check every existing path. Every requirement maps to at least one task, and every Review focus item is pinned by a test in a named task.
 6. **Red-green.** Each GIVEN/WHEN/THEN scenario in the spec becomes a test step with the spec's exact values, and each negative scenario becomes a test that proves what must not happen. Use the step pattern in `references/plan-format.md`.
 7. **Tiers.** Give each task a model tier: cheap for a fixed command or a fully specified edit, standard for well-specified code, most capable for security, stored data, concurrency, or a design call the plan leaves open.
-8. **Expensive stages and slots.** One principle stands above every other instruction of this skill and its references: this skill never runs and never writes a flagged model, in any step or file, unless the user said yes for exactly that stage or slot or named it. Wherever another instruction names a tier's row or a model (a helper of Host tools, the rows the start file is filled from, the fallback reviewer, a retry, a migration), read it as "the choice settled for that slot under this rule". When this principle and another instruction disagree, the principle wins.
-
-   Nobody gets an expensive model without having said yes to it, so each of these needs the user's consent on its own. A tier is flagged when any row for it in the block of the Host tools call says Expensive `yes`, for any vendor, because the executing session may run on another host. A model is flagged when a row of that block names it and says `yes`.
-   - A **stage** is each phase whose Tier is flagged and each task whose Tier is flagged. A task inside a flagged phase is a stage of its own.
-   - A **model slot** is each flagged model the plan's files would name: the plan reviewer, the cheap helper and the standard helper of each vendor, and the fallback reviewer of each vendor (the `most capable` row).
-
-   After the tiers are set and before you show the outline, ask about every stage and every slot with your question tool: one numbered round, one question per stage and one per slot. Never put two stages or slots into one question, and never offer one answer for all of them. Each question names its stage or slot, the flagged model of each vendor, and the alternative: for a stage the next tier down, for a slot the model the second call of Host tools returned. The alternative must itself not be flagged: walk down past a flagged tier to the next one that is not, and when the second call returns a model whose row says Expensive `yes`, call again with that model added to `never:` until a row says `no`. Never record a flagged alternative without a yes of its own. When no tier or model that is not flagged exists (for example a flagged `cheap` tier), say so in the question; after a no or no answer, record no tier or model for that stage or slot, write the Decisions line with "no approved model" in place of "<alternative> recorded", and stop there with one line that tells the user what to decide. That stop ends the run: the Decisions line is the last thing you write (in your reply, when `plan.md` does not exist yet), no plan file is written or offered for approval, and phases 5 and 6 run only after the user decided, because a task without a tier fails the plan check. Write each question out in full, never as "the same options as above". No answer covers another question. Then, per question:
-   - **The user can answer.** Ask, end your turn and wait. Record the flagged choice only after a yes to that question. A default, a preselected option, your own recommendation or silence is never a yes.
-   - **The user already answered it** in the conversation, before you asked: take that answer and do not ask again.
-   - **A no,** or **a session that cannot answer** (the user or the prompt says so; then ask nothing): record the alternative. The flagged tier or model then appears nowhere for that stage or slot.
-   - **The user named the tier or the model for that stage or slot** in the conversation: record it without a question, as the user's choice.
-
-   Record every outcome as a line of `plan.md` › Decisions, in the form that fits:
-
-   ```text
-   - P<n>. <stage or slot> on <tier or model> (flagged: <models>). Approved models: <models>. Decided by: user, one question, <yyyy-mm-dd>.
-   - P<n>. <stage or slot> on <tier or model> (flagged: <models>). Approved models: <models>. Decided by: user, named in the conversation, <yyyy-mm-dd>.
-   - P<n>. <stage or slot>: the expensive choice was declined by the user, <yyyy-mm-dd>; <alternative> recorded.
-   - P<n>. <stage or slot>: the expensive choice was not answered, <yyyy-mm-dd>; <alternative> recorded.
-   ```
-
-   One line per stage and per slot. The last two forms name no declined tier or model. After a no or no answer, write nothing else about the declined choice either: no extra Decisions line, no note in a phase or task, and no sentence in your reply that says which tier or model the stage or slot would have had. This covers what you write yourself: `plan.md`, the phase and task files, the start file and your reply. A reviewer's output saved under `reviews/` is the reviewer's text and stays unchanged, also when it names a declined choice. A task that keeps a flagged tier (the first two forms) also gets the line `- Approved models: <models> (user, <yyyy-mm-dd>)` directly after its `- Tier:` line.
-
-   This rule runs again for every stage or slot that appears or changes after that round. A task that is split, a phase or task that is added (by the user at the outline, or by a review finding in phase 7), and a task moved to a flagged tier each get a question of their own before the tier or model is recorded. An approval covers exactly the stage or slot it named: the parts of a split task do not inherit it.
-
-   A block without an `Expensive` column comes from an older `mstack-best-model-for`: print the install lines of section 0 for it under the line "mstack-plan needs a newer mstack-best-model-for", and stop. A Draft plan written by an earlier version of this skill may record a flagged tier or model without such a Decisions line: the resume check of section 0 asks that stage's or slot's question once before anything else, because an old value is no consent. An Approved plan stays as it is.
+8. **Expensive stages and slots.** One principle stands above every other instruction of this skill and its references: this skill never runs and never writes a flagged model, in any step or file, unless the user said yes for exactly that stage or slot or named it. Wherever another instruction names a tier's row or a model (a helper of Host tools, the rows the start file is filled from, the fallback reviewer, a retry, a migration), read it as "the choice settled for that slot under this rule". When this principle and another instruction disagree, the principle wins. The rest of this rule is in `references/expensive-choices.md`: read it after rule 7 has set the tiers, before any tier or model is recorded, and again whenever a stage or slot appears or changes. Its rules bind like this one.
 
 Then show the user the outline before writing the full files: a numbered list of phases with their round, and under each, its tasks with title, Satisfies and Depends on, plus the file map in short. Ask whether the granularity is right, whether each dependency is real, and whether to merge or split anything. Recommend approving it when you see no problem. Revise until the user approves the outline.
 

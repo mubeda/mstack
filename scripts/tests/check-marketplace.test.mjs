@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, cpSync, existsSync, mkdtempSync, symlinkSync, readFileSync, readdirSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { renameSync, chmodSync, cpSync, existsSync, mkdtempSync, symlinkSync, readFileSync, readdirSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
@@ -280,4 +280,139 @@ test('reader with the right list', () => {
   setTools(root, asList([...readerList].reverse()));
   const result = run(root);
   assert.equal(result.status, 0, result.stderr);
+});
+
+// Small trees for the Antigravity reader tests: links to the real files, except mstack-research's agents folder, which is a copy.
+const lightTree = (...whole) => {
+  const root = temp('mstack-light-');
+  mkdirSync(join(root, 'plugins'));
+  for (const entry of ['.claude-plugin', '.agents', 'LICENSE', 'skills.sh.json']) symlinkSync(join(repo, entry), join(root, entry));
+  for (const name of readdirSync(join(repo, 'plugins'))) {
+    mkdirSync(join(root, 'plugins', name));
+    for (const child of readdirSync(join(repo, 'plugins', name), { withFileTypes: true })) {
+      if (whole.includes(name)) cpSync(join(repo, 'plugins', name, child.name), join(root, 'plugins', name, child.name), { recursive: true });
+      else if (name === 'mstack-research' && child.name === 'agents') cpSync(join(repo, 'plugins', name, 'agents'), join(root, 'plugins', name, 'agents'), { recursive: true });
+      else symlinkSync(join(repo, 'plugins', name, child.name), join(root, 'plugins', name, child.name));
+    }
+  }
+  return root;
+};
+const setAgyTools = (root, tools) => {
+  const path = join(root, 'plugins/mstack-research/agents/antigravity-reader/agent.md');
+  writeFileSync(path, readFileSync(path, 'utf8').replace(/^tools:[^\n]*\n(  - [^\n]*\n)*/m, tools));
+};
+const agyReaderList = ['search_web', 'read_file'];
+
+test('antigravity reader with an extra tool', () => {
+  const root = lightTree();
+  setAgyTools(root, asList([...agyReaderList, 'run_command']));
+  fails(run(root), 'antigravity-reader/agent.md', 'run_command');
+});
+
+test('antigravity reader with a missing tool', () => {
+  const root = lightTree();
+  setAgyTools(root, asList(['search_web']));
+  fails(run(root), 'antigravity-reader/agent.md', 'read_file');
+});
+
+test('antigravity reader with tools as a one-line string', () => {
+  const root = lightTree();
+  setAgyTools(root, `tools: ${agyReaderList.join(', ')}\n`);
+  fails(run(root), 'antigravity-reader/agent.md', 'YAML list');
+});
+
+test('antigravity reader with the right list', () => {
+  const root = lightTree();
+  setAgyTools(root, asList([...agyReaderList].reverse()));
+  const result = run(root);
+  assert.equal(result.status, 0, result.stderr);
+});
+
+// Both pinned readers: the whole list under `tools:` counts, and the file has to exist with a tools key.
+for (const [label, file, key, good, extra] of [
+  ['reader', 'plugins/mstack-research/agents/reader.md', 'reader.md', readerList, 'Write'],
+  ['antigravity reader', 'plugins/mstack-research/agents/antigravity-reader/agent.md', 'antigravity-reader/agent.md', agyReaderList, 'write_file'],
+]) {
+  const withTools = (root, body) => {
+    const path = join(root, file);
+    writeFileSync(path, readFileSync(path, 'utf8').replace(/^tools:[^\n]*\n((  - |\s*\n|\s*#)[^\n]*\n)*/m, body));
+  };
+  test(`${label}: extra tool after a blank line`, () => {
+    const root = lightTree();
+    withTools(root, `${asList(good)}\n  - ${extra}\n`);
+    fails(run(root), key, extra);
+  });
+  test(`${label}: extra tool after a comment line`, () => {
+    const root = lightTree();
+    withTools(root, `${asList(good)}  # more\n  - ${extra}\n`);
+    fails(run(root), key, extra);
+  });
+  test(`${label}: no tools key`, () => {
+    const root = lightTree();
+    withTools(root, '');
+    fails(run(root), key, 'no tools key');
+  });
+  test(`${label}: file missing`, () => {
+    const root = lightTree();
+    rmSync(join(root, file));
+    fails(run(root), key, 'missing');
+  });
+  test(`${label}: continuation line under a tool`, () => {
+    const root = lightTree();
+    withTools(root, `tools:\n${good.map((tool, i) => `  - ${tool}\n${i ? '' : '    suffix\n'}`).join('')}`);
+    fails(run(root), key, 'suffix');
+  });
+  test(`${label}: quoted tools key with a scalar`, () => {
+    const root = lightTree();
+    withTools(root, `"tools": ${good.join(', ')}\n`);
+    fails(run(root), key, 'YAML list');
+  });
+  test(`${label}: quoted tools key with an extra tool`, () => {
+    const root = lightTree();
+    withTools(root, `'tools':\n${[...good, extra].map((tool) => `  - ${tool}\n`).join('')}`);
+    fails(run(root), key, extra);
+  });
+  test(`${label}: right list with blank and comment lines`, () => {
+    const root = lightTree();
+    withTools(root, `tools:\n  - ${good[0]}\n\n  # note\n${good.slice(1).map((tool) => `  - ${tool}\n`).join('')}`);
+    const result = run(root);
+    assert.equal(result.status, 0, result.stderr);
+  });
+}
+
+// Antigravity loads only the first 24,000 bytes of a skill's body, so a plugin with an Antigravity manifest keeps every body within that.
+const setBody = (root, plugin, bytes) => {
+  const path = join(root, `plugins/${plugin}/skills/${plugin}/SKILL.md`);
+  const text = readFileSync(path, 'utf8');
+  writeFileSync(path, `${text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/)[0]}${'a'.repeat(bytes)}`);
+};
+
+test('skill body of 24001 bytes', () => {
+  const root = lightTree('mstack-handoff');
+  setBody(root, 'mstack-handoff', 24001);
+  fails(run(root), 'mstack-handoff/SKILL.md', '24001', '24000');
+});
+
+test('skill body of 24000 bytes', () => {
+  const root = lightTree('mstack-handoff');
+  setBody(root, 'mstack-handoff', 24000);
+  const result = run(root);
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('skill body over the limit in a plugin without an Antigravity manifest', () => {
+  const root = lightTree('mstack-claude-review-workflow');
+  assert(!existsSync(join(root, 'plugins/mstack-claude-review-workflow/.antigravity-plugin')));
+  setBody(root, 'mstack-claude-review-workflow', 30000);
+  const result = run(root);
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('linked skill folder with a body of 24001 bytes', () => {
+  const root = lightTree('mstack-handoff');
+  const plugin = join(root, 'plugins/mstack-handoff');
+  renameSync(join(plugin, 'skills/mstack-handoff'), join(plugin, 'linked-skill'));
+  symlinkSync(join(plugin, 'linked-skill'), join(plugin, 'skills/mstack-handoff'));
+  setBody(root, 'mstack-handoff', 24001);
+  fails(run(root), 'mstack-handoff/SKILL.md', '24001');
 });

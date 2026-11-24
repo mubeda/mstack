@@ -62,7 +62,7 @@ Open questions the plan cannot answer.
 
 ## Run the reviewer
 
-Use the plan reviewer as rule 8 of SKILL.md's phase 3 settled it: the model and effort of Phase 0, or, when that model is flagged and got no yes, the alternative recorded for the plan-reviewer slot. Never run a flagged reviewer model without its own yes. Rule 8's principle wins over every instruction of this file: wherever this file names a tier's row or a model, read it as the choice settled for that slot under rule 8. Once "When the run fails" replaced the model or the effort, or chose the fallback, that holds for every later round. Write output and errors to the scratch folder, never into the repository.
+Use the plan reviewer as rule 8 of SKILL.md's phase 3 settled it (the rule's detail is in `references/expensive-choices.md`; "rule 8" below means both): the model and effort of Phase 0, or, when that model is flagged and got no yes, the alternative recorded for the plan-reviewer slot. Never run a flagged reviewer model without its own yes. Rule 8's principle wins over every instruction of this file: wherever this file names a tier's row or a model, read it as the choice settled for that slot under rule 8. Once "When the run fails" replaced the model or the effort, or chose the fallback, that holds for every later round. Write output and errors to the scratch folder, never into the repository.
 
 ### Claude Code: Codex reviews
 

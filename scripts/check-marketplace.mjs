@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { delimiter, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -199,23 +199,56 @@ for (const name of routed) {
   assert(routable.includes(name), `${name}: mstack-auto's routing table has a row for a skill no registry has`);
 }
 
+// Antigravity loads only the first 24,000 bytes of a skill's body (the text after its frontmatter); `agy plugin validate` only warns.
+const bodyLimit = 24000;
+for (const name of agyPlugins) {
+  const skillsDir = resolve(root, 'plugins', name, 'skills');
+  for (const skill of readdirSync(skillsDir, { withFileTypes: true }).filter((file) => statSync(resolve(skillsDir, file.name)).isDirectory())) { // statSync follows a linked folder
+    const path = `plugins/${name}/skills/${skill.name}/SKILL.md`;
+    const text = read(path);
+    const size = Buffer.byteLength(text.slice(text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/)?.[0].length ?? 0));
+    assert(size <= bodyLimit, `${path}: the body is ${size} bytes; Antigravity loads only the first ${bodyLimit}`);
+  }
+}
+
 // An agent's `tools` must be a YAML list (Antigravity's validator rejects the one-line string form), and the
-// mstack-research reader keeps search and reading tools only, so a tool added to it is caught here.
-const readerTools = ['Glob', 'Grep', 'Read', 'WebFetch', 'WebSearch'];
+// mstack-research readers keep search and reading tools only, so a tool added to one is caught here.
+// An agent is agents/<name>.md or agents/<name>/agent.md.
+const pinned = {
+  'plugins/mstack-research/agents/reader.md': ['Glob', 'Grep', 'Read', 'WebFetch', 'WebSearch'],
+  'plugins/mstack-research/agents/antigravity-reader/agent.md': ['read_file', 'search_web'],
+};
+const agentFiles = new Set(Object.keys(pinned));
 for (const name of folders) {
   const dir = resolve(root, 'plugins', name, 'agents');
   if (!existsSync(dir)) continue;
-  for (const file of readdirSync(dir).filter((entry) => entry.endsWith('.md'))) {
-    const path = `plugins/${name}/agents/${file}`;
-    const front = read(path).match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? '';
-    const block = front.match(/^tools:[ \t]*(.*)\r?\n?((?:[ \t]+- .*\r?\n?)*)/m);
-    if (!block) continue;
-    assert(!block[1].trim() && block[2], `${path}: tools must be a YAML list (a "tools:" line, then "  - <name>" lines), not a one-line string`);
-    const tools = block[2].split(/\r?\n/).filter(Boolean).map((line) => line.replace(/^[ \t]+- /, '').trim());
-    if (path === 'plugins/mstack-research/agents/reader.md') {
-      for (const tool of tools.filter((tool) => !readerTools.includes(tool))) assert.fail(`${path}: tool ${tool} is not allowed; the reader has search and reading tools only`);
-      for (const tool of readerTools.filter((tool) => !tools.includes(tool))) assert.fail(`${path}: tool ${tool} is missing from the reader's tools`);
-    }
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const file = entry.isDirectory() ? `${entry.name}/agent.md` : entry.name.endsWith('.md') ? entry.name : null;
+    if (file && existsSync(resolve(dir, file))) agentFiles.add(`plugins/${name}/agents/${file}`);
+  }
+}
+for (const path of agentFiles) {
+  const allowed = pinned[path];
+  assert(!allowed || existsSync(resolve(root, path)), `${path}: the file is missing; the reader must exist with its pinned tools`);
+  const lines = read(path).match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1].split(/\r?\n/) ?? [];
+  const keyLine = /^(["']?)tools\1:(.*)$/;
+  const at = lines.findIndex((line) => keyLine.test(line));
+  assert(at >= 0 || !allowed, `${path}: no tools key; the reader's tools must be listed`);
+  if (at < 0) continue;
+  assert(!lines[at].match(keyLine)[2].trim(), `${path}: tools must be a YAML list (a "tools:" line, then "  - <name>" lines), not a one-line string`);
+  // The list runs to the next key: blank and comment lines inside it do not end it, and any other line that is not an entry fails.
+  const tools = [];
+  for (const line of lines.slice(at + 1)) {
+    if (!line.trim() || /^\s*#/.test(line)) continue;
+    const item = line.match(/^\s*-\s+(.*?)\s*(?:\s#.*)?$/);
+    if (item) { tools.push(item[1].replace(/^(['"])(.*)\1$/, '$2')); continue; }
+    if (/^["']?[\w-]+["']?:/.test(line)) break;
+    assert.fail(`${path}: tools must hold list entries only, but a line reads "${line}"`);
+  }
+  assert(tools.length, `${path}: tools must be a YAML list (a "tools:" line, then "  - <name>" lines), not a one-line string`);
+  if (allowed) {
+    for (const tool of tools.filter((tool) => !allowed.includes(tool))) assert.fail(`${path}: tool ${tool} is not allowed; the reader has search and reading tools only`);
+    for (const tool of allowed.filter((tool) => !tools.includes(tool))) assert.fail(`${path}: tool ${tool} is missing from the reader's tools`);
   }
 }
 
