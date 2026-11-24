@@ -20,7 +20,8 @@
 // a command passes only when every part of it is a lookup ("command -v curl") or one of a short list of
 // programs that read local files or print text; a part that names curl or wget anywhere else is a fetch
 // (directly, behind a wrapper, inside a quoted script); every other command is unverified, because this
-// script cannot tell what it starts.
+// script cannot tell what it starts. The one PATH prefix it accepts there is a batch's:
+// PATH=<a folder at or below the workspace>:<the folder that contains the workspace>/path, both literal.
 // Third form: no record may hold one of the phrases of the file (one per line; case and white space are
 // ignored). It shows that a page's wording did not reach a transcript. With --sent-only it reads the model
 // turns alone: a reader's transcript holds the page in the results of its reads, and what counts is what it sent.
@@ -28,7 +29,7 @@
 // records the check needs) or "UNVERIFIED ..." and exits 3; or a pass line and exits 0. Exits 2 on a usage error.
 // This judges a run after the fact: it stops nothing, and it sees only what a transcript holds.
 import { readFileSync } from 'node:fs';
-import { isAbsolute, resolve } from 'node:path';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
 
 const USAGE = `usage: node reader-check.mjs --encoding <full|short> [--fetched <file>]... [--search-call] <reader transcript>...
        node reader-check.mjs --encoding <full|short> --session <session transcript> --workspace <absolute workspace> [--scratch <folder>] [--no-fetch]
@@ -247,6 +248,16 @@ const OWN = [
 ];
 const scratch = opt.scratch === null ? null : resolve(opt.scratch);
 const fetchedPath = (text) => (scratch !== null && text.includes(scratch)) || /\/mstack-research-[A-Za-z0-9]{8}(\/|['"\s]|$)/.test(text) || /(^|\/)page-\d+\.html\b/.test(text);
+// The one PATH prefix a batch gives a case: two literal absolute paths, first a folder at or below the workspace
+// (the case's stand-ins), then the folder named path beside the workspace (the case's own programs). A prefix
+// with $PATH, a third part or another second part would bring programs this script knows nothing about.
+const batchPath = (assigned) => {
+  if (assigned === null) return true;
+  const parts = assigned.split(':');
+  if (parts.length !== 2 || parts.some((part) => !isAbsolute(part) || resolve(part) !== part)) return false;
+  const workspace = resolve(opt.workspace);
+  return (parts[0] === workspace || parts[0].startsWith(`${workspace}/`)) && parts[1] === join(dirname(workspace), 'path');
+};
 let commands = 0;
 for (const call of callsOf(opt.session)) {
   const where = `${opt.session}:${call.line}`;
@@ -270,8 +281,7 @@ for (const call of callsOf(opt.session)) {
   const own = OWN.some((re) => re.test(command));
   if (!own && fetchedPath(command)) { fail(where, 'run_command: names a fetched file outside the fetch, test -s and rm -rf forms'); continue; }
   if (!opt.noFetch) continue;
-  // The one PATH prefix a case adds puts a folder of the workspace first; any other changes what a name starts.
-  const ownPath = assigned === null || new RegExp(`^${literal(opt.workspace)}/[A-Za-z0-9._/-]+(:\\$PATH)?$`).test(assigned);
-  if (verdict === 'unverified' || !ownPath) { open = true; console.log(`UNVERIFIED ${where}: run_command: not a form this script knows to start nothing`); }
+  // Any other PATH prefix than the batch's changes what a name starts.
+  if (verdict === 'unverified' || !batchPath(assigned)) { open = true; console.log(`UNVERIFIED ${where}: run_command: not a form this script knows to start nothing`); }
 }
 finish(`session check passed: ${commands} commands`);

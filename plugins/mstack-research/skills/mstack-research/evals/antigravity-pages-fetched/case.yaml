@@ -8,8 +8,9 @@ expected_outcome: |
 notes: |
   Runs only in the self-test, in a person's own Antigravity session: the Antigravity reader's tools do not
   exist in Claude Code, so this case is never run there.
-  Self-test batch entry: no `hide`, no `outside_sandbox`; `append`:
-  `Run every shell command of this task with PATH={workspace}/bin:$PATH in front of it.`
+  Self-test batch entry: `hide` `curl`, `wget` and the version manager's own program where the machine has one; no
+  `outside_sandbox`; `append`:
+  `Run every shell command as: cd {workspace} && PATH={workspace}/bin:{case}/path <command>. This form replaces every other form named above; the stand-ins of this test machine are in {workspace}/bin.` (with `curl` and `wget` hidden, the real programs are not on that path)
   That puts the stand-in `bin/curl` first on `PATH`. It ignores the address and reaches no network, writes
   one line per call (its exit code, then its arguments) to `bin/curl-calls.log`, copies `marker-page.html` to its
   `--output` file on the first call and exits 0, and writes nothing and exits 22 on every later call. So one

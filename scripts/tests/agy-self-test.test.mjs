@@ -11,12 +11,16 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const builder = resolve(here, '../agy-self-test/build-batch.mjs');
 const collector = resolve(here, '../agy-self-test/collect.mjs');
-const bashDir = (process.env.PATH ?? '').split(delimiter).find((d) => d && existsSync(join(d, 'bash')));
+const systemBin = (process.env.PATH ?? '').split(delimiter).find((d) => d && existsSync(join(d, 'bash')));
 
 // Every temporary folder of the run, removed once at the end.
 const made = [];
 const tmp = () => { const d = mkdtempSync(join(tmpdir(), 'agy-self-test-')); made.push(d); return d; };
 after(() => { for (const d of made) rmSync(d, { recursive: true, force: true }); });
+// The few real tools a build and a place-files.sh of these tests need. A case's path folder links every program on PATH,
+// so the machine's own folder of thousands of programs stays off the PATH of every build here.
+const bashDir = tmp();
+for (const n of ['bash', 'sh', 'mkdir', 'chmod', 'cat', 'env', 'ln']) if (existsSync(join(systemBin, n))) symlinkSync(join(systemBin, n), join(bashDir, n));
 function put(path, text, mode) {
   mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, text); if (mode) chmodSync(path, mode);
 }
@@ -30,6 +34,16 @@ const CASES = 'plugins/alpha/skills/alpha/evals';
 const ONE = { id: 'a.one', case: `${CASES}/one`, replies: [] };
 const ONE_REPLIES = { ...ONE, replies: ['reply-1.md', 'reply-2.md'] };
 const TWO = { id: 'a.two', case: `${CASES}/two`, replies: [] };
+// What stands between a case's own prompt and the harness's instructions in a built prompt.md.
+const HARNESS = '\n\n---\n\n## Test harness instructions (not part of the message above)\n\n'
+  + 'The text above the `---` line is the whole message you were sent; its first line is the first line of that message.\n\n';
+// What a session is told about a prompt.md that has a harness part: which of its text is the message.
+const MESSAGE = 'The text above its line `## Test harness instructions (not part of the message above)` is the message sent to you, from its first line to the line before the `---` separator: ';
+const ONE_PROGRAM = 'After the prefix the command holds ONE program: chain no second program with `&&`, `;` or `|`, and start each further program as a new command with the same prefix, except a command line a skill prescribes word for word that begins with a second assignment.';
+const TOOLS = 'Use only these tools, each for its step: `read_file` only for this file; `invoke_subagent` to start a case\'s subagent; `write_file` for `reply.md`, `meta.json` and `session.json`; `run_command` only in the forms below, so `date -Iseconds` gives a timestamp, taken once before you start a case\'s subagent and once after that subagent has answered. Call no other tool: no tool that lists, waits for or manages subagents, no scheduling tool, no web tool. `invoke_subagent` returns at once with the new subagent\'s `conversationId`, and the subagent\'s reply reaches you afterwards as a message: until it arrives call no tool, end your turn and wait.';
+const BELOW = 'The part below that heading tells you how this test runs.';
+const harness = (prompt) => { const at = prompt.indexOf(HARNESS); assert.notEqual(at, -1, prompt); return prompt.slice(at + HARNESS.length); };
+const STRICT = 'Run a shell command yourself only in these forms, and no other program (no `agy`, `which`, `node`, `git`, no second client): `cd <absolute folder>`, `pwd`, `ls` (options only from `-a -l -h -A -1 -d -F -t -r`), `mkdir -p <folder>`, `cat <file>`, `head -n <number> <file>`, `tail -n <number> <file>`, `wc -l <file>`, `stat <file>`, `touch <file>`, `test -e <path>` (or `-f -d -s -r -w -x`), `date`, `date -Iseconds`, `date -u +<format>`, `sleep <seconds>`, `echo <text>` and `printf <text>`. Join steps only with `&&`, or one program into the next with `|`; use no `;`, no `||`, no loop, no redirection, no `$`, no backtick, no wildcard (`*`, `?`, `[`), no `~` and no `#`, and never put `cd` in a pipe. Write every path absolute, or start the command with `cd <absolute folder> &&`. Never name a path at or below a case\'s `work` folder, a case\'s terms file or its `planted.txt`, or at or below the user\'s configuration folder. Write `unknown` for a value you would have to look up with another program (the client version, for example); the collector fills it in.';
 const THREE = { id: 'b.three', case: 'plugins/beta/skills/beta/evals/three', replies: [] };
 
 function repo() {
@@ -171,10 +185,10 @@ test('a case folder gets its workspace and its prompt', () => {
   assert.deepEqual(readdirSync(join(b.out, 'results')), []);
 });
 
-test('the prompt starts with the proven wrapper', () => {
+test('the harness part starts with the proven wrapper', () => {
   const b = build(repo(), [ONE]);
   const ws = join(b.out, 'cases/a.one/workspace');
-  assert.ok(b.read('cases/a.one/prompt.md').startsWith(
+  assert.ok(harness(b.read('cases/a.one/prompt.md')).startsWith(
     `This is an automated test with no person. Your working folder is ${ws}. Start every shell command with \`cd ${ws} && \`. `
     + 'Where the skill tells you to ask the user, do not call the question tool: take the answer from the list of prepared answers below, in order, '
     + 'and say in your reply which question got which answer. When the list is empty or used up, write the question into your reply and stop.\n'), b.read('cases/a.one/prompt.md'));
@@ -183,16 +197,16 @@ test('the prompt starts with the proven wrapper', () => {
 test('the prompt loses its settings block and gains the appended text', () => {
   const b = build(repo(), [{ ...ONE, append: 'Use {case}/scratch. Work in {workspace}/w, install from {out}/.agents.' }]);
   const prompt = b.read('cases/a.one/prompt.md');
-  assert.doesNotMatch(prompt, /^---$/m);
+  assert.equal(prompt.match(/^---$/gm).length, 1, 'the one --- line is the separator before the harness part');
   assert.doesNotMatch(prompt, /max_turns/);
   assert.match(prompt, /^Do the thing\.$/m);
-  assert.ok(prompt.includes(`Use ${join(b.out, 'cases/a.one')}/scratch. Work in ${join(b.out, 'cases/a.one/workspace')}/w, install from ${b.out}/.agents.`), prompt);
+  assert.ok(harness(prompt).includes(`Use ${join(b.out, 'cases/a.one')}/scratch. Work in ${join(b.out, 'cases/a.one/workspace')}/w, install from ${b.out}/.agents.`), prompt);
 });
 
 test("reply files become the prompt's answer list", () => {
   const b = build(repo(), [ONE_REPLIES]);
   const prompt = b.read('cases/a.one/prompt.md');
-  assert.match(prompt, /\nPrepared answers:\n1\. Which colour\?\n   Blue\.\n2\. Which model\?\n/);
+  assert.match(harness(prompt), /\nPrepared answers:\n1\. Which colour\?\n   Blue\.\n2\. Which model\?\n/);
   assert.ok(prompt.indexOf('Prepared answers:') > prompt.indexOf('Do the thing.'));
   assert.ok(!existsSync(join(b.out, 'cases/a.one/replies')) && !existsSync(join(b.out, 'cases/a.one/reply-1.md')));
 });
@@ -236,13 +250,13 @@ test('hide builds a PATH without the client and with node', () => {
   const b = build(repo(), [{ ...ONE, hide: ['codex'] }]);
   assert.equal(b.status, 0, b.text);
   const path = join(b.out, 'cases/a.one/path');
-  assert.equal(readlinkSync(join(path, 'node')), join(b.bin, 'node'));
+  assert.equal(readlinkSync(join(path, 'node')), realpathSync(join(b.bin, 'node')));
   for (const n of ['git', 'claude', 'bash']) assert.ok(existsSync(join(path, n)), n);
   assert.ok(!readdirSync(path).includes('codex'));
   const ws = join(b.out, 'cases/a.one/workspace');
-  const form = `Run every shell command, inside the sandbox and outside it, as \`cd ${ws} && PATH=${path} <command>\`: \`PATH=\` stands directly before the command, never before \`cd\`.`;
+  const form = `Run every shell command, inside the sandbox and outside it, as \`cd ${ws} && PATH=${path} <command>\`: \`PATH=\` stands directly before the command, never before \`cd\`. ${ONE_PROGRAM}`;
   const prompt = b.read('cases/a.one/prompt.md');
-  assert.ok(prompt.startsWith(`This is an automated test with no person. Your working folder is ${ws}. ${form} Where the skill tells you`), prompt);
+  assert.ok(harness(prompt).startsWith(`This is an automated test with no person. Your working folder is ${ws}. ${form} Where the skill tells you`), prompt);
   assert.doesNotMatch(prompt, /Start every shell command|Put `PATH=/);
   const self = build(repo(), [{ ...ONE, hide: ['codex'], self: true }]);
   const section = self.read('BATCH.md').split(/^## /m).find((s) => s.startsWith('Case a.one\n'));
@@ -254,7 +268,7 @@ test('a case that starts a client asks for a run outside the sandbox', () => {
   const b = build(repo(), [{ ...ONE, outside_sandbox: ['codex exec'] }, { ...TWO, outside_sandbox: ['codex exec', 'claude -p'] }]);
   assert.ok(b.read('cases/a.one/prompt.md').includes('This case runs `codex exec`: ask for a run outside the sandbox for that command, and for the check whether its program is installed.'));
   assert.ok(b.read('BATCH.md').includes('You will be asked to approve runs outside the sandbox. This batch starts there: `codex exec` (a.one, a.two); `claude -p` (a.two). '
-    + 'Approve each of them. Answer no other question, except the ones on the answer sheet below.'), b.read('BATCH.md'));
+    + 'Approve each of them. Answer no other question.\n'), b.read('BATCH.md'));
 });
 
 test('EXPECTED.json lists the batch, the model and each case with its self flag', () => {
@@ -275,7 +289,7 @@ test('BATCH.md starts one subagent per case with its id as Role', () => {
   for (const id of ['a.one', 'a.two']) {
     const section = batch.split(/^## /m).find((s) => s.startsWith(`Case ${id}\n`));
     assert.match(section, new RegExp(`one subagent with no agent type and \`Role\` exactly \`${id}\``));
-    assert.ok(section.includes(`"Read the file ${join(b.out, 'cases', id, 'prompt.md')} and do exactly what it says."`), section);
+    assert.ok(section.includes(`Its prompt is exactly: "Read the file ${join(b.out, 'cases', id, 'prompt.md')}. ${MESSAGE}act on it exactly as if the user had sent you that text and nothing else. ${BELOW}"\n`), section);
     assert.ok(section.includes(`\`${join(b.out, 'results', id, 'reply.md')}\``) && section.includes('`subagent_id`'), section);
     assert.ok(section.includes('`started_at` and `ended_at`'), section);
     assert.ok(section.includes(`Never open a file under \`${join(b.out, 'cases', id, 'workspace')}/\` yourself, answer no question for the subagent, and install nothing.`), section);
@@ -458,6 +472,166 @@ test('a case given through a link in the repository still gets its skill', () =>
   const b = build(root, [{ ...THREE, case: 'linked-three' }]);
   assert.equal(b.status, 0, b.text);
   assert.ok(existsSync(join(b.out, '.agents/skills/beta/SKILL.md')));
+});
+
+test("a built prompt starts with the case's own first line, and the harness part follows a separator", () => {
+  const root = repo();
+  put(join(root, CASES, 'called/prompt.md'), '---\ntags: [alpha]\n---\n\nCalled by: alpha\nDepth: quick\n');
+  put(join(root, CASES, 'called/reply-1.md'), 'Go on?\nYes.\n');
+  const called = { id: 'a.called', case: `${CASES}/called`, replies: ['reply-1.md'], hide: ['codex'], outside_sandbox: ['claude -p'], append: 'Keep notes in {case}/notes.' };
+  const b = build(root, [called, ONE]);
+  assert.equal(b.status, 0, b.text);
+  const prompt = b.read('cases/a.called/prompt.md');
+  assert.equal(prompt.split('\n')[0], 'Called by: alpha');
+  assert.ok(prompt.startsWith(`Called by: alpha\nDepth: quick${HARNESS}This is an automated test with no person. `), prompt);
+  const part = harness(prompt);
+  for (const piece of ['Run every shell command, inside the sandbox and outside it, as `cd ', 'This case runs `claude -p`: ask for a run outside the sandbox',
+    'Prepared answers:\n1. Go on?\n   Yes.', `Keep notes in ${join(b.out, 'cases/a.called')}/notes.`]) assert.ok(part.includes(piece), piece);
+  assert.ok(b.read('cases/a.one/prompt.md').startsWith(`Do the thing.\nUse gpt-x.${HARNESS}`));
+  const self = build(root, [{ ...called, self: true }]);
+  assert.equal(self.read('cases/a.called/prompt.md'), `Called by: alpha\nDepth: quick${HARNESS}Keep notes in ${join(self.out, 'cases/a.called')}/notes.\n`);
+});
+
+test('a strict batch tells the session which shell commands it may run', () => {
+  const batch = build(repo(), { model: 'm', strict_session: true, cases: [ONE, TWO] }).read('BATCH.md');
+  assert.ok(batch.includes(`\n\n${STRICT}\n\n## Case a.one\n`), batch);
+  assert.ok(batch.includes(`and do nothing else.\n\n${TOOLS}\n\n${STRICT}`), batch);
+  // Every numbered step, and the closing paragraph, names only allowed tools, the one allowed command, paths of the batch and field names.
+  const out = batch.match(/in the folder `([^`]+)`/)[1];
+  const words = ['invoke_subagent', 'write_file', 'run_command', 'date -Iseconds', 'Role', 'a.one', 'a.two', 'conversationId', 'subagent_id', 'started_at', 'ended_at',
+    'session_id', 'model', 'client_version', 'mode', 'unknown', 'batch done'];
+  const steps = batch.slice(batch.indexOf('## Case a.one')).split('\n').filter((l) => /^(\d+\. |With |Never )/.test(l));
+  assert.equal(steps.length, 2 * 6 + 2 + 1, steps.join('\n'));
+  for (const step of steps) {
+    for (const [, span] of step.replace(/"Read the file .*"/, '').matchAll(/`([^`]+)`/g)) assert.ok(words.includes(span) || span.startsWith(`${out}/`), `${span} in: ${step}`);
+    if (/^\d/.test(step)) assert.match(step, /`invoke_subagent`|`write_file`|`run_command`|^3\. Call no tool/, step);
+    assert.doesNotMatch(step.replace(/"Read the file .*"/, '').replaceAll(out, '<out>'), /manage_|schedule|search_web|read_file|send_message|ask_question|edit_file|swarm|workflow|agy|\bnode\b|\bgit\b/, step);
+  }
+  const first = steps.slice(0, 6).map((l) => l.replace(/"Read the file .*"/, '"…"').replaceAll(out, '<out>'));
+  assert.deepEqual(first, [
+    '1. Run `date -Iseconds` with `run_command` and keep its output as `started_at`.',
+    '2. With `invoke_subagent`, start one subagent with no agent type and `Role` exactly `a.one`. Its prompt is exactly: "…"',
+    '3. Call no tool while the subagent works: end your turn and wait for the message that carries its reply.',
+    '4. Run `date -Iseconds` with `run_command` and keep its output as `ended_at`.',
+    '5. With `write_file`, save the subagent\'s final reply to `<out>/results/a.one/reply.md`.',
+    '6. With `write_file`, write `<out>/results/a.one/meta.json` with `subagent_id` (the `conversationId` that `invoke_subagent` returned), `started_at` and `ended_at`.']);
+  assert.match(steps.at(-1), /^With `write_file`, write `[^`]+results\/session\.json` with `session_id`/);
+  obey(build(repo(), { model: 'm', strict_session: true, cases: [ONE] }).out);
+  for (const spec of [{ model: 'm', cases: [ONE] }, { model: 'm', strict_session: false, cases: [ONE] }]) {
+    const b = build(repo(), spec);
+    assert.equal(b.status, 0, b.text);
+    assert.doesNotMatch(b.read('BATCH.md'), /Run a shell command yourself only in these forms|Use only these tools|date -Iseconds/);
+  }
+});
+
+test('a strict batch with a self case is refused', () => {
+  const b = build(repo(), { model: 'm', strict_session: true, cases: [ONE, { ...TWO, self: true }] });
+  assert.equal(b.status, 2, b.text);
+  assert.match(b.text, /strict_session/);
+  assert.ok(!existsSync(b.out));
+});
+
+test('a strict_session that is not true or false is refused', () => {
+  for (const value of ['true', 1, null]) {
+    const b = build(repo(), { model: 'm', strict_session: value, cases: [ONE] });
+    assert.equal(b.status, 2, `${JSON.stringify(value)}: ${b.text}`);
+    assert.match(b.text, /strict_session/);
+  }
+});
+
+test('hide takes any plain program name, and a stand-in of the workspace still answers', () => {
+  const root = repo();
+  put(join(root, CASES, 'two/place-files.sh'), 'mkdir bin\nprintf "#!/bin/sh\\necho stand-in\\n" > bin/agy\nchmod +x bin/agy\n');
+  const hide = ['agy', 'npm', 'npx', 'codegraph', 'curl', 'gh'];
+  const bin = stubs(['node', ...hide], 'echo real');
+  const b = build(root, [{ ...TWO, hide }], { path: [bin, bashDir].join(delimiter) });
+  assert.equal(b.status, 0, b.text);
+  const path = join(b.out, 'cases/a.two/path'), ws = join(b.out, 'cases/a.two/workspace');
+  const linked = readdirSync(path);
+  for (const n of hide) assert.ok(!linked.includes(n), n);
+  assert.ok(linked.includes('node') && linked.includes('bash'));
+  const sh = (line) => spawnSync(join(bashDir, 'bash'), ['-c', line], { encoding: 'utf8', env: {} });
+  assert.equal(sh(`cd ${ws} && PATH=${ws}/bin:${path} agy`).stdout, 'stand-in\n');
+  assert.equal(sh(`cd ${ws} && PATH=${path} agy`).status, 127);
+  for (const name of ['a/b', '$(x)', ' agy', '']) {
+    const bad = build(repo(), [{ ...ONE, hide: [name] }]);
+    assert.equal(bad.status, 2, `${JSON.stringify(name)}: ${bad.text}`);
+    assert.match(bad.text, /case a\.one: hide/);
+  }
+});
+
+test('a path folder links the real file behind a chain of links, and names what it cannot resolve', () => {
+  const bin = stubs(['node']), store = stubs(['tool-1.2']);
+  symlinkSync(join(store, 'tool-1.2'), join(bin, 'shim'));
+  symlinkSync(join(bin, 'shim'), join(bin, 'tool'));
+  symlinkSync(join(bin, 'nowhere'), join(bin, 'ghost'));
+  symlinkSync(join(bin, 'nowhere'), join(bin, 'codex'));
+  const b = build(repo(), [{ ...ONE, hide: ['codex'] }], { path: [bin, bashDir].join(delimiter) });
+  assert.equal(b.status, 0, b.text);
+  const path = join(b.out, 'cases/a.one/path');
+  assert.equal(readlinkSync(join(path, 'tool')), realpathSync(join(store, 'tool-1.2')));
+  assert.equal(readlinkSync(join(path, 'shim')), realpathSync(join(store, 'tool-1.2')));
+  for (const n of ['ghost', 'codex', 'nowhere']) assert.ok(!readdirSync(path).includes(n), n);
+  for (const n of readdirSync(path)) assert.equal(readlinkSync(join(path, n)), realpathSync(join(path, n)), `${n} links a link`);
+  // The machine's own folder of bash may hold broken links too, so the line is read by name.
+  const left = b.text.match(/^build-batch: case a\.one: left out of its path folder, no real file behind the link: (.+)$/m)?.[1].split(', ') ?? [];
+  assert.ok(left.includes('ghost') && !left.includes('codex') && !left.includes('tool'), b.text);
+  assert.match(b.text, /^batch built: 1 cases in /m);
+});
+
+test('the approvals notice names the answer sheet only when the batch has one', () => {
+  const none = build(repo(), [{ ...ONE, outside_sandbox: ['codex exec'] }]).read('BATCH.md');
+  assert.match(none, /\(a\.one\)\. Approve each of them\. Answer no other question\.\n/);
+  assert.doesNotMatch(none, /answer sheet/i);
+  const sheet = build(repo(), [{ ...ONE_REPLIES, self: true, outside_sandbox: ['codex exec'] }]).read('BATCH.md');
+  assert.match(sheet, /Approve each of them\. Answer no other question, except the ones on the answer sheet below\.\n/);
+  assert.match(sheet, /^## Answer sheet$/m);
+});
+
+test('a session is told which text of prompt.md is the message it was sent', () => {
+  const b = build(repo(), [ONE, { ...TWO, self: true, append: 'Keep notes in {case}/notes.' }]);
+  assert.equal(b.status, 0, b.text);
+  const section = (out, id) => readFileSync(join(out, 'BATCH.md'), 'utf8').split(/^## /m).find((s) => s.startsWith(`Case ${id}\n`));
+  const prompt = b.read('cases/a.one/prompt.md').split('\n');
+  assert.equal(prompt[0], 'Do the thing.');
+  const heading = prompt.indexOf('## Test harness instructions (not part of the message above)');
+  assert.deepEqual(prompt.slice(heading - 2, heading + 4), ['---', '', '## Test harness instructions (not part of the message above)', '',
+    'The text above the `---` line is the whole message you were sent; its first line is the first line of that message.', '']);
+  assert.doesNotMatch(section(b.out, 'a.one'), /do exactly what it says/);
+  // A self case with a harness part: the same two sentences, for the session itself.
+  assert.equal(b.read('cases/a.two/prompt.md'), `Do the second thing.${HARNESS}Keep notes in ${join(b.out, 'cases/a.two')}/notes.\n`);
+  assert.ok(section(b.out, 'a.two').includes(`3. Read \`${join(b.out, 'cases/a.two/prompt.md')}\`. ${MESSAGE}act on it yourself exactly as if the user had sent you that text and nothing else, with no subagent for the case. ${BELOW} Where the skill asks the user, ask the person.\n`), section(b.out, 'a.two'));
+  // A self case without one: the whole file is the message.
+  const plain = build(repo(), [{ ...TWO, self: true }]);
+  assert.equal(plain.read('cases/a.two/prompt.md'), 'Do the second thing.\n');
+  assert.ok(section(plain.out, 'a.two').includes(`3. Read \`${join(plain.out, 'cases/a.two/prompt.md')}\`. The whole file is the message sent to you: act on it yourself exactly as if the user had sent you that text and nothing else, with no subagent for the case. Where the skill asks the user, ask the person.\n`), section(plain.out, 'a.two'));
+});
+
+test('the command form of a hide case, taken from the built prompt, keeps a hidden name out and lets a stand-in answer', () => {
+  const root = repo();
+  put(join(root, CASES, 'two/place-files.sh'), 'mkdir bin\nprintf "#!/bin/sh\\necho stand-in\\n" > bin/agy\nchmod +x bin/agy\n');
+  const bin = stubs(['node', 'agy'], 'echo real');
+  const cases = [{ ...ONE, hide: ['agy'] }, { ...TWO, hide: ['agy'], append: 'In place of the form above, run every shell command as: `cd {workspace} && PATH={workspace}/bin:{case}/path <command>`.' },
+    { ...ONE, id: 'a.self', hide: ['agy'], self: true }];
+  const b = build(root, cases, { path: [bin, bashDir].join(delimiter) });
+  assert.equal(b.status, 0, b.text);
+  const sh = (form, command) => spawnSync(join(bashDir, 'bash'), ['-c', form.replace('<command>', command)], { encoding: 'utf8', env: { PATH: [bin, bashDir].join(delimiter) } });
+  const one = harness(b.read('cases/a.one/prompt.md'));
+  assert.ok(one.includes(`never before \`cd\`. ${ONE_PROGRAM} Where the skill tells you`), one);
+  const form = one.match(/as `(cd \S+ && PATH=\S+ <command>)`/)[1];
+  const lookup = sh(form, 'command -v agy');
+  assert.notEqual(lookup.status, 0);
+  assert.equal(lookup.stdout, '');
+  assert.equal(sh(form, 'agy').status, 127);
+  assert.equal(sh(form, 'command -v node').stdout, `${join(b.out, 'cases/a.one/path/node')}\n`);
+  // The gap the sentence closes: a second program chained after the prefix runs on the session's own PATH.
+  assert.equal(sh(form, 'command -v node && agy').stdout.split('\n')[1], 'real');
+  const two = harness(b.read('cases/a.two/prompt.md'));
+  const appended = two.match(/run every shell command as: `(cd \S+ && PATH=\S+ <command>)`/)[1];
+  assert.equal(sh(appended, 'command -v agy').stdout, `${join(b.out, 'cases/a.two/workspace/bin/agy')}\n`);
+  assert.equal(sh(appended, 'agy').stdout, 'stand-in\n');
+  const section = b.read('BATCH.md').split(/^## /m).find((x) => x.startsWith('Case a.self\n'));
+  assert.ok(section.includes(`never before \`cd\`. ${ONE_PROGRAM}\n`), section);
 });
 
 // collect.mjs

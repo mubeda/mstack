@@ -13,6 +13,31 @@ const BATCHES = ['skills', 'pairings', 'workflow-review', 'workflow-dev'];
 const PLACEHOLDERS = { '@CLAUDE_MODEL_ID@': 'claude-model', '@AGY_CLAUDE_MODEL_ID@': 'agy-claude-model', '@CODEX_MODEL_ID@': 'codex-model' };
 const NAME = /^[a-z0-9][a-z0-9._-]*$/;
 // The collector's own files and folder in results/, which a case folder of the same name would collide with.
+// A skill may decide by the first line of its message who is calling it, so a case's prompt always comes first and
+// everything the harness adds follows under this heading.
+const HEADING = '## Test harness instructions (not part of the message above)';
+const HARNESS = `---\n\n${HEADING}\n\nThe text above the \`---\` line is the whole message you were sent; its first line is the first line of that message.`;
+// What a session is told after "Read the file <prompt.md>.": a subagent receives that sentence, not the case's prompt, so
+// it is told that the file's text above the heading is its message. how: '' for a subagent, ' yourself' and the like for a self case.
+const message = (harness, how = '', tail = '') => (harness
+  ? `The text above its line \`${HEADING}\` is the message sent to you, from its first line to the line before the \`---\` separator: act on it${how} exactly as if the user had sent you that text and nothing else${tail}. The part below that heading tells you how this test runs.`
+  : `The whole file is the message sent to you: act on it${how} exactly as if the user had sent you that text and nothing else${tail}.`);
+// The paragraph a strict batch gives its session, word for word.
+const STRICT = 'Run a shell command yourself only in these forms, and no other program (no `agy`, `which`, `node`, `git`, no second client): '
+  + '`cd <absolute folder>`, `pwd`, `ls` (options only from `-a -l -h -A -1 -d -F -t -r`), `mkdir -p <folder>`, `cat <file>`, `head -n <number> <file>`, '
+  + '`tail -n <number> <file>`, `wc -l <file>`, `stat <file>`, `touch <file>`, `test -e <path>` (or `-f -d -s -r -w -x`), `date`, `date -Iseconds`, '
+  + '`date -u +<format>`, `sleep <seconds>`, `echo <text>` and `printf <text>`. Join steps only with `&&`, or one program into the next with `|`; '
+  + 'use no `;`, no `||`, no loop, no redirection, no `$`, no backtick, no wildcard (`*`, `?`, `[`), no `~` and no `#`, and never put `cd` in a pipe. '
+  + 'Write every path absolute, or start the command with `cd <absolute folder> &&`. Never name a path at or below a case\'s `work` folder, '
+  + 'a case\'s terms file or its `planted.txt`, or at or below the user\'s configuration folder. '
+  + 'Write `unknown` for a value you would have to look up with another program (the client version, for example); the collector fills it in.';
+// The tools a strict batch's session works with. A start call returns at once with the subagent's conversationId and the
+// reply arrives later as a message (seen in a session a person opened, 2026-11-23), so the session is told how it waits.
+const TOOLS = 'Use only these tools, each for its step: `read_file` only for this file; `invoke_subagent` to start a case\'s subagent; '
+  + '`write_file` for `reply.md`, `meta.json` and `session.json`; `run_command` only in the forms below, so `date -Iseconds` gives a timestamp, '
+  + 'taken once before you start a case\'s subagent and once after that subagent has answered. Call no other tool: no tool that lists, waits for or manages subagents, '
+  + 'no scheduling tool, no web tool. `invoke_subagent` returns at once with the new subagent\'s `conversationId`, and the subagent\'s reply reaches you afterwards as a message: '
+  + 'until it arrives call no tool, end your turn and wait.';
 const RESERVED = ['transcripts', 'session.json', 'session.jsonl', 'run-log.md', 'batch-root.txt'];
 
 function usage(message) {
@@ -75,7 +100,7 @@ const cases = spec.cases.map((c) => {
     lists[key] = c[key] ?? [];
     if (!names(lists[key])) bad(`${key} is not a list of names`);
   }
-  for (const h of lists.hide) if (!['claude', 'codex'].includes(h)) bad(`hide knows claude and codex, not ${h}`);
+  for (const h of lists.hide) if (!/^[A-Za-z0-9._-]+$/.test(h)) bad(`hide takes plain program names (letters, digits, . _ -), not ${JSON.stringify(h)}`);
   for (const r of lists.replies) {
     const at = real(join(src, r));
     if (!at) bad(`no reply file ${r}`);
@@ -83,6 +108,7 @@ const cases = spec.cases.map((c) => {
     if (!statSync(at).isFile()) bad(`reply file ${r} is not a file`);
   }
   if (c.self !== undefined && typeof c.self !== 'boolean') bad('self is not true or false');
+  // questions is checked and then used nowhere else: the prepared answers carry what a case is asked.
   const questions = c.questions ?? 0;
   if (!Number.isInteger(questions) || questions < 0) bad('questions is not a count');
   if (questions > lists.replies.length) bad(`more questions (${questions}) than replies (${lists.replies.length})`);
@@ -93,6 +119,8 @@ const cases = spec.cases.map((c) => {
   return { id, src, ...lists, append: c.append ?? '', self: c.self === true, plugin, skill, dir: join(out, 'cases', id), workspace: join(out, 'cases', id, 'workspace') };
 });
 if (cases.filter((c) => c.self).length > 1) usage('more than one self case: a session runs at most one case itself');
+if (spec.strict_session !== undefined && typeof spec.strict_session !== 'boolean') usage('bad cases file: strict_session is not true or false');
+if (spec.strict_session && cases.some((c) => c.self)) usage('strict_session and a self case do not go together: a case the session runs itself needs other commands');
 
 // What is installed in the batch: whole plugins, and loose skill folders.
 const plugins = readdirSync(join(root, 'plugins')).filter((p) => hasManifest(p) && !exclude.includes(p) && !loose.includes(p));
@@ -114,7 +142,7 @@ for (const c of cases) {
   const replies = c.replies.map((r) => readFileSync(join(c.src, r), 'utf8').trim());
   const append = c.append.replaceAll('{out}', () => out).replaceAll('{case}', () => c.dir).replaceAll('{workspace}', () => c.workspace);
   // The one command form of a case with hide: PATH stands on the command itself, so cd cannot drop it.
-  const hidden = c.hide.length ? `Run every shell command, inside the sandbox and outside it, as ${tick(`cd ${c.workspace} && PATH=${join(c.dir, 'path')} <command>`)}: \`PATH=\` stands directly before the command, never before \`cd\`.` : '';
+  const hidden = c.hide.length ? `Run every shell command, inside the sandbox and outside it, as ${tick(`cd ${c.workspace} && PATH=${join(c.dir, 'path')} <command>`)}: \`PATH=\` stands directly before the command, never before \`cd\`. After the prefix the command holds ONE program: chain no second program with \`&&\`, \`;\` or \`|\`, and start each further program as a new command with the same prefix, except a command line a skill prescribes word for word that begins with a second assignment.` : '';
   const extras = [];
   if (c.outside_sandbox.length) {
     extras.push(`This case runs ${c.outside_sandbox.map(tick).join(', ')}: ask for a run outside the sandbox for that command, and for the check whether its program is installed.`);
@@ -122,7 +150,7 @@ for (const c of cases) {
   for (const command of c.outside_sandbox) outside.set(command, [...(outside.get(command) ?? []), c.id]);
   const reply = join(out, 'results', c.id, 'reply.md'), meta = join(out, 'results', c.id, 'meta.json');
   if (c.self) {
-    files.set(`cases/${c.id}/prompt.md`, `${[prompt, append].filter(Boolean).join('\n\n')}\n`);
+    files.set(`cases/${c.id}/prompt.md`, `${[prompt, ...(append ? [HARNESS, append] : [])].join('\n\n')}\n`);
     replies.forEach((r, i) => {
       const [first, ...rest] = r.split('\n');
       sheet.push(`${i + 1}. ${first} -> answer: ${rest.join(' ').trim()}`);
@@ -133,20 +161,35 @@ You run this case yourself.
 
 1. Note the start time.
 2. Change to ${tick(c.workspace)}${hidden ? `. ${hidden}` : ` and start every command with ${tick(`cd ${c.workspace} && `)}.`}${extras.map((e) => ` ${e}`).join('')}
-3. Read ${tick(join(c.dir, 'prompt.md'))} and do exactly what it says yourself, with no subagent for the case. Where the skill asks the user, ask the person.
+3. Read ${tick(join(c.dir, 'prompt.md'))}. ${message(Boolean(append), ' yourself', ', with no subagent for the case')} Where the skill asks the user, ask the person.
 4. Write your final reply to ${tick(reply)}.
 5. Write ${tick(meta)} with \`session_id\` (your own id), \`started_at\` and \`ended_at\`.`);
     continue;
   }
   const answers = replies.length ? replies.map((r, i) => `${i + 1}. ${r.replaceAll('\n', '\n   ')}`).join('\n') : '(none)';
-  files.set(`cases/${c.id}/prompt.md`, `${[
+  files.set(`cases/${c.id}/prompt.md`, `${[prompt, HARNESS,
     [`This is an automated test with no person. Your working folder is ${c.workspace}. ${hidden || `Start every shell command with ${tick(`cd ${c.workspace} && `)}.`} `
       + 'Where the skill tells you to ask the user, do not call the question tool: take the answer from the list of prepared answers below, in order, '
       + 'and say in your reply which question got which answer. When the list is empty or used up, write the question into your reply and stop.', ...extras].join(' '),
-    prompt, `Prepared answers:\n${answers}`, append].filter(Boolean).join('\n\n')}\n`);
+    `Prepared answers:\n${answers}`, append].filter(Boolean).join('\n\n')}\n`);
+  const start = `one subagent with no agent type and \`Role\` exactly ${tick(c.id)}. Its prompt is exactly: "Read the file ${join(c.dir, 'prompt.md')}. ${message(true)}"`;
+  const never = `Never open a file under ${tick(`${c.workspace}/`)} yourself, answer no question for the subagent, and install nothing.`;
+  if (spec.strict_session) {
+    sections.push(`## Case ${c.id}
+
+1. Run \`date -Iseconds\` with \`run_command\` and keep its output as \`started_at\`.
+2. With \`invoke_subagent\`, start ${start}
+3. Call no tool while the subagent works: end your turn and wait for the message that carries its reply.
+4. Run \`date -Iseconds\` with \`run_command\` and keep its output as \`ended_at\`.
+5. With \`write_file\`, save the subagent's final reply to ${tick(reply)}.
+6. With \`write_file\`, write ${tick(meta)} with \`subagent_id\` (the \`conversationId\` that \`invoke_subagent\` returned), \`started_at\` and \`ended_at\`.
+
+${never}`);
+    continue;
+  }
   sections.push(`## Case ${c.id}
 
-1. Start one subagent with no agent type and \`Role\` exactly ${tick(c.id)}. Its prompt is exactly: "Read the file ${join(c.dir, 'prompt.md')} and do exactly what it says."
+1. Start one subagent with no agent type and \`Role\` exactly ${tick(c.id)}. Its prompt is exactly: "Read the file ${join(c.dir, 'prompt.md')}. ${message(true)}"
 2. Save its final reply to ${tick(reply)}.
 3. Write ${tick(meta)} with \`subagent_id\` (the id of that subagent), \`started_at\` and \`ended_at\`.
 
@@ -154,7 +197,7 @@ Never open a file under ${tick(`${c.workspace}/`)} yourself, answer no question 
 }
 const notice = outside.size
   ? `You will be asked to approve runs outside the sandbox. This batch starts there: ${[...outside].map(([command, by]) => `${tick(command)} (${by.join(', ')})`).join('; ')}. `
-    + 'Approve each of them. Answer no other question, except the ones on the answer sheet below.'
+    + `Approve each of them. Answer no other question${cases.some((c) => c.self) ? ', except the ones on the answer sheet below' : ''}.`
   : 'This batch starts nothing outside the sandbox.';
 files.set('BATCH.md', `${[
   `# Self-test batch: ${o.batch}`,
@@ -162,8 +205,9 @@ files.set('BATCH.md', `${[
   notice,
   ...(cases.some((c) => c.self) ? [`## Answer sheet\n\nFor the person. The case the session runs itself asks these questions, in this order:\n\n${sheet.join('\n') || '(no question is expected)'}`] : []),
   `## Protocol\n\nFor the session. Run the ${cases.length} cases below in this order, one after the other, and do nothing else.`,
+  ...(spec.strict_session ? [TOOLS, STRICT] : []),
   ...sections,
-  `## At the end\n\nWrite ${tick(join(out, 'results', 'session.json'))} with \`session_id\` (the id in your own context), \`model\`, \`client_version\` and \`mode\`; `
+  `## At the end\n\n${spec.strict_session ? 'With \`write_file\`, write' : 'Write'} ${tick(join(out, 'results', 'session.json'))} with \`session_id\` (the id in your own context), \`model\`, \`client_version\` and \`mode\`; `
     + 'write `unknown` where you cannot see a value. Then reply exactly `batch done`.',
 ].join('\n\n')}\n`);
 files.set('EXPECTED.json', `${JSON.stringify({ batch: o.batch, model: spec.model, cases: cases.map((c) => ({ id: c.id, self: c.self })) }, null, 2)}\n`);
@@ -212,19 +256,24 @@ for (const c of cases) {
   }
   if (c.hide.length) {
     // shortcut: a hidden client is matched by its exact file name (no .exe or .cmd); upgrade when a batch is built on Windows.
-    const dir = join(c.dir, 'path'), taken = new Set(c.hide);
+    // Each link points at the real file, never at a link on PATH: a version manager's wrapper could put a hidden client back.
+    const dir = join(c.dir, 'path'), taken = new Set(c.hide), unresolved = new Set();
     mkdirSync(dir);
     for (const d of (process.env.PATH ?? '').split(delimiter).filter(Boolean)) {
       let entries = [];
       try { entries = readdirSync(d); } catch { /* a PATH entry that does not exist */ }
       for (const n of entries) {
         if (taken.has(n)) continue; // hidden, or an earlier PATH entry already has it
-        const s = statSync(join(d, n), { throwIfNoEntry: false });
-        if (!s?.isFile() || !(s.mode & 0o111)) continue;
-        symlinkSync(resolve(d, n), join(dir, n));
+        const target = real(join(d, n));
+        if (!target) { unresolved.add(n); continue; }
+        const s = statSync(target);
+        if (!s.isFile() || !(s.mode & 0o111)) continue;
+        symlinkSync(target, join(dir, n));
         taken.add(n);
       }
     }
+    const left = [...unresolved].filter((n) => !taken.has(n));
+    if (left.length) console.error(`build-batch: case ${c.id}: left out of its path folder, no real file behind the link: ${left.join(', ')}`);
   }
 }
 console.log(`batch built: ${cases.length} cases in ${out}`);

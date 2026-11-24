@@ -47,7 +47,8 @@ Repository: <absolute path of the repository root> | Branch: <branch, or "(detac
 
 | Item | Title | State | Note |
 |---|---|---|---|
-| <#41 or task 1.2> | <title> | <Open, In progress or Closed> | <evidence or what is left> |
+| <#41, or a task of work that has no plan folder> | <title> | <Open, In progress or Closed> | <evidence or what is left> |
+| <for an `mstack-plan` execution, this one row in place of every task row: the plan folder> | <the plan's title> | <In progress or Closed> | <"task status is in <plan folder>/progress.md and is never copied here; continue with <plan folder>/execute-plan.md"> |
 
 ## Gates
 

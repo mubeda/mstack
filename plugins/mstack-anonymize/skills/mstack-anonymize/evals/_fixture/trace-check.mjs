@@ -40,6 +40,13 @@
 // user's own.
 // The steps of a transcript count from 0 without a gap, as every saved transcript read on 2026-11-24 did; a gap
 // is an incomplete transcript and fails.
+// Tools, as the saved transcripts of 2026-11-25 showed them. edit_file follows the rules of write_file. finish,
+// manage_task (status, kill) and manage_subagents (list) read no file and start no program and pass, like
+// ask_question, invoke_subagent and send_message; a message goes only to the session that started the sender or
+// to a subagent it started, because any other session has no transcript among the files. search_web (the
+// network), define_subagent (an agent with tools of its own) and schedule (a later turn) fail by rules of their
+// own, and every other tool has no rule and fails. The text a case's session writes into these calls is not
+// searched for paths: an honest reply names its result file. The batch session's is: see --harness.
 // Subagents are checked by identity: the result of each invoke_subagent call is the record at the call's place
 // behind its turn and holds the child's record whole (its id, and a log address that names the same id); two
 // starts never share an id. The transcript of a subagent has the record the collector saved for it beside it,
@@ -49,7 +56,8 @@
 // --harness names the transcript of the batch session that started the case's subagent. Its commands may only be
 // steps of a few programs that start no other program, each in the forms written below, with cd only as a step
 // joined by &&, never in a pipeline; it fails when a path it reads, writes or gives to one of these programs is a
-// protected path or lies at or below --work. Its subagent starts are the batch's cases, this one and the others:
+// protected path or lies at or below --work, and when the text of a subagent start, a message, a question or its
+// closing summary holds such a path, because the one it tells could read it where this check does not look. Its subagent starts are the batch's cases, this one and the others:
 // they are tied to no transcript, their results are not read, and their children's transcripts are not checked
 // here. So a start of the batch session whose result is missing is not told apart from any other, and nothing
 // shows that the transcript given as the case's own is the child the batch session started for this case.
@@ -274,14 +282,30 @@ const RULES = {
     Bash: ['command', shellReason], Skill: allowed, ToolSearch: allowed, AskUserQuestion: allowed,
   },
   antigravity: {
-    read_file: ['Path', absolute(readRule)], write_file: ['Path', absolute(writeRule)], run_command: ['CommandLine', shellReason],
-    ask_question: allowed, send_message: allowed, invoke_subagent: allowed,
+    read_file: ['Path', absolute(readRule)], write_file: ['Path', absolute(writeRule)], edit_file: ['Path', absolute(writeRule)],
+    run_command: ['CommandLine', shellReason],
+    // These read no file and start no program. The tool names and their arguments are those of the saved transcripts
+    // read on 2026-11-25; an action or a shape beyond them fails.
+    invoke_subagent: allowed, // its child is tied to a transcript below
+    send_message: ['Recipient', () => null], // whom it may reach is checked with the file's starts, below
+    ask_question: [null, (_, args) => (Array.isArray(args.questions) ? null : 'questions is not a list')],
+    finish: allowed, // ends the turn with a summary
+    manage_task: [null, (_, args) => (['status', 'kill'].includes(args.Action) ? null : 'an action this check does not know')], // a background command, itself judged as a command
+    manage_subagents: [null, (_, args) => (args.Action === 'list' ? null : 'an action this check does not know')],
+    // These reach what no transcript of the run shows.
+    search_web: [null, () => 'reaches the network'],
+    define_subagent: [null, () => 'defines an agent whose tools this check cannot follow'],
+    schedule: [null, () => 'starts a later turn this check cannot follow'],
   },
 };
 
 // The batch session works outside the case's folder: nothing it reads, writes or gives to a program may lie there.
 const TOUCHED = 'the batch session touched the case\'s work folder';
 const touches = (p) => isProtected(p) || inside(work, p);
+// What it tells another session or the person names nothing there either: the one it tells could read it, unseen here.
+const TOLD = new Set(['invoke_subagent', 'send_message', 'ask_question', 'finish', 'manage_task', 'manage_subagents']);
+const strings = (v) => (typeof v === 'string' ? [v] : v !== null && typeof v === 'object' ? Object.values(v).flatMap(strings) : []);
+const namesIt = (text) => [work, ...protectedPaths, ...protectedFolders].some((p) => (map ? text.replaceAll(map[0], map[1]) : text).includes(p));
 const none = (words) => (words.length === 0 ? [] : null);
 // After -n or -c stands a number; -<number> alone counts lines.
 const counted = (words) => {
@@ -347,11 +371,12 @@ function reason(format, name, input, trace) {
     if (got.why) return got.why;
     values = got.args;
   }
+  if (trace.harness && TOLD.has(name) && strings(values).some(namesIt)) return TOUCHED;
   const [key, check] = rule;
   if (!check) return null;
   const v = key === null ? null : values[key];
   if (key !== null && (typeof v !== 'string' || v === '')) return `missing parameter ${key}`;
-  if (format === 'antigravity' && trace.encoding === 'full' && v.startsWith('"')) {
+  if (key !== null && format === 'antigravity' && trace.encoding === 'full' && v.startsWith('"')) {
     let quoted = false;
     try { quoted = typeof JSON.parse(v) === 'string'; } catch { /* a plain value that starts with a quote */ }
     if (quoted) return `${key} is in the short encoding, but the transcript was declared full`;
@@ -399,6 +424,7 @@ function callsOf(record, trace, bad) {
     if (!found.turn) {
       if ('tool_calls' in record) bad(STRAY);
       if (kind === 'MODEL/GENERIC' && typeof record.content === 'string') found.child = childOf(record.content);
+      if (kind === 'SYSTEM/SYSTEM_MESSAGE' && typeof record.content === 'string') found.sender = /\[Message\] [^\n]*?\bsender=([A-Za-z0-9-]+)/.exec(record.content)?.[1] ?? null;
       return found;
     }
     if (!('tool_calls' in record)) return found;
@@ -474,10 +500,14 @@ for (const { trace, entries } of loaded) {
   for (const found of entries) for (const [name, input] of found?.calls ?? []) if (name === 'Bash' || name === 'run_command') reason(found.format, name, input, trace);
 }
 for (const { trace, entries, made, turns, antigravity, open } of loaded) {
+  // Whom this transcript may send a message to: the session whose message started it, and the subagents it started.
+  const known = new Set([entries[0]?.sender, ...entries.map((found, at) => found?.calls.map(([name, , place]) => name === 'invoke_subagent' && entries[at + 1 + place]?.child) ?? []).flat()].filter(Boolean));
   entries.forEach((found, at) => {
     for (const [name, input, place] of found?.calls ?? []) {
       const why = reason(found.format, name, input, trace);
       if (why) found.bad(`${name}: ${why}`);
+      // Any other session is one whose transcript is not among the files.
+      else if (name === 'send_message' && found.format === 'antigravity' && !trace.harness && !known.has(decoded(input, trace.encoding).args.Recipient)) found.bad('send_message: a recipient that is neither the session that started this one nor a subagent it started');
       // The batch session's starts are of other cases too, and are tied to no transcript here.
       if (name !== 'invoke_subagent' || found.format !== 'antigravity' || trace.harness) continue;
       const child = entries[at + 1 + place]?.child ?? null;

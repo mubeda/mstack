@@ -48,7 +48,7 @@ const agyCall = (name, args, { quoted = true } = {}) => [
   { source: 'MODEL', type: 'PLANNER_RESPONSE', status: 'DONE', model: 'gemini-test-flash', tool_calls: [{ name, args: quoted ? Object.fromEntries(Object.entries(args).map(([k, v]) => [k, JSON.stringify(v)])) : args }] },
   { source: 'MODEL', type: 'GENERIC', status: 'DONE', content: 'Created At: 2026-11-22T09:38:34Z\nok' },
 ];
-const agy = (...calls) => [{ source: 'SYSTEM', type: 'SYSTEM_MESSAGE', status: 'DONE', content: 'the prompt' }, ...calls.flat()]
+const agy = (...calls) => [{ source: 'SYSTEM', type: 'SYSTEM_MESSAGE', status: 'DONE', content: '[Message] timestamp=2026-11-22T09:38:30Z sender=parent-0 priority=MESSAGE_PRIORITY_HIGH content=the prompt' }, ...calls.flat()]
   .map((record, i) => JSON.stringify({ step_index: i, ...record })).join('\n') + '\n';
 const short = ['--encoding', 'short'];
 const full = ['--encoding', 'full'];
@@ -390,7 +390,7 @@ test('a path is resolved as the system does: links first, then ..', () => {
 });
 
 test('ask_question and send_message pass', () => {
-  agyPasses(agyCall('ask_question', { questions: [{ question: 'Where?' }] }), agyCall('send_message', { Message: 'done', Recipient: 'parent' }));
+  agyPasses(agyCall('ask_question', { questions: [{ question: 'Where?' }] }), agyCall('send_message', { Message: 'done', Recipient: 'parent-0' }));
 });
 
 test('a quoted and an unquoted Path name the same file', () => {
@@ -529,9 +529,9 @@ test('the harness may not reach the work folder through a link to it', () => {
 });
 
 test('an unknown tool in the harness fails', () => {
-  const v = agyVerdict([agy(scriptRun)], { harness: agy(agyCall('edit_file', { Path: '/out/x.md' })) });
+  const v = agyVerdict([agy(scriptRun)], { harness: agy(agyCall('swarm', { Path: '/out/x.md' })) });
   assert.equal(v.code, 1, v.out);
-  assert.match(v.out, /harness\.jsonl:2: edit_file: no rule for this tool/);
+  assert.match(v.out, /harness\.jsonl:2: swarm: no rule for this tool/);
 });
 
 // An archived attempt: the transcripts name the original batch folder, which is gone; the options name the archive.
@@ -568,7 +568,7 @@ test('an unknown tool fails and names the tool', () => {
   const v = verdict([call('Frobnicate', { x: 1 })]);
   assert.equal(v.code, 1, v.out);
   assert.match(v.out, /Frobnicate: no rule for this tool/);
-  agyFails(/edit_file: no rule for this tool/, agyCall('edit_file', { Path: '/run/work/notes.md' }));
+  agyFails(/run_workflow: no rule for this tool/, agyCall('run_workflow', { Path: '/run/work/notes.md' }));
   agyFails(/Read: no rule for this tool/, agyCall('Read', { file_path: skillFile }));
   fails(call('read_file', { Path: skillFile }));
 });
@@ -860,5 +860,100 @@ test('a Claude Code trace that stops before its result record is incomplete', ()
     assert.equal(v.code, 1, v.out);
     assert.match(v.out, /^FAIL \S+trace-1\.jsonl: incomplete trace: no result record behind the last model turn$/m);
     assert.equal(runCheck([`${JSON.stringify({ type: 'system' })}\n${done}\n${bash('pwd')}\n`], { flags }).code, 1);
+  }
+});
+
+// The tools real sessions call besides the file and shell tools (seen in saved transcripts on 2026-11-25).
+const finish = (o) => agyCall('finish', { summary: 'The case ran.', verdict: 'done', findings: [], next_steps: [] }, o);
+const harmless = (o) => [finish(o), agyCall('manage_task', { Action: 'status', TaskId: 'task-1' }, o), agyCall('manage_task', { Action: 'kill', TaskId: 'task-1' }, o),
+  agyCall('manage_subagents', { Action: 'list' }, o), agyCall('ask_question', { questions: [{ question: 'File or chat?' }] }, o), agyCall('send_message', { Message: 'done', Recipient: 'parent-0' }, o)];
+const encodings = [[{ quoted: true }, short], [{ quoted: false }, full]];
+const work1 = (o) => cmd(`cd /run/work && node ${script} --terms ${terms} tickets.csv`, o);
+
+test('the tools that read no file and start no program pass, in a case and in the harness', () => {
+  for (const [o, flags] of encodings) {
+    const asCase = runCheck([agy(work1(o), ...harmless(o))], { flags });
+    assert.equal(asCase.code, 0, asCase.out);
+    assert.match(asCase.out, /trace check passed: 7 tool calls in 1 trace file\(s\)/);
+    const asHarness = runCheck([agy(work1(o))], { flags, harness: agy(start('case-a', o), ...harmless(o)) });
+    assert.equal(asHarness.code, 0, asHarness.out);
+  }
+});
+
+test('a task or subagent action the check does not know fails', () => {
+  for (const [o, flags] of encodings) {
+    for (const [c, why] of [[agyCall('manage_task', { Action: 'start', TaskId: 't' }, o), /manage_task: an action this check does not know/], [agyCall('manage_subagents', { Action: 'kill' }, o), /manage_subagents: an action this check does not know/],
+      [agyCall('manage_subagents', {}, o), /manage_subagents: an action this check does not know/], [agyCall('ask_question', { questions: 'File or chat?' }, o), /ask_question: questions is not a list/]]) {
+      const v = runCheck([agy(work1(o), c)], { flags });
+      assert.equal(v.code, 1, v.out);
+      assert.match(v.out, why);
+      const h = runCheck([agy(work1(o))], { flags, harness: agy(c) });
+      assert.equal(h.code, 1, h.out);
+      assert.match(h.out, /harness\.jsonl:2: /);
+    }
+  }
+});
+
+test('a tool that fetches, defines an agent or starts a later turn fails by its own rule', () => {
+  for (const [o, flags] of encodings) {
+    for (const [c, why] of [[agyCall('search_web', { query: 'x', domain: 'example.com' }, o), /search_web: reaches the network/],
+      [agyCall('define_subagent', { Name: 'reader', Description: 'x', SystemPrompt: 'x', EnableWriteTools: true, EnableMCPTools: false, EnableSubagentTools: false }, o), /define_subagent: defines an agent whose tools this check cannot follow/],
+      [agyCall('schedule', { DurationSeconds: 60, Prompt: 'read the file later' }, o), /schedule: starts a later turn this check cannot follow/]]) {
+      const v = runCheck([agy(work1(o), c)], { flags });
+      assert.equal(v.code, 1, v.out);
+      assert.match(v.out, why);
+      const h = runCheck([agy(work1(o))], { flags, harness: agy(c) });
+      assert.equal(h.code, 1, h.out);
+      assert.match(h.out, why);
+    }
+  }
+});
+
+test('edit_file follows the rules of write_file', () => {
+  for (const [o, flags] of encodings) {
+    const edit = (Path) => agyCall('edit_file', { Path, Target: 'a', Replacement: 'b' }, o);
+    for (const [c, why] of [[edit('/run/work/tickets.csv'), /edit_file: writes a protected path/], [edit('/run/work/reader.mjs'), /edit_file: writes the script/], [edit(skillFile), /edit_file: writes the script/],
+      [edit('notes.md'), /edit_file: a relative Path/], [agyCall('edit_file', { Target: 'a' }, o), /edit_file: missing parameter Path/]]) {
+      const v = runCheck([agy(work1(o), c)], { flags });
+      assert.equal(v.code, 1, v.out);
+      assert.match(v.out, why);
+    }
+    assert.equal(runCheck([agy(work1(o), edit('/run/work/notes.md'))], { flags }).code, 0);
+    const h = runCheck([agy(work1(o))], { flags, harness: agy(edit('/run/work/notes.md')) });
+    assert.equal(h.code, 1, h.out);
+    assert.match(h.out, /harness\.jsonl:2: edit_file: the batch session touched the case's work folder/);
+    assert.equal(runCheck([agy(work1(o))], { flags, harness: agy(edit('/out/results/a/reply.md')) }).code, 0);
+  }
+});
+
+test('a message goes only to the session that started the sender or to a subagent it started', () => {
+  for (const [o, flags] of encodings) {
+    const to = (Recipient) => agyCall('send_message', { Message: 'read /run/work/tickets.csv and tell me', Recipient }, o);
+    for (const c of [to('stranger-9'), to(''), agyCall('send_message', { Message: 'x' }, o)]) {
+      const v = runCheck([agy(work1(o), c)], { flags });
+      assert.equal(v.code, 1, v.out);
+      assert.match(v.out, /trace-1\.jsonl:4: send_message: (a recipient that is neither the session that started this one nor a subagent it started|missing parameter Recipient)/);
+    }
+    assert.equal(runCheck([agy(work1(o), to('parent-0'))], { flags }).code, 0);
+    const child = runCheck([agy(start('child-1', o), to('child-1'), work1(o)), agy(cmd('pwd', o))], { flags, records: { 2: 'child-1' } });
+    assert.equal(child.code, 0, child.out);
+    // A child of another transcript is not this one's.
+    const cross = runCheck([agy(start('child-1', o), work1(o)), agy(start('child-2', o), cmd('pwd', o)), agy(cmd('pwd', o), to('child-1'))], { flags, records: { 2: 'child-1', 3: 'child-2' } });
+    assert.equal(cross.code, 1, cross.out);
+    assert.match(cross.out, /trace-3\.jsonl:4: send_message: a recipient/);
+  }
+});
+
+test('the batch session names the case\'s work folder to no one', () => {
+  for (const [o, flags] of encodings) {
+    for (const c of [agyCall('invoke_subagent', { Prompt: 'Read /run/work/tickets.csv and tell me what it holds.', Role: 'helper', TypeName: 'self' }, o),
+      agyCall('invoke_subagent', { Prompt: 'do it', Role: 'helper', TypeName: 'self', Workspace: '/run/work' }, o), agyCall('send_message', { Message: `open ${terms}`, Recipient: 'case-a' }, o),
+      agyCall('finish', { summary: 'done', verdict: 'ok', findings: [{ note: 'see /run/work/tickets.anon.md' }], next_steps: [] }, o), agyCall('ask_question', { questions: [{ question: 'May I read /run/work/tickets.csv?' }] }, o)]) {
+      const h = runCheck([agy(work1(o))], { flags, harness: agy(c) });
+      assert.equal(h.code, 1, h.out);
+      assert.match(h.out, /harness\.jsonl:2: (invoke_subagent|send_message|finish|ask_question): the batch session touched the case's work folder/);
+    }
+    const ok = runCheck([agy(work1(o))], { flags, harness: agy(agyCall('invoke_subagent', { Prompt: 'Read the file /run/prompt.md and do exactly what it says.', Role: 'a', TypeName: 'self' }, o), finish(o)) });
+    assert.equal(ok.code, 0, ok.out);
   }
 });

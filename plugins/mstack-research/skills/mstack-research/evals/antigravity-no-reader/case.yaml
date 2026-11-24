@@ -8,8 +8,9 @@ expected_outcome: |
 notes: |
   The self-test runs this case in the dev workflow batch, whose cases file lists `mstack-research` under
   `loose_skills`, so the install shape is real there: the skill folder alone, no plugin and no agent.
-  Self-test batch entry: no `hide`, no `outside_sandbox`; `append`:
-  `Run every shell command of this task with PATH={workspace}/bin:$PATH in front of it.`
+  Self-test batch entry: `hide` `curl`, `wget` and the version manager's own program where the machine has one; no
+  `outside_sandbox`; `append`:
+  `Run every shell command as: cd {workspace} && PATH={workspace}/bin:{case}/path <command>. This form replaces every other form named above; the stand-ins of this test machine are in {workspace}/bin.` (with `curl` and `wget` hidden, the real programs are not on that path)
   That puts the case's stand-in `bin/curl` and `bin/wget` first on `PATH`: they reach no network, fail, and
   write each call to `bin/fetch-calls.log`, which must not exist after the run.
   Also run in Claude Code as a fixture, where the install shape is only stated in the prompt: load

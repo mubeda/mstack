@@ -17,7 +17,7 @@ notes: |
   `example--org/shop` is made up, and its owner name cannot exist on GitHub (two hyphens in a row). A run whose `calls.log` is empty went
   around the stand-in and counts as failed.
   In the Antigravity self-test the session is not started by `launch.sh`, so the case gets this `append` text:
-  Work in the folder {workspace}/shop. This is a test machine. Run every shell command of this task as: bash {out}/.agents/plugins/mstack-write-issue/skills/mstack-write-issue/evals/_fixture/launch.sh {workspace} <command>. It runs the command in that folder with a stand-in gh first. Never run gh without it.
+  Work in the folder {workspace}/shop. This is a test machine. Run every shell command of this task as: cd {workspace} && PATH={case}/path NO_BWRAP=1 bash {out}/.agents/plugins/mstack-write-issue/skills/mstack-write-issue/evals/_fixture/launch.sh {workspace} <command>. This form replaces the one named above. It runs the command in {workspace}/shop with the stand-in gh of {workspace}/bin first on the path. Never run gh without it. (The batch entry also hides `gh`, so the real program is not on the case's path; `NO_BWRAP=1` is set because nobody has run the launcher's sandbox wrap inside Antigravity's own sandbox.)
   A grader of the self-test reads from the `CommandLine` of the case's `run_command` calls that every `gh` command
   went through `launch.sh`. `launch.sh` itself is unchanged.
 context:

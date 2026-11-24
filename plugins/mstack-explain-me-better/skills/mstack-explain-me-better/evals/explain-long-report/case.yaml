@@ -3,7 +3,7 @@ name: explain-long-report
 expected_outcome: |
   A long migration report hides its conclusion in the last paragraph, a deleted column and an untested rollback in the middle.
   The run explains it bottom line first, keeps the command, the numbers, the deletion and the 'not tested on Windows' statement,
-  explains or avoids the term idempotent, says what it left out, and closes by saying the simple style is on and how to stop it.
+  explains or avoids the term idempotent, says what it left out when it left a part of the report out (and has no such line when it left none out), and closes by saying the simple style is on and how to stop it.
 context:
   scaffold_script: place-files.sh
 needs:

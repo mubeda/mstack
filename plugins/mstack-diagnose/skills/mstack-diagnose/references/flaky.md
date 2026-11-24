@@ -48,7 +48,7 @@ These counts are derived arithmetic, not a rule from any source. If the failure 
 1. Choose M before the first run after the fix, and never extend it after seeing results.
 2. Use the same command, seed policy and machine as the measurement before the fix.
 3. A single failure among the M runs means the fix is NOT VERIFIED.
-4. Report it in this shape.
+4. Report it in this shape, and add one sentence that ties M to the rate: the rate measured before the fix, and the chance that M passing runs would hide a bug that is still there.
 
 ```
 Before the fix 20 of 200 failed. After the fix 0 of 29 failed. Same command, seed policy and machine.

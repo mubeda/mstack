@@ -86,7 +86,7 @@ Each phase ends at a gate. Do not start the next phase before the gate holds.
 | 4. Draft | Write the spec from `references/spec-template.md` at its final path (below) | The file exists |
 | 5. Quality check | Run `references/quality-check.md` and the lint in `references/requirements.md`. Fix failures, up to three passes | Every item passes, or the remaining failures are listed for the user |
 | 6. Independent read | A fresh reader with your subagent tool, as `references/quality-check.md` describes | The reader reports nothing important left, or the user answered its questions in one round |
-| 7. Approval | Show the path, a short summary, and every "agent's call". Ask for approval of this file | The user explicitly approves the written file. Set Status to Approved with the date |
+| 7. Approval | Show the path, a short summary, and every "agent's call". End that message with a direct question that asks the user to approve this file; a sentence that says approval is pending, or that the spec stays Draft, is not that question | The user explicitly approves the written file. Set Status to Approved with the date |
 | 8. Hand-off | Offer the next step (below) | The user names it. This skill ends without building |
 
 ### Sizes and modes

@@ -209,14 +209,41 @@ test('a vendor launch after the cd prefix and a PATH assignment passes', () => {
     assert.match(r.out, /^command: command -v curl$/m);
     assert.match(r.out, /^session check passed: 2 commands$/m);
     // The skill's own probe is a lookup, not a fetch.
-    const probe = session(['cd /w && PATH=/w/bin:$PATH command -v curl'], ['--no-fetch'], encoding);
-    assert.equal(probe.status, 0, probe.out);
+  }
+});
+
+test('the PATH prefix of a batch case is the one prefix a session that must not fetch may use', () => {
+  // The batch's form: the case's stand-ins first, then the case's own path folder, the sibling of the workspace.
+  // Both parts are literal paths, so nothing of the session's real path comes back. The workspace here is /c/w.
+  const run = (command, encoding) => check(
+    [turn([['run_command', { CommandLine: command }]], encoding), result()],
+    () => ['--workspace', '/c/w', '--no-fetch', '--session'], encoding,
+  );
+  for (const encoding of ['short', 'full']) {
+    for (const honest of ['cd /c/w && PATH=/c/w/bin:/c/path command -v curl', 'cd /c/w && PATH=/c/w/tools/bin:/c/path ls -la', 'cd /c/w && PATH=/c/w:/c/path pwd', 'cd /c/w && command -v curl']) {
+      const r = run(honest, encoding);
+      assert.equal(r.status, 0, `${honest}\n${r.out}`);
+      assert.match(r.out, /^session check passed: 1 commands$/m);
+    }
+    const fetch = run('cd /c/w && PATH=/c/w/bin:/c/path curl --silent https://example.org/', encoding);
+    assert.equal(fetch.status, 1, fetch.out);
+    assert.ok(fetch.out.includes(`FAIL ${fetch.file}:1: run_command: fetched a page`), fetch.out);
+    const looser = [
+      'PATH=/c/w/bin:/elsewhere/path', 'PATH=/c/w/bin:/c/other', 'PATH=/c/w/bin:/c/path/sub', 'PATH=/c/w/bin:/c/w/path',
+      'PATH=/c/w/bin:$PATH', 'PATH=/c/w/bin:/c/path:$PATH', 'PATH=/c/w/bin:/c/path:/usr/bin', 'PATH=/c/w/bin', 'PATH=/c/path:/c/w/bin',
+      'PATH=/elsewhere/bin:/c/path', 'PATH=/c/w/../x:/c/path', 'PATH=/c/wbin:/c/path', 'PATH=bin:/c/path',
+    ];
+    for (const prefix of looser) {
+      const r = run(`cd /c/w && ${prefix} command -v curl`, encoding);
+      assert.equal(r.status, 3, `${prefix}\n${r.out}`);
+      assert.ok(r.out.includes(`UNVERIFIED ${r.file}:1: run_command: `), `${prefix}\n${r.out}`);
+    }
   }
 });
 
 test('a fetch after the cd prefix fails with --no-fetch', () => {
   const fetches = [
-    FETCH, `PATH=/w/bin:$PATH ${FETCH}`, 'wget https://example.com/a', `command -v curl && ${FETCH}`,
+    FETCH, `PATH=/w/bin:/path ${FETCH}`, `PATH=/w/bin:$PATH ${FETCH}`, 'wget https://example.com/a', `command -v curl && ${FETCH}`,
     'env curl https://example.org/', 'command curl https://example.org/', '/usr/bin/curl https://example.org/',
     "sh -c 'curl https://example.org/'", 'ls; curl https://example.org/', 'ls | xargs wget', 'true || X=1 wget https://example.org/',
     `${FETCH}; echo $?`, 'timeout 5 curl https://example.org/',
@@ -249,7 +276,7 @@ test('a command that cannot be classified is unverified', () => {
     'rg --pre cat needle notes.txt', 'rg --pre=cat needle', 'find . -execdir ls {} +', 'find . -ok ls {} \\;', 'git -c core.pager=less log', 'git lg',
     'ls | xargs cat', 'env ls', "sh -c 'ls'", 'sort --compress-program=x a', "sed -n '1e ls' a", 'PATH=$(pwd) true', 'ls && PATH=/tmp/x ls', 'X=`ls` true'];
   // A PATH prefix is the case's own only when it puts a folder of the workspace first.
-  for (const prefixed of ['cd /w && PATH=/elsewhere/bin:$PATH ls', 'cd /w && PATH=$(pwd) true']) {
+  for (const prefixed of ['cd /w && PATH=/elsewhere/bin:$PATH ls', 'cd /w && PATH=/w/bin:$PATH ls', 'cd /w && PATH=$(pwd) true']) {
     const r = session([prefixed], ['--no-fetch']);
     assert.equal(r.status, 3, `${prefixed}\n${r.out}`);
   }
