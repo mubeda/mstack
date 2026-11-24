@@ -1,0 +1,19 @@
+schema_version: "1.1"
+name: antigravity-after-yes
+expected_outcome: |
+  Two turns: the first shows the list and waits, reply.md is the user's second message. The code index, its
+  connection, ponytail, three mstack plugins (mstack-find-skills, mstack-research, mstack-plan) and archify are missing.
+  The skills command for archify is shown as a step for the user and is never called, also after "run all".
+  After the yes each numbered command runs once, in the list's order, at user scope; the status runs again and shows
+  the installed rows ok; the report says a new session is needed and that ponytail's hooks do not run in Antigravity.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The prompt names Antigravity as the host, so in Claude Code or Codex this case is a fixture: it shows that the
+  text is followed, not what an Antigravity session does. Every command goes through `./testenv` to stand-ins
+  (`agy`, `codegraph`, `npm`, `npx`, `gh`, `python3`) that log each call to `calls.log` and write only under the
+  run folder's `home/`. The run's own `PATH` holds no real `agy`, `codegraph`, `npm` or `npx` either.
+  The `npm` stand-in drops a `codegraph` stand-in, the `codegraph` stand-in writes the entry into `mcp_config.json`
+  and the `agy` stand-in creates the plugin folder, all under the run folder's `home/`, so the final status changes.
+  A Claude Code and Codex fixture only: it is not in the Antigravity self-test batch, because a prepared answer is
+  not the user's yes to an install.

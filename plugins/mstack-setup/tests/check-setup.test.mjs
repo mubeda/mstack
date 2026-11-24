@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, mkdirSync, mkdtempSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -83,26 +83,26 @@ test('(c) codegraph on PATH but not connected', () => {
   assert.equal(r.state('codegraph-connected'), 'MISSING');
 });
 
-test('(d) Codex host: claude-review with its companion, codegraph in config.toml', () => {
+test('(d) Codex host: the reviewer is the claude client, codegraph in config.toml', () => {
   const m = machine().stub('codegraph').stub('claude');
   const codexHome = join(m.root, 'codex-home');
-  const pl = join(codexHome, 'plugins/cache/agent-bridges/claude/0.2.1');
-  mkdirSync(join(pl, 'skills/claude-review'), { recursive: true }); mkdirSync(join(pl, 'scripts'), { recursive: true });
-  writeFileSync(join(pl, 'skills/claude-review/SKILL.md'), 'x'); writeFileSync(join(pl, 'scripts/claude-companion.mjs'), 'x');
-  writeFileSync(join(codexHome, 'config.toml'), '[mcp_servers.codegraph]\ncommand = "codegraph"\n\n[plugins."claude@agent-bridges"]\nenabled = true\n');
+  mkdirSync(codexHome, { recursive: true });
+  writeFileSync(join(codexHome, 'config.toml'), '[mcp_servers.codegraph]\ncommand = "codegraph"\n');
   const r = run(m, ['--host', 'codex'], { CODEX_HOME: codexHome });
-  assert.equal(r.state('reviewer-plugin'), 'ok', r.out);
-  assert.equal(r.state('codegraph-connected'), 'ok');
+  assert.equal(r.state('codegraph-connected'), 'ok', r.out);
   assert.equal(r.state('reviewer-cli'), 'ok');
+  assert.equal(r.state('reviewer-login'), 'ok');
+  assert.equal(r.state('reviewer-plugin'), undefined, 'Codex has no reviewer plugin row');
 });
 
-test('(d2) Codex host: claude-review without the companion script is missing', () => {
-  const m = machine();
-  const codexHome = join(m.root, 'codex-home');
-  mkdirSync(join(codexHome, 'skills/claude-review'), { recursive: true });
-  writeFileSync(join(codexHome, 'skills/claude-review/SKILL.md'), 'x');
-  const r = run(m, ['--host', 'codex'], { CODEX_HOME: codexHome });
-  assert.equal(r.state('reviewer-plugin'), 'MISSING', r.out);
+test('(d2) Codex host: the reviewer group is the client and its login, and no plugin row exists', () => {
+  const m = machine().stub('node').stub('claude', 1);
+  const r = run(m, ['--host', 'codex', '--needs', 'reviewer']);
+  assert.equal(r.status, 1, r.out);
+  assert.deepEqual(r.json.items.filter((i) => i.blocking).map((i) => i.id), ['node', 'reviewer-cli', 'reviewer-login']);
+  assert.equal(r.state('reviewer-login'), 'LOGIN');
+  assert.equal(run(m.stub('claude'), ['--host', 'codex', '--needs', 'reviewer']).status, 0);
+  assert.equal(run(m, ['--host', 'codex', '--needs', 'reviewer-plugin']).status, 2);
 });
 
 test('(e) Claude host without codex on PATH', () => {
@@ -161,7 +161,7 @@ test('(i3) a plugin left in the cache without an install record is not installed
 test('(j) no file under the home folder changes', () => {
   const m = completeClaude(machine());
   const before = listing(m.home);
-  run(m, ['--host', 'claude']); run(m, ['--host', 'codex']);
+  run(m, ['--host', 'claude']); run(m, ['--host', 'codex']); run(m, ['--host', 'antigravity']);
   assert.equal(listing(m.home), before);
 });
 
@@ -331,4 +331,165 @@ test('the three reviewer rows are optional, and still block a caller that sends 
   }
   assert.equal(r.status, 1, r.out);
   assert.ok(r.json.items.filter((i) => i.tier === 'mandatory').every((i) => i.state === 'ok'), r.out);
+});
+
+// Antigravity: skills in ~/.gemini/config/skills, in plugins/<plugin>/skills/<name>, never in ~/.agents/skills (the skills CLI's global folder
+// for the agent is ~/.gemini/config/skills; .agents/skills is its workspace folder); the code index connects through mcp_config.json.
+const MSTACK_ALL = ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup',
+  'mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator',
+  'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions',
+  'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui'];
+const agy = (m) => {
+  m.file('.gemini/config/skills/.keep').file('.gemini/config/plugins/.keep');
+  writeFileSync(join(m.bin, 'agy'), `#!/bin/sh\necho "$@" >> "${m.root}/agy-calls.log"\n`); chmodSync(join(m.bin, 'agy'), 0o755);
+  return m;
+};
+const ANTI = ['--host', 'antigravity'];
+const item = (r, id) => r.json.items.find((i) => i.id === id);
+function completeAnti(m) {
+  agy(m).stub('node').stub('git').stub('codegraph');
+  m.file('.gemini/config/mcp_config.json', JSON.stringify({ mcpServers: { codegraph: { command: 'codegraph', args: ['serve', '--mcp'] } } }));
+  m.skill('.gemini/config/skills/ponytail');
+  for (const s of MSTACK_ALL) m.skill(`.gemini/config/plugins/${s}/skills/${s}`);
+  return m;
+}
+
+test('antigravity: index installed, not connected, no mstack skill', () => {
+  const m = agy(machine()).stub('node').stub('git').stub('codegraph').file('.gemini/config/mcp_config.json', '');
+  const r = run(m, ANTI);
+  assert.equal(r.status, 1, r.out);
+  assert.equal(r.state('codegraph-cli'), 'ok');
+  assert.equal(r.state('codegraph-connected'), 'MISSING');
+  for (const id of MSTACK_ALL) assert.equal(r.state(id), 'MISSING', id);
+});
+
+test('antigravity: codegraph connected through mcp_config.json', () => {
+  const r = run(completeAnti(machine()), ANTI);
+  assert.equal(r.state('codegraph-connected'), 'ok', r.out);
+  assert.match(item(r, 'codegraph-connected').detail, /Antigravity/);
+});
+
+test('antigravity: a broken or codegraph-less mcp_config.json is not connected', () => {
+  for (const text of ['{ nope', '{"mcpServers":{}}']) {
+    const m = completeAnti(machine()).file('.gemini/config/mcp_config.json', text);
+    assert.equal(run(m, ANTI).state('codegraph-connected'), 'MISSING', text);
+  }
+});
+
+test('antigravity: ponytail skills in the skills folder are ok, with the hooks note', () => {
+  const r = run(completeAnti(machine()), ANTI);
+  assert.equal(r.state('ponytail'), 'ok', r.out);
+  assert.match(item(r, 'ponytail').detail, /hooks do not run in Antigravity/);
+});
+
+test('antigravity: ponytail inside an installed plugin is ok', () => {
+  const m = agy(machine()).skill('.gemini/config/plugins/ponytail/skills/ponytail');
+  assert.equal(run(m, ANTI).state('ponytail'), 'ok');
+});
+
+test('antigravity: ponytail missing is a mandatory MISSING row and fails the run', () => {
+  const m = completeAnti(machine());
+  rmSync(join(m.home, '.gemini/config/skills/ponytail'), { recursive: true });
+  const r = run(m, ANTI);
+  assert.deepEqual([item(r, 'ponytail').tier, r.state('ponytail'), r.status], ['mandatory', 'MISSING', 1], r.out);
+});
+
+test('antigravity: an mstack skill in a plugin folder is ok', () => {
+  const m = agy(machine()).skill('.gemini/config/plugins/mstack-research/skills/mstack-research');
+  assert.equal(run(m, ANTI).state('mstack-research'), 'ok');
+});
+
+test('antigravity: a skill in the skills CLI global folder is ok, and one under ~/.agents/skills is not', () => {
+  const m = agy(machine()).skill('.gemini/config/skills/mstack-plan').skill('.agents/skills/ponytail').skill('.agents/skills/archify');
+  const r = run(m, ANTI);
+  assert.equal(r.state('mstack-plan'), 'ok', r.out);
+  assert.equal(r.state('ponytail'), 'MISSING', r.out);
+  assert.equal(r.state('archify'), 'MISSING', r.out);
+});
+
+test('antigravity: codegraph connected through the older settings file, and the detail names the file', () => {
+  const entry = JSON.stringify({ mcpServers: { codegraph: { command: 'codegraph', args: ['serve', '--mcp'] } } });
+  const old = agy(machine()).stub('codegraph').file('.gemini/antigravity/mcp_config.json', entry);
+  const r = run(old, ANTI);
+  assert.equal(r.state('codegraph-connected'), 'ok', r.out);
+  assert.match(item(r, 'codegraph-connected').detail, /\.gemini\/antigravity\/mcp_config\.json/);
+  const r2 = run(completeAnti(machine()), ANTI);
+  assert.match(item(r2, 'codegraph-connected').detail, /\.gemini\/config\/mcp_config\.json/);
+});
+
+test('antigravity: an entry that is no object with a command is not connected', () => {
+  for (const v of ['true', '[]', '{}', '{"command":""}', '"codegraph"', '["codegraph"]']) {
+    const m = completeAnti(machine()).file('.gemini/config/mcp_config.json', `{"mcpServers":{"codegraph":${v}}}`);
+    const r = run(m, [...ANTI, '--needs', 'codegraph']);
+    assert.equal(r.state('codegraph-connected'), 'MISSING', v);
+    assert.equal(r.status, 1, v);
+  }
+});
+
+test('antigravity: a linked plugin folder and a linked SKILL.md count, a folder named SKILL.md does not', () => {
+  const m = agy(machine());
+  const real = join(m.root, 'elsewhere/mstack-plan');
+  mkdirSync(join(real, 'skills/mstack-plan'), { recursive: true }); writeFileSync(join(real, 'skills/mstack-plan/SKILL.md'), 'x');
+  symlinkSync(real, join(m.home, '.gemini/config/plugins/mstack-plan'));
+  mkdirSync(join(m.home, '.gemini/config/plugins/mstack-epic/skills/mstack-epic'), { recursive: true });
+  symlinkSync(join(real, 'skills/mstack-plan/SKILL.md'), join(m.home, '.gemini/config/plugins/mstack-epic/skills/mstack-epic/SKILL.md'));
+  symlinkSync(join(m.root, 'nowhere'), join(m.home, '.gemini/config/plugins/mstack-auto'));
+  mkdirSync(join(m.home, '.gemini/config/skills/mstack-diagnose/SKILL.md'), { recursive: true });
+  mkdirSync(join(m.home, '.gemini/config/plugins/mstack-handoff/skills/mstack-handoff/SKILL.md'), { recursive: true });
+  const r = run(m, ANTI);
+  assert.deepEqual(['mstack-plan', 'mstack-epic', 'mstack-auto', 'mstack-diagnose', 'mstack-handoff'].map((id) => r.state(id)), ['ok', 'ok', 'MISSING', 'MISSING', 'MISSING'], r.out);
+});
+
+test('needs: a value with no name in it is a usage error, on every host', () => {
+  for (const host of ['claude', 'codex', 'antigravity']) for (const v of ['', ' , ', ',']) {
+    assert.equal(run(machine().stub('node'), ['--host', host, '--needs', v]).status, 2, `${host} "${v}"`);
+  }
+});
+
+test('antigravity: the 22 mstack rows keep today\'s tiers', () => {
+  const r = run(machine(), ANTI);
+  for (const id of MSTACK_ALL) assert.equal(item(r, id)?.tier, MSTACK_ALL.indexOf(id) < 5 ? 'mandatory' : 'optional', id);
+});
+
+test('antigravity: ui-ux-pro-max is one WARN row and a complete setup still exits 0', () => {
+  const r = run(completeAnti(machine()), ANTI);
+  assert.deepEqual([r.state('ui-ux-pro-max'), item(r, 'ui-ux-pro-max').tier], ['WARN', 'optional'], r.out);
+  assert.equal(r.json.items.filter((i) => i.state === 'WARN').length, 1, r.out);
+  assert.equal(r.json.items.filter((i) => i.id === 'ui-ux-pro-max').length, 1, r.out);
+  assert.equal(item(r, 'ui-ux-pro-max').detail, 'UI design skill: not available in Antigravity');
+  assert.equal(r.status, 0, r.out);
+  const m = completeAnti(machine()).skill('.gemini/config/skills/ui-ux-pro-max');
+  assert.equal(run(m, ANTI).state('ui-ux-pro-max'), 'ok');
+});
+
+test('antigravity: a caller that needs ui-ux-pro-max is blocked by its WARN row', () => {
+  const r = run(completeAnti(machine()), [...ANTI, '--needs', 'ui-ux-pro-max']);
+  assert.equal(r.status, 1, r.out);
+});
+
+test('antigravity: no reviewer, codex-plugin or workflow row', () => {
+  const r = run(completeAnti(machine()), ANTI);
+  const bad = r.json.items.map((i) => i.id).filter((id) => /^reviewer-|^codex-plugin$|review-workflow$|pm-codex-dev$/.test(id));
+  assert.deepEqual(bad, []);
+  for (const id of ['archify', 'gh', 'python3']) assert.equal(item(r, id)?.tier, 'optional', id);
+});
+
+test('antigravity: --needs reviewer exits 2 with the message', () => {
+  const r = run(completeAnti(machine()), [...ANTI, '--needs', 'reviewer']);
+  assert.equal(r.status, 2);
+  assert.match(r.out, /--needs names no row and no group of this host: reviewer/);
+});
+
+test('antigravity: --needs codegraph still works', () => {
+  assert.equal(run(completeAnti(machine()), [...ANTI, '--needs', 'codegraph']).status, 0);
+});
+
+test('antigravity: the status runs no agy command', () => {
+  const m = completeAnti(machine());
+  run(m, ANTI);
+  assert.equal(existsSync(join(m.root, 'agy-calls.log')), false);
+});
+
+test('claude: a missing ui-ux-pro-max is MISSING, not WARN', () => {
+  assert.equal(run(machine(), ['--host', 'claude']).state('ui-ux-pro-max'), 'MISSING');
 });
