@@ -67,7 +67,7 @@ The only developer this host can list is `codex`, through the OpenAI Codex plugi
 
 The only reviewer this host can list is `claude`. Its command is the `claude` review command above. Add this sentence to the line that runs the Command cell: `Run it as an approved command, because it needs the network and writes under the home folder.` The fallback lines of this host are in `## The fallback review`.
 
-The only developer this host can list is `claude`: `## A developer in a copy`. Its line that runs the Command cell carries the same sentence about an approved command.
+The only developer this host can list is `claude`: `## A developer in a copy`. Its line that runs the Command cell carries the same sentence about an approved command. Every `claude` developer run started from Codex, fix rounds included, runs as an approved command: it needs the network and writes its session record under `~/.claude`, and under `workspace-write` without that approval it can answer and still save no record, so the fix round (`--resume <session id>`) then fails.
 
 ## Antigravity
 
