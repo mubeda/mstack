@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: flagged-lane
+expected_outcome: |
+  Most capable task in Codex with no Approved models line. Before any lane starts, the workflow asks one question of
+  its own for that lane naming the flagged model (gpt-6.2-astra) and the next non-flagged model down (gpt-6.2-sol).
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Codex (not checked in Antigravity).
+  Prepared replies: none (stops on the lane expensive-model question).

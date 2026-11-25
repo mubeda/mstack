@@ -86,6 +86,10 @@ const addWorkflow = (root, name) => {
   cpSync(join(root, srcSkill, 'references'), join(root, dstSkill, 'references'), { recursive: true });
   if (isDev) cpSync(join(root, srcSkill, 'evals/_fixture/plan'), join(root, dstSkill, 'evals/_fixture/plan'), { recursive: true });
   writeFileSync(join(root, dstSkill, 'host.md'), `# Host: ${host}\n`);
+  if (name === 'mstack-antigravity-led-review') {
+    mkdirSync(join(root, `plugins/${name}/agents/review-lane`), { recursive: true });
+    writeFileSync(join(root, `plugins/${name}/agents/review-lane/agent.md`), `---\nname: review-lane\ndescription: Writer lane for ${name}.\ntools:\n  - read_file\n  - write_file\n  - edit_file\n  - run_command\n---\n\nWork only inside the brief's worktree.\n`);
+  }
 
   const srcManifest = readJson(root, `plugins/${sourceName}/.claude-plugin/plugin.json`);
   const manifest = {
@@ -698,4 +702,30 @@ test("a workflow's fixture plan is linted", () => {
   const root = six(tree());
   edit(root, 'plugins/mstack-codex-led-dev/skills/mstack-codex-led-dev/evals/_fixture/plan/progress.md', (text) => text.replace(/^Spec:[^\n]*\n/m, ''));
   fails(run(root), 'mstack-codex-led-dev', 'evals/_fixture/plan');
+});
+
+const reviewLaneFile = 'plugins/mstack-antigravity-led-review/agents/review-lane/agent.md';
+const reviewLaneList = ['read_file', 'write_file', 'edit_file', 'run_command'];
+const setReviewLaneTools = (root, tools) => {
+  const path = join(root, reviewLaneFile);
+  writeFileSync(path, readFileSync(path, 'utf8').replace(/^tools:[^\n]*\n(  - [^\n]*\n)*/m, tools));
+};
+
+test('review lane with an extra tool', () => {
+  const root = six(tree());
+  setReviewLaneTools(root, asList([...reviewLaneList, 'search_web']));
+  fails(run(root), 'review-lane/agent.md', 'search_web');
+});
+
+test('review lane with a missing tool', () => {
+  const root = six(tree());
+  setReviewLaneTools(root, asList(['read_file', 'write_file', 'run_command']));
+  fails(run(root), 'review-lane/agent.md', 'edit_file');
+});
+
+test('review lane with the right list', () => {
+  const root = six(tree());
+  setReviewLaneTools(root, asList([...reviewLaneList].reverse()));
+  const result = run(root);
+  assert.equal(result.status, 0, result.stderr);
 });

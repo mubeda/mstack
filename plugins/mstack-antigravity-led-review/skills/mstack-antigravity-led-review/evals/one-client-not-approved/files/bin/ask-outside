@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Stand-in for Antigravity's outside-sandbox approval prompt: denies the check cleanly.
+set -eu
+echo "ask-outside $*" >> "@WORK@/outside.log"
+echo "User declined the request to run this command outside the sandbox."
+exit 1

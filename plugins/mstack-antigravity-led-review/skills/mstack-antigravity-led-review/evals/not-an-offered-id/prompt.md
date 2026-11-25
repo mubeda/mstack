@@ -1,0 +1,1 @@
+Deliver item 1.2 only from `docs/plans/notes/` in Single mode using `mstack-antigravity-led-review`. Call the real `mstack-vendors` skill, accept the recommended reviewers, and stop after the review of item 1.2 (all recommended reviewers) is processed and recorded in the final report (do not push). Approve local commits on the branch.

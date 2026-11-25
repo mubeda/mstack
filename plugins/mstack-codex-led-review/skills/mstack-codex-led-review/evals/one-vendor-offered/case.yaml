@@ -1,0 +1,14 @@
+schema_version: "1.1"
+name: one-vendor-offered
+expected_outcome: |
+  Single mode on item 1.2 of the new fixture plan. The workflow sends a literal called message to mstack-vendors
+  with this host's Host value, Job: code review, Workflow: review, Writers: this host's vendor alone, Workspace: the
+  main notes checkout, and Models from mstack-best-model-for. It asks one pick question offering the one vendor and
+  never antigravity, runs the handed command unchanged (apart from run-time files), and hands the findings to
+  mstack-receive-review with its three caller lines.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code, Codex.
+  Prepared replies: replies/01.md ("Yes.").
+  Uses vendors/result-1-claude.md in Claude Code and vendors/result-1-codex.md in Codex.

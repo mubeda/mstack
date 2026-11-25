@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: one-client-fallback
+expected_outcome: |
+  Codex one-client path calling the real mstack-vendors (with claude hidden from PATH and codex signed in). The
+  workflow omits codex= from Models: so mstack-vendors emits the configured-model fallback block BEFORE any fallback
+  command runs (claude not available with not installed: reason, Recommend: a fallback review, provisional Record:
+  reviewer unknown). The warning is shown, nested codex exec completes, Reviewer vendor comes from .err (codex on
+  provider: openai -> same-vendor; unknown otherwise -> reviewer unknown), never cross-vendor.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Codex (both real-OpenAI and --codex-non-openai-fallback variants).
+  Prepared replies: none.

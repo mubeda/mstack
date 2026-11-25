@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -eu
+vendor="${1:?vendor required}"
+model="${2:?model required}"
+effort="${3:?effort required}"
+run_dir="$(cd "$(dirname "$0")/.." && pwd)"
+ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+printf 'start %s %s %s %s\n' "$vendor" "$model" "$effort" "$ms" >> "$run_dir/calls.log"
+sleep 3
+printf 'end %s %s %s\n' "$vendor" "$model" "$effort" >> "$run_dir/calls.log"
+if [ "$vendor" = "claude" ]; then
+  node -e '
+    const model = process.argv[1];
+    const out = {
+      result: "Verdict: needs attention\nSummary: Minor documentation note.\nFindings:\n1. Severity: low\n   Title: Mention ValueError in README\n   File: notes.py, lines 1 to 6\n   Scenario: A caller may not know remove raises ValueError when the item is absent.\n   Reproduce: Read notes.py and README.md.\n   Recommendation: Note ValueError in README.md.",
+      session_id: "standin-1",
+      is_error: false,
+      permission_denials: [],
+      modelUsage: { [model]: { inputTokens: 100, outputTokens: 50 } },
+    };
+    process.stdout.write(JSON.stringify(out) + "\n");
+  ' "$model"
+else
+  cat <<'EOF'
+Verdict: needs attention
+Summary: Minor documentation note.
+Findings:
+1. Severity: low
+   Title: Mention ValueError in README
+   File: notes.py, lines 1 to 6
+   Scenario: A caller may not know remove raises ValueError when the item is absent.
+   Reproduce: Read notes.py and README.md.
+   Recommendation: Note ValueError in README.md.
+EOF
+fi

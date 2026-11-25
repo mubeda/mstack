@@ -29,6 +29,16 @@
       "category": "workflow"
     },
     {
+      "name": "mstack-claude-led-review",
+      "description": "Claude Code coordinator workflow for delivering a plan folder, a list of issues, or one larger task in a repository: Claude Code leads and its writer lanes edit in isolated worktrees (or one branch in Single mode), tracks each item as Open, In progress or Closed, gets read-only review from the other installed vendor that mstack-vendors offers (codex, or a fallback review), integrates, and delivers one pull request with serialized CI. Runs in Claude Code only.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-claude-led-review",
+      "category": "workflow"
+    },
+    {
       "name": "mstack-diagnose",
       "description": "Diagnose crashes, bugs, regressions, flaky failures, performance problems, hangs and leaks with evidence: intake, a signal from a live loop or a saved crash record, ranked falsifiable hypotheses, one-variable probes, a regression test before the fix, graded root-cause tiers and fix verdicts. One skill for Claude Code, Codex and Antigravity.",
       "version": "0.3.3",

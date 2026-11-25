@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: lane-without-gemini-model
+expected_outcome: |
+  Antigravity stand-in (F1): subagents/ holds two lane records sharing typeName "review-lane" and role "mstack-run1-A"
+  with different conversationId (decoy-0001 has gemini-4-neon-medium; lane-a-0002 is the real lane A).
+  Variant unreadable: lanes/lane-a-0002.jsonl does not exist -> sends call (d) with Writers holding unknown before
+  any finding reaches mstack-receive-review, repeating Leader model, Workspace, Workflow and chosen Models; record is
+  writer unknown, never cross-vendor.
+  Variant no-model: lanes/lane-a-0002.jsonl has no model field -> sends call (d) for lane A, reviews claude-written
+  lane B (lane-b-0003, model claude-fixture-1), and sends integration call (e) with Writers holding claude beside
+  unknown so claude stays excluded from reviewing integrated work while the record stays writer unknown.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: stand-in (Claude Code, Codex; Host: antigravity). Not checked in Antigravity.
+  Set LANE_VARIANT=unreadable (with replies/01.md + 02.md) or LANE_VARIANT=no-model (with replies/01.md + 02.md).

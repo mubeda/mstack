@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: unflagged-model
+expected_outcome: |
+  Standard-tier task whose lane model is unflagged (sonnet in Claude Code, gpt-6.2-sol in Codex). The workflow asks
+  no expensive-model question for the lane, passes check-lanes.mjs, and stops without starting a lane.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code, Codex (not checked in Antigravity).
+  Prepared replies: none.

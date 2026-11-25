@@ -1,0 +1,15 @@
+schema_version: "1.1"
+name: fallback-supplied-model
+expected_outcome: |
+  Codex Single mode on item 1.2 with handed Recommend: a fallback review.
+  Variant supplied: models.md gives codex a flagged code-review model (gpt-6.2-astra, differs from session model) and
+  block Steps run fallback on gpt-6.2-astra: asks one question about gpt-6.2-astra vs gpt-6.2-sol BEFORE any start
+  line in calls.log.
+  Variant no-model-option: block Steps run fallback with no model option ("fallback - -"): asks NO expensive-model
+  question, logs one "fallback - -" line in calls.log, and records the review as reviewer unknown.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Codex (not checked in Antigravity).
+  Variants via FALLBACK_VARIANT=supplied|no-model-option.
+  Prepared replies: replies/supplied/01.md ("Yes."); none for no-model-option.

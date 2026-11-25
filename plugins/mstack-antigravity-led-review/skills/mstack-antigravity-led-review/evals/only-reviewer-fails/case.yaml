@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: only-reviewer-fails
+expected_outcome: |
+  The single offered reviewer exits 1 (network error via review-fail). The failed run is not counted as a review,
+  no retry is made, the warning is shown, and the fallback review runs via the block's Steps.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code, Codex.
+  Prepared replies: replies/01.md ("Yes.").

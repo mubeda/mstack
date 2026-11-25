@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: flagged-reviewer-model
+expected_outcome: |
+  Handed models.md flags codex's code-review model (gpt-6.2-astra, Expensive: yes, next non-flagged down: gpt-6.2-sol).
+  After "Yes." to the reviewer pick question, the workflow asks one question of its own for that flagged reviewer model
+  with gpt-6.2-sol as the alternative. After "No.", it sends selection refresh call (c) naming codex=gpt-6.2-sol and
+  launches ONLY gpt-6.2-sol (never gpt-6.2-astra).
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code (not checked in Antigravity).
+  Prepared replies: replies/01.md ("Yes."), replies/02.md ("No.").

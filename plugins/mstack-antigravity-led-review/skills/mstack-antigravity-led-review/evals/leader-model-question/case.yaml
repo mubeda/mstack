@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: leader-model-question
+expected_outcome: |
+  Antigravity stand-in Workflow mode (with review-lane listed; stops after reviewer selection is applied and gives the
+  final report of what was decided). Exercises all 6 R21 variants via LEADER_VARIANT:
+  gemini-id, claude-id, does-not-know, not-an-offered-id, listing-fails (exit1 / empty), cannot-ask.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: stand-in (Claude Code, Codex; Host: antigravity).
+  Variants via LEADER_VARIANT=gemini-id|claude-id|does-not-know|not-an-offered-id|listing-fails-exit1|listing-fails-empty|cannot-ask.
+  Prepared replies: replies/gemini-id/, replies/claude-id/, replies/does-not-know/, replies/not-an-offered-id/, replies/listing-fails/ (shared by listing-fails-exit1 and listing-fails-empty); cannot-ask has no reply files and uses run-constraints.md.

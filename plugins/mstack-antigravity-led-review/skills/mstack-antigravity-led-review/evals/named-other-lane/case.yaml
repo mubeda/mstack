@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: named-other-lane
+expected_outcome: |
+  Two most capable tasks in disjoint files (two lanes). The user explicitly names gpt-6.2-astra for the lane of 1.1
+  only. The workflow skips the question for 1.1's lane and asks one expensive-model question for 1.2's lane only.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Codex (not checked in Antigravity).
+  Prepared replies: none (stops on the expensive-model question for 1.2's lane).

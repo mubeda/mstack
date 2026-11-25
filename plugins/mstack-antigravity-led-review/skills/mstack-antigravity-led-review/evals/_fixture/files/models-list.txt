@@ -1,0 +1,3 @@
+gemini-4-neon-medium	Gemini 4 Neon Medium
+gemini-fixture-2	Gemini Fixture 2
+claude-fixture-1	Claude Fixture 1

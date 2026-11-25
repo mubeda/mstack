@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: lane-unapproved-task
+expected_outcome: |
+  Two most capable tasks in the same file notes.py (so one lane). Task 1.1 has "- Approved models: gpt-6.2-astra
+  (user, 2026-11-22)" and task 1.2 has no approval line. Because NOT every task of the lane approves gpt-6.2-astra,
+  the workflow still asks one expensive-model question for that lane (gpt-6.2-astra vs gpt-6.2-sol).
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Codex (not checked in Antigravity).
+  Prepared replies: none (stops on the lane expensive-model question).

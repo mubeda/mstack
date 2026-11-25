@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: old-start-file
+expected_outcome: |
+  Loaded WITHOUT mstack-vendors. Because execute-plan.md names the removed workflows, section 0 stops with the R4
+  message BEFORE checking required skills: no install lines, no vendors/sent-*.txt, no question, notes/ unchanged.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code, Codex.
+  Load WITHOUT mstack-vendors (verify absence in session inventory).
+  Prepared replies: none.

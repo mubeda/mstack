@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: declined-lane
+expected_outcome: |
+  Most capable task in Codex with no approval line. The workflow asks about gpt-6.2-astra vs gpt-6.2-sol. User replies
+  "No." The lane table records gpt-6.2-sol (not gpt-6.2-astra), check-lanes.mjs passes, and no lane starts.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Codex (not checked in Antigravity).
+  Prepared replies: replies/01.md ("No.").

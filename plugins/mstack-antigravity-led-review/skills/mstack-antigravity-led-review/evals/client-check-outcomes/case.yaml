@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: client-check-outcomes
+expected_outcome: |
+  Antigravity stand-in testing the three client-check outcomes (found, not-installed, not-approved) and launch-declined
+  distinction in host.md › Approvals. Variant selected by OUTCOME_VARIANT.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: stand-in (Claude Code, Codex; Host: antigravity).
+  Variants via OUTCOME_VARIANT=found|not-installed|not-approved|launch-declined.
+  Prepared replies: replies/01.md ("gemini-4-neon-medium"), replies/02.md ("Yes.").

@@ -1,0 +1,14 @@
+schema_version: "1.1"
+name: one-client-not-approved
+expected_outcome: |
+  Antigravity stand-in calling the REAL mstack-vendors with local bin/ask-outside refusing the outside-sandbox check
+  while allowing --leader-only inside the sandbox. mstack-vendors's line to the user comes before the outside-sandbox
+  request; every reviewer row is not available with reason "the run outside the sandbox was not approved"; no client
+  is reported as not installed; Recommend is a fallback review; after the block, the fallback review runs with its
+  warning and hands findings to mstack-receive-review.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: stand-in (Claude Code, Codex; Host: antigravity).
+  Calls real mstack-vendors; no handed vendor block.
+  Prepared replies: replies/01.md ("gemini-4-neon-medium").

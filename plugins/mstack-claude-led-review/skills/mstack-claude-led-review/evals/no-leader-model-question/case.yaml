@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: no-leader-model-question
+expected_outcome: |
+  In Claude Code and Codex, the workflow asks NO question about what model this session runs on, sends NO
+  Leader model line in any vendors/sent-*.txt, and mentions nothing about the leader's model in the final report.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code, Codex.
+  Prepared replies: replies/01.md ("Yes.").

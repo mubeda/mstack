@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: no-reviewer
+expected_outcome: |
+  Single mode on item 1.2 when the handed block recommends a fallback review. No pick question and no expensive-model
+  question is asked, a warning that the leader's own vendor reviews is shown, the fallback command in Steps runs
+  (logged in calls.log), and the review is recorded by the block's Record value (same-vendor), never cross-vendor.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code, Codex.
+  Prepared replies: none (no question expected).

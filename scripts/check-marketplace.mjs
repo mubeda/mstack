@@ -307,14 +307,17 @@ for (const name of agyPlugins) {
 }
 
 // An agent's `tools` must be a YAML list (Antigravity's validator rejects the one-line string form), and the
-// mstack-research readers keep search and reading tools only, so a tool added to one is caught here.
-// An agent is agents/<name>.md or agents/<name>/agent.md.
+// mstack-research readers and mstack-antigravity-led-review lane agent keep pinned tool lists so an added or
+// missing tool is caught here. An agent is agents/<name>.md or agents/<name>/agent.md.
 const pinned = {
   'plugins/mstack-research/agents/reader.md': ['Glob', 'Grep', 'Read', 'WebFetch', 'WebSearch'],
   'plugins/mstack-research/agents/antigravity-reader/agent.md': ['read_file', 'search_web'],
+  ...(folders.includes('mstack-antigravity-led-review') && {
+    'plugins/mstack-antigravity-led-review/agents/review-lane/agent.md': ['read_file', 'write_file', 'edit_file', 'run_command'],
+  }),
 };
 const agentFiles = new Set(Object.keys(pinned));
-// The block-list syntax is Antigravity's rule, so only a plugin with an Antigravity manifest has its agent files read; the pinned readers always are.
+// The block-list syntax is Antigravity's rule, so only a plugin with an Antigravity manifest has its agent files read; the pinned agents always are.
 for (const name of agyPlugins) {
   const dir = resolve(root, 'plugins', name, 'agents');
   if (!existsSync(dir)) continue;
@@ -325,11 +328,11 @@ for (const name of agyPlugins) {
 }
 for (const path of agentFiles) {
   const allowed = pinned[path];
-  assert(!allowed || existsSync(resolve(root, path)), `${path}: the file is missing; the reader must exist with its pinned tools`);
+  assert(!allowed || existsSync(resolve(root, path)), `${path}: the file is missing; the agent must exist with its pinned tools`);
   const lines = read(path).match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1].split(/\r?\n/) ?? [];
   const keyLine = /^(["']?)tools\1:(.*)$/;
   const at = lines.findIndex((line) => keyLine.test(line));
-  assert(at >= 0 || !allowed, `${path}: no tools key; the reader's tools must be listed`);
+  assert(at >= 0 || !allowed, `${path}: no tools key; the agent's tools must be listed`);
   if (at < 0) continue;
   assert(!lines[at].match(keyLine)[2].trim(), `${path}: tools must be a YAML list (a "tools:" line, then "  - <name>" lines), not a one-line string`);
   // The list runs to the next key: blank and comment lines inside it do not end it, and any other line that is not an entry fails.
@@ -343,8 +346,8 @@ for (const path of agentFiles) {
   }
   assert(tools.length, `${path}: tools must be a YAML list (a "tools:" line, then "  - <name>" lines), not a one-line string`);
   if (allowed) {
-    for (const tool of tools.filter((tool) => !allowed.includes(tool))) assert.fail(`${path}: tool ${tool} is not allowed; the reader has search and reading tools only`);
-    for (const tool of allowed.filter((tool) => !tools.includes(tool))) assert.fail(`${path}: tool ${tool} is missing from the reader's tools`);
+    for (const tool of tools.filter((tool) => !allowed.includes(tool))) assert.fail(`${path}: tool ${tool} is not allowed; this agent's tools are pinned`);
+    for (const tool of allowed.filter((tool) => !tools.includes(tool))) assert.fail(`${path}: tool ${tool} is missing from the agent's pinned tools`);
   }
 }
 
