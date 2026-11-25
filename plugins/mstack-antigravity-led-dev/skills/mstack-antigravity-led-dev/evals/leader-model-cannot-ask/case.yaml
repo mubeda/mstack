@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: leader-model-cannot-ask
+expected_outcome: |
+  F8: prompt states no question can be answered and names codex developer and claude reviewer. Omits Leader model, runs through Phase 1 reviews, records leader review as reviewer unknown and claude review as cross-vendor, final report names that nobody could be asked.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-antigravity-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

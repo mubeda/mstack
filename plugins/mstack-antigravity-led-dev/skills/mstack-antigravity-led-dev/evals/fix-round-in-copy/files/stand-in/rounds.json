@@ -1,0 +1,34 @@
+[
+  {
+    "files": [
+      {
+        "path": "sub_helper.py",
+        "content": "\"\"\"Round-one helper for subtraction.\"\"\"\n\n\ndef subtract_values(a, b):\n    return a - b\n"
+      },
+      {
+        "path": "mathlib.py",
+        "content": "\"\"\"Small pure functions.\"\"\"\n\nfrom sub_helper import subtract_values\n\n\ndef add(a, b):\n    return a + b\n\n\ndef sub(a, b):\n    return subtract_values(a, b)\n\n\ndef neg(a):\n    return a\n"
+      },
+      {
+        "path": "test_mathlib.py",
+        "content": "import unittest\n\nfrom mathlib import add, neg, sub\n\n\nclass AddTest(unittest.TestCase):\n    def test_add(self):\n        self.assertEqual(add(2, 3), 5)\n\n    def test_sub(self):\n        self.assertEqual(sub(5, 3), 2)\n\n    def test_neg(self):\n        self.assertEqual(neg(0), 0)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+      }
+    ],
+    "report": "Phase 1\nOutcome: done\nFiles changed: sub_helper.py, mathlib.py, test_mathlib.py\nValidation: python3 -m unittest (3 tests OK)\n",
+    "status": "completed"
+  },
+  {
+    "files": [
+      {
+        "path": "mathlib.py",
+        "content": "\"\"\"Small pure functions.\"\"\"\n\nfrom sub_helper import subtract_values\n\n\ndef add(a, b):\n    return a + b\n\n\ndef sub(a, b):\n    return subtract_values(a, b)\n\n\ndef neg(a):\n    return -a\n"
+      },
+      {
+        "path": "test_mathlib.py",
+        "content": "import unittest\n\nfrom mathlib import add, neg, sub\n\n\nclass AddTest(unittest.TestCase):\n    def test_add(self):\n        self.assertEqual(add(2, 3), 5)\n\n    def test_sub(self):\n        self.assertEqual(sub(5, 3), 2)\n\n    def test_neg(self):\n        self.assertEqual(neg(4), -4)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+      }
+    ],
+    "report": "Phase 1\nOutcome: done\nFiles changed: mathlib.py, test_mathlib.py\nFindings processed with mstack-receive-review: fixed neg(a) to return -a and updated test_neg to assert neg(4) == -4.\nValidation: python3 -m unittest (3 tests OK)\n",
+    "status": "completed"
+  }
+]

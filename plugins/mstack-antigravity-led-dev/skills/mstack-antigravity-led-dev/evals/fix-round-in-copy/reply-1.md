@@ -1,0 +1,1 @@
+Developer: claude, model claude-sonnet-5-5, effort medium.

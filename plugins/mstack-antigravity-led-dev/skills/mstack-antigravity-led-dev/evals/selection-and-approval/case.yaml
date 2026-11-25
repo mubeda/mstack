@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: selection-and-approval
+expected_outcome: |
+  Two candidates offered without preference; option-1 pick of flagged gpt-6.2-astra triggers separate R12 question and switches to gpt-6.2-sol; typed Claude alias sonnet skips R12 and resolves to claude-sonnet-5-5 in refresh and launched reviewer command; no Antigravity sign-in line.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-antigravity-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

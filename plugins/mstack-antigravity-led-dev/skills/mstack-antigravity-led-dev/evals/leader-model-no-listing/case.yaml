@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: leader-model-no-listing
+expected_outcome: |
+  F8: agy models fails (VARIANT=fail) or prints empty listing (VARIANT=empty). Asks no model question, omits Leader model from every sent-*.txt, final report names the listing as the reason, and no model id appears as the leader's.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-antigravity-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

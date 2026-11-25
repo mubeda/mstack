@@ -39,6 +39,16 @@
       "category": "workflow"
     },
     {
+      "name": "mstack-claude-led-dev",
+      "description": "Claude Code coordinator workflow where another installed vendor offered by mstack-vendors (codex or claude) writes each phase of a plan folder, a list of issues, or one larger task while Claude Code briefs it, runs validation, reviews every phase, processes findings with mstack-receive-review, and commits only the exact accepted tree. Runs in Claude Code only.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-claude-led-dev",
+      "category": "workflow"
+    },
+    {
       "name": "mstack-diagnose",
       "description": "Diagnose crashes, bugs, regressions, flaky failures, performance problems, hangs and leaks with evidence: intake, a signal from a live loop or a saved crash record, ranked falsifiable hypotheses, one-variable probes, a regression test before the fix, graded root-cause tiers and fix verdicts. One skill for Claude Code, Codex and Antigravity.",
       "version": "0.3.3",

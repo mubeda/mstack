@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: no-developer
+expected_outcome: |
+  Discovery returns Recommend: no developer here; workflow stops, says a dev workflow needs a second vendor, names mstack-codex-led-review, runs no developer and sends no code review message.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-codex-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

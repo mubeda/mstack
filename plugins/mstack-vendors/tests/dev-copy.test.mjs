@@ -925,3 +925,22 @@ test('usage errors exit 2', (t) => {
   }
   assert.deepEqual(readdirSync(f.tmp), []);
 });
+
+test('diff and apply round-trip byte-exact binary content and fail closed when git cannot spawn', (t) => {
+  const f = fixture(t), m = make(f);
+  const bytes = Buffer.from([0x00, 0x01, 0x02, 0x7f, 0x80, 0xfe, 0xff, 0x41, 0x0a, 0x00, 0x42]);
+  writeFileSync(join(m.copy, 'blob.bin'), bytes);
+  const d = goodDiff(f, m, 'bin.patch');
+  assert.deepEqual(d.json.files, ['blob.bin']);
+  const r = apply(f, d.file);
+  assert.equal(r.status, 0, r.out);
+  assert.deepEqual(readFileSync(join(f.work, 'blob.bin')), bytes);
+
+  const noGit = spawnSync(process.execPath, [script, 'make', '--cwd', f.work], {
+    cwd: f.root,
+    env: { ...f.env, PATH: f.root },
+    encoding: 'utf8',
+  });
+  assert.equal(noGit.status, 1, `${noGit.stdout}${noGit.stderr}`);
+  assert.match(noGit.stderr, /not a Git checkout|did not run: ENOENT/);
+});

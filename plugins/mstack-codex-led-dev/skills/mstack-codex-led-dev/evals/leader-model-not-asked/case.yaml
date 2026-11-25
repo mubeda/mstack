@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: leader-model-not-asked
+expected_outcome: |
+  On codex, no question asks for the session's model, no sent-*.txt holds Leader model, and final report says nothing about leader's model provenance.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-codex-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

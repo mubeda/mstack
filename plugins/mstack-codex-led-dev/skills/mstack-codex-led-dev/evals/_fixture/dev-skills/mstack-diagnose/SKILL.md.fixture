@@ -1,0 +1,6 @@
+---
+name: mstack-diagnose
+description: Fixture copy for test cases: diagnose a bug with a reproducing loop before fixing it.
+---
+
+Fixture copy for test cases: diagnose a bug with a reproducing loop before fixing it.

@@ -41,7 +41,7 @@
 // that read or write working-tree files (status, add -u, the last apply) keep the user's configuration, because
 // its line-ending and filter settings decide what those files hold. The repository's own configuration is always
 // read; a filter there that changes a file on checkout makes make refuse.
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { closeSync, copyFileSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, statSync, utimesSync, writeFileSync, writeSync } from 'node:fs';
 import { devNull, tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, parse, relative, resolve, sep } from 'node:path';
@@ -81,39 +81,81 @@ function cleanEnv(config, extra = {}) {
 }
 // Every Git call on a copy reads the copy's own empty file there.
 const copyEnv = (copy, extra) => cleanEnv(join(copy, '.git', EMPTY), extra);
-// Runs Git with an argument array and stops on every exit code the caller did not name.
-function git(cwd, env, args, ok = [0]) {
-  const r = spawnSync('git', args, { cwd, env, maxBuffer: 2 ** 30 });
+// Runs Git with an argument array via async spawn (fail-closed on errors/signals; avoids Linux sandbox spawnSync EPERM).
+function runGitProcess(cwd, env, args) {
+  const MAX_BUF = 2 ** 30;
+  return new Promise((resolveRun, rejectRun) => {
+    const child = spawn('git', args, { cwd, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const outChunks = [], errChunks = [];
+    let outLen = 0, errLen = 0, settled = false;
+    const fail = (err) => {
+      if (settled) return;
+      settled = true;
+      child.kill('SIGKILL');
+      rejectRun(err);
+    };
+    child.stdout.on('data', (chunk) => {
+      outLen += chunk.length;
+      if (outLen > MAX_BUF) { fail(Object.assign(new Error('stdout exceeded maxBuffer'), { code: 'ENOBUFS' })); return; }
+      outChunks.push(chunk);
+    });
+    child.stderr.on('data', (chunk) => {
+      errLen += chunk.length;
+      if (errLen > MAX_BUF) { fail(Object.assign(new Error('stderr exceeded maxBuffer'), { code: 'ENOBUFS' })); return; }
+      errChunks.push(chunk);
+    });
+    child.on('error', (err) => { if (!settled) { settled = true; rejectRun(err); } });
+    child.on('close', (status, signal) => {
+      if (settled) return;
+      settled = true;
+      resolveRun({ status, signal, stdout: Buffer.concat(outChunks, outLen), stderr: Buffer.concat(errChunks, errLen) });
+    });
+  });
+}
+async function git(cwd, env, args, ok = [0]) {
   const shown = args.filter((a, i) => a !== '-c' && args[i - 1] !== '-c').join(' ');
-  if (r.error) stop(`git ${shown} did not run: ${r.error.code ?? r.error.message}`);
+  let r;
+  try {
+    r = await runGitProcess(cwd, env, args);
+  } catch (e) {
+    stop(`git ${shown} did not run: ${e.code ?? e.message}`);
+  }
+  if (r.signal !== null) stop(`git ${shown} terminated by signal ${r.signal}`);
   if (!ok.includes(r.status)) stop(`git ${shown} failed: ${r.stderr.toString().trim() || `exit ${r.status}`}`);
   // A name in another encoding would be mangled on the way to the file system, so it stops the command instead.
   return { status: r.status, raw: r.stdout, get out() { try { return UTF8.decode(r.stdout); } catch { return stop(`git ${shown} printed a name that is not valid UTF-8, which this script does not handle`); } } };
 }
 // The top folder of the checkout a folder lies in, or null.
-function topOf(dir) {
+async function topOf(dir) {
   if (!dir || !statSync(dir).isDirectory()) return null;
-  const r = spawnSync('git', [...QUIET, 'rev-parse', '--show-toplevel'], { cwd: dir, env: cleanEnv(devNull), encoding: 'utf8' });
-  return r.status === 0 ? real(line(r.stdout)) : null;
+  try {
+    const r = await runGitProcess(dir, cleanEnv(devNull), [...QUIET, 'rev-parse', '--show-toplevel']);
+    return r.status === 0 && r.signal === null ? real(line(r.stdout.toString('utf8'))) : null;
+  } catch {
+    return null;
+  }
 }
 // A checkout's own .git folder and, for a linked worktree, the repository's.
-function gitFolders(top) {
-  const dirs = ['--absolute-git-dir', '--git-common-dir'].map((flag) => real(resolve(top, line(git(top, cleanEnv(devNull), [...QUIET, 'rev-parse', flag]).out))));
+async function gitFolders(top) {
+  const dirs = [];
+  for (const flag of ['--absolute-git-dir', '--git-common-dir']) {
+    dirs.push(real(resolve(top, line((await git(top, cleanEnv(devNull), [...QUIET, 'rev-parse', flag])).out))));
+  }
   if (dirs.includes(null)) stop(`cannot find the repository folder of ${top}`);
   return dirs;
 }
 // 'commit', or 'unborn' only when HEAD names a branch that has no ref at all. A HEAD that exists and is no commit stops.
-function headOf(copy, env) {
-  if (git(copy, env, ['rev-parse', '-q', '--verify', 'HEAD^{commit}'], [0, 1, 128]).status === 0) return 'commit';
-  const ref = git(copy, env, ['symbolic-ref', '-q', 'HEAD'], [0, 1, 128]), name = ref.status === 0 ? ref.out.trim() : '';
+async function headOf(copy, env) {
+  if ((await git(copy, env, ['rev-parse', '-q', '--verify', 'HEAD^{commit}'], [0, 1, 128])).status === 0) return 'commit';
+  const ref = await git(copy, env, ['symbolic-ref', '-q', 'HEAD'], [0, 1, 128]), name = ref.status === 0 ? ref.out.trim() : '';
   const packed = lst(join(copy, '.git', 'packed-refs')) ? readFileSync(join(copy, '.git', 'packed-refs'), 'utf8').split('\n') : [];
   if (/^refs\/heads\/[^.]/.test(name) && !name.includes('..') && !lst(join(copy, '.git', name)) && !packed.some((l) => l.endsWith(` ${name}`))) return 'unborn';
   return stop('HEAD exists and does not resolve to a commit');
 }
 // path -> "mode sha" for every entry of a tree.
-function tree(cwd, env, rev) {
+async function tree(cwd, env, rev) {
   const entries = new Map();
-  for (const e of git(cwd, env, ['ls-tree', '-r', '-z', rev]).out.split('\0')) {
+  for (const e of (await git(cwd, env, ['ls-tree', '-r', '-z', rev])).out.split('\0')) {
     if (!e) continue;
     const tab = e.indexOf('\t'), [mode, , sha] = e.slice(0, tab).split(' ');
     entries.set(e.slice(tab + 1), `${mode} ${sha}`);
@@ -179,20 +221,20 @@ function planInputs(from) {
   return files;
 }
 
-function make(o) {
-  const top = topOf(real(resolve(o.cwd ?? '.')));
+async function make(o) {
+  const top = await topOf(real(resolve(o.cwd ?? '.')));
   if (!top) stop(`not a Git checkout: ${resolve(o.cwd ?? '.')}`);
   const plumb = cleanEnv(devNull);
-  const gitDirs = gitFolders(top);
-  const head = git(top, plumb, [...QUIET, 'rev-parse', '-q', '--verify', 'HEAD^{commit}'], [0, 1]);
+  const gitDirs = await gitFolders(top);
+  const head = await git(top, plumb, [...QUIET, 'rev-parse', '-q', '--verify', 'HEAD^{commit}'], [0, 1]);
   if (head.status !== 0) stop(`the checkout has no commit yet: ${top}`);
   const source = head.out.trim();
-  const dirty = git(top, userEnv(), [...QUIET, 'status', '--porcelain', '--untracked-files=no']).out;
+  const dirty = (await git(top, userEnv(), [...QUIET, 'status', '--porcelain', '--untracked-files=no'])).out;
   if (dirty.trim()) stop(`the checkout has uncommitted changes to tracked files; commit or stash them first, then run make again:\n${dirty.trimEnd()}`);
   // status does not look at a file with one of these marks, so a change to it would stay behind unseen.
-  const hidden = git(top, plumb, [...QUIET, 'ls-files', '-v', '-z']).out.split('\0').filter((e) => e && !e.startsWith('H '));
+  const hidden = (await git(top, plumb, [...QUIET, 'ls-files', '-v', '-z'])).out.split('\0').filter((e) => e && !e.startsWith('H '));
   if (hidden.length) stop(`the index marks files assume-unchanged or skip-worktree, so status cannot see a change to them; clear the marks (git update-index --no-assume-unchanged --no-skip-worktree <file>) and run make again: ${hidden.map((e) => e.slice(2)).join(', ')}`);
-  const wanted = tree(top, plumb, source);
+  const wanted = await tree(top, plumb, source);
   if (gitlinks(wanted).length) stop(`submodules are not supported: HEAD holds ${gitlinks(wanted).join(', ')}`);
 
   let plan = null;
@@ -218,8 +260,8 @@ function make(o) {
     scratch = scratchFolder();
     // The tracked files of HEAD, through an index of its own: no ignored file, no untracked file, no export-ignore rule.
     const index = cleanEnv(devNull, { GIT_INDEX_FILE: join(scratch, 'index') });
-    git(top, index, [...QUIET, 'read-tree', source]);
-    git(top, index, [...QUIET, 'checkout-index', '-a', `--prefix=${copy}${sep}`]);
+    await git(top, index, [...QUIET, 'read-tree', source]);
+    await git(top, index, [...QUIET, 'checkout-index', '-a', `--prefix=${copy}${sep}`]);
     for (const [path, entry] of wanted) {
       if (entry.startsWith('120000 ') && !within(lead(join(copy, path)), copy)) stop(`${path} is a link that leads outside the copy: ${readlinkSync(join(copy, path))}`);
     }
@@ -227,11 +269,11 @@ function make(o) {
     mkdirSync(dotGit);
     writeFileSync(join(dotGit, EMPTY), '', { flag: 'wx' });
     const cenv = copyEnv(copy);
-    const format = git(top, plumb, [...QUIET, 'rev-parse', '--show-object-format']).out.trim();
+    const format = (await git(top, plumb, [...QUIET, 'rev-parse', '--show-object-format'])).out.trim();
     // A fresh repository, not a clone: no history, no other branch, no tracking setting, no hook (empty template).
-    git(copy, cenv, ['init', '-q', '--template=', '--initial-branch=main', `--object-format=${format}`]);
-    git(copy, cenv, ['config', 'user.name', 'mstack-vendors']);
-    git(copy, cenv, ['config', 'user.email', 'mstack-vendors@invalid']);
+    await git(copy, cenv, ['init', '-q', '--template=', '--initial-branch=main', `--object-format=${format}`]);
+    await git(copy, cenv, ['config', 'user.name', 'mstack-vendors']);
+    await git(copy, cenv, ['config', 'user.email', 'mstack-vendors@invalid']);
     writeFileSync(join(dotGit, MARKER), '', { flag: 'wx' });
     const planPaths = new Set();
     for (const rel of plan?.files ?? []) {
@@ -240,15 +282,15 @@ function make(o) {
       copyFileSync(join(plan.from, rel), to);
       planPaths.add(`${plan.rel}/${rel}`);
     }
-    git(copy, cenv, ['add', '-A', '-f']);
-    git(copy, cenv, ['commit', '-q', '--no-verify', '--allow-empty', '-m', 'mstack-vendors: the base of the copy']);
-    const base = git(copy, cenv, ['rev-parse', 'HEAD']).out.trim();
-    const got = tree(copy, cenv, base);
+    await git(copy, cenv, ['add', '-A', '-f']);
+    await git(copy, cenv, ['commit', '-q', '--no-verify', '--allow-empty', '-m', 'mstack-vendors: the base of the copy']);
+    const base = (await git(copy, cenv, ['rev-parse', 'HEAD'])).out.trim();
+    const got = await tree(copy, cenv, base);
     for (const [path, entry] of wanted) {
       if (got.get(path) !== entry) stop(`the copy of ${path} differs from HEAD in mode or content (a content filter or a line-ending setting changes it on checkout)`);
     }
     for (const path of got.keys()) if (!wanted.has(path) && !planPaths.has(path)) stop(`the copy holds ${path}, which is neither in HEAD nor a plan file`);
-    const failed = check(copy);
+    const failed = await check(copy);
     if (failed.length) stop(`the new copy fails its own check: ${failed.join('; ')}`);
     return { code: 0, json: { copy, base, source, plan: plan?.rel ?? null, gitConfig: join(dotGit, EMPTY) } };
   } catch (e) {
@@ -277,7 +319,7 @@ function configFaults(dotGit) {
 }
 
 // Everything that makes a copy something else than what make wrote: a way to a remote, a hook, another repository.
-function check(given) {
+async function check(given) {
   const copy = real(resolve(given));
   if (!copy || !statSync(copy).isDirectory()) return [`${given} is not a folder`];
   const dotGit = join(copy, '.git'), found = [];
@@ -309,12 +351,12 @@ function check(given) {
   try {
     const env = copyEnv(copy);
     for (const flag of ['--git-dir', '--git-common-dir']) {
-      if (real(resolve(copy, line(git(copy, env, ['rev-parse', flag]).out))) !== dotGit) found.push(`git rev-parse ${flag} does not lead to the copy's .git`);
+      if (real(resolve(copy, line((await git(copy, env, ['rev-parse', flag])).out))) !== dotGit) found.push(`git rev-parse ${flag} does not lead to the copy's .git`);
     }
-    const remotes = git(copy, env, ['remote']).out.trim();
+    const remotes = (await git(copy, env, ['remote'])).out.trim();
     if (remotes) found.push(`a remote: ${remotes.split('\n').join(', ')}`);
-    if (git(copy, env, ['ls-files', '-s', '-z']).out.split('\0').some((e) => e.startsWith('160000 '))) found.push('a gitlink (submodule) in the index');
-    if (headOf(copy, env) === 'commit' && gitlinks(tree(copy, env, 'HEAD')).length) found.push('a gitlink (submodule) in HEAD');
+    if ((await git(copy, env, ['ls-files', '-s', '-z'])).out.split('\0').some((e) => e.startsWith('160000 '))) found.push('a gitlink (submodule) in the index');
+    if (await headOf(copy, env) === 'commit' && gitlinks(await tree(copy, env, 'HEAD')).length) found.push('a gitlink (submodule) in HEAD');
   } catch (e) {
     if (!(e instanceof Stop)) throw e;
     found.push(e.message);
@@ -322,12 +364,12 @@ function check(given) {
   return found;
 }
 
-function diff(o) {
-  const found = check(o.copy);
+async function diff(o) {
+  const found = await check(o.copy);
   if (found.length) stop(`the copy fails its check, so no diff is taken: ${found.join('; ')}`);
   const copy = real(resolve(o.copy)), env = copyEnv(copy);
   if (!SHA.test(o.base)) stop(`the base is not a full commit id: ${o.base}`);
-  if (git(copy, env, ['cat-file', '-e', `${o.base}^{commit}`], [0, 1, 128]).status !== 0) stop(`the base ${o.base} is not a commit of the copy`);
+  if ((await git(copy, env, ['cat-file', '-e', `${o.base}^{commit}`], [0, 1, 128])).status !== 0) stop(`the base ${o.base} is not a commit of the copy`);
   // The developer owns every path in the copy, links included, so the patch is written beside it and never over a file.
   const out = resolve(o.out), outDir = real(dirname(out));
   if (!outDir) stop(`the folder of --out does not exist: ${dirname(out)}`);
@@ -343,7 +385,7 @@ function diff(o) {
     // developer's own staging (a force-added ignored file) is kept, new files are in, ignored files are out.
     const index = join(scratch, 'index');
     const g = (...args) => git(copy, { ...env, GIT_INDEX_FILE: index }, ['-c', 'core.splitIndex=false', ...args]);
-    const from = join(copy, '.git', 'index'), head = headOf(copy, env);
+    const from = join(copy, '.git', 'index'), head = await headOf(copy, env);
     if (lst(from)?.isFile()) {
       copyFileSync(from, index);
       // Git reads an entry again when it is not older than its index file, so the copy keeps the original's time.
@@ -351,15 +393,15 @@ function diff(o) {
       utimesSync(index, time, time);
     } else {
       // Never an empty tree: with no index and no commit on the branch, every base file would read as deleted.
-      g('read-tree', head === 'commit' ? 'HEAD' : o.base);
+      await g('read-tree', head === 'commit' ? 'HEAD' : o.base);
     }
-    g('add', '-A');
-    const now = g('write-tree').out.trim();
-    if (gitlinks(tree(copy, env, now)).length) stop('the copy holds a gitlink (submodule)');
+    await g('add', '-A');
+    const now = (await g('write-tree')).out.trim();
+    if (gitlinks(await tree(copy, env, now)).length) stop('the copy holds a gitlink (submodule)');
     const range = [o.base, now, '--', '.', ...leaveOut];
-    const files = git(copy, env, [...DIFF, '--name-only', '-z', ...range]).out.split('\0').filter(Boolean);
+    const files = (await git(copy, env, [...DIFF, '--name-only', '-z', ...range])).out.split('\0').filter(Boolean);
     if (!files.length) stop('no changes');
-    const patch = git(copy, env, [...DIFF, '--binary', '--full-index', ...range]).raw;
+    const patch = (await git(copy, env, [...DIFF, '--binary', '--full-index', ...range])).raw;
     let fd;
     try { fd = openSync(out, 'wx', 0o600); } catch (e) { stop(`--out must be a new file, and ${out} cannot be created: ${e.code}`); }
     try { for (let at = 0; at < patch.length;) at += writeSync(fd, patch, at); } finally { closeSync(fd); }
@@ -370,8 +412,8 @@ function diff(o) {
 }
 
 // The paths a patch names, old and new.
-function patchPaths(top, env, file) {
-  const parts = git(top, env, [...QUIET, 'apply', '--numstat', '-z', file]).out.split('\0'), paths = [];
+async function patchPaths(top, env, file) {
+  const parts = (await git(top, env, [...QUIET, 'apply', '--numstat', '-z', file])).out.split('\0'), paths = [];
   for (let i = 0; i < parts.length; i++) {
     if (!parts[i]) continue;
     const path = parts[i].split('\t').slice(2).join('\t');
@@ -380,12 +422,12 @@ function patchPaths(top, env, file) {
   return paths;
 }
 
-function apply(o) {
+async function apply(o) {
   const given = resolve(o.checkout), top = real(given);
-  if (!top || topOf(top) !== top) stop(`--checkout is not the top folder of a Git checkout: ${given}`);
-  const plumb = cleanEnv(devNull), gitDirs = gitFolders(top);
+  if (!top || await topOf(top) !== top) stop(`--checkout is not the top folder of a Git checkout: ${given}`);
+  const plumb = cleanEnv(devNull), gitDirs = await gitFolders(top);
   if (!SHA.test(o.source)) stop(`--source is not a full commit id: ${o.source}`);
-  const head = git(top, plumb, [...QUIET, 'rev-parse', '-q', '--verify', 'HEAD^{commit}'], [0, 1]).out.trim();
+  const head = (await git(top, plumb, [...QUIET, 'rev-parse', '-q', '--verify', 'HEAD^{commit}'], [0, 1])).out.trim();
   if (head !== o.source) stop(`the checkout's HEAD is ${head || 'missing'}, not the source commit ${o.source}; the copy was made from another commit`);
   const [patch, previous] = [o.patch, o.previous].map((file) => {
     if (file === undefined) return undefined;
@@ -399,7 +441,7 @@ function apply(o) {
   });
   // An empty patch file is "no change from the source commit": with --previous it takes that round out again.
   const nothing = statSync(patch).size === 0;
-  const objects = real(resolve(top, line(git(top, plumb, [...QUIET, 'rev-parse', '--git-path', 'objects']).out)));
+  const objects = real(resolve(top, line((await git(top, plumb, [...QUIET, 'rev-parse', '--git-path', 'objects'])).out)));
   if (!objects) stop(`cannot find the object store of ${top}`);
   const scratch = scratchFolder();
   try {
@@ -410,42 +452,42 @@ function apply(o) {
       GIT_ALTERNATE_OBJECT_DIRECTORIES: `"${objects.replace(/[\\"]/g, '\\$&')}"` };
     const senv = cleanEnv(devNull, beside), files = userEnv(beside);
     const g = (...args) => git(top, senv, [...QUIET, ...args]);
-    const cached = (what, ...args) => { try { g(...APPLY, '--cached', ...args); } catch (e) { if (!(e instanceof Stop)) throw e; stop(`${what}: ${e.message}`); } };
+    const cached = async (what, ...args) => { try { await g(...APPLY, '--cached', ...args); } catch (e) { if (!(e instanceof Stop)) throw e; stop(`${what}: ${e.message}`); } };
     // The first line of the path checks is this script's own; Git's apply repeats them below.
     for (const file of [previous, nothing ? undefined : patch]) {
       if (!file) continue;
-      const bad = patchPaths(top, senv, file).find((p) => isAbsolute(p) || p.split('/').some((part) => part === '..' || part.toLowerCase() === '.git'));
+      const bad = (await patchPaths(top, senv, file)).find((p) => isAbsolute(p) || p.split('/').some((part) => part === '..' || part.toLowerCase() === '.git'));
       if (bad !== undefined) stop(`the patch ${file} names a path outside the checkout or inside .git: ${bad}`);
     }
     // 1. The checkout must hold the source commit plus the previous patch, and nothing else in its tracked files.
-    g('read-tree', o.source);
-    if (previous) cached('the previous patch does not apply to the source commit', previous);
-    const expected = g('write-tree').out.trim();
-    git(top, files, [...QUIET, 'add', '-u']);
-    const actual = g('write-tree').out.trim();
-    const sourceTree = tree(top, senv, o.source), expectedTree = tree(top, senv, expected);
+    await g('read-tree', o.source);
+    if (previous) await cached('the previous patch does not apply to the source commit', previous);
+    const expected = (await g('write-tree')).out.trim();
+    await git(top, files, [...QUIET, 'add', '-u']);
+    const actual = (await g('write-tree')).out.trim();
+    const sourceTree = await tree(top, senv, o.source), expectedTree = await tree(top, senv, expected);
     // A file the previous patch deleted is in no index here, so `add -u` cannot see that it came back.
-    const off = [...g(...DIFF, '--name-only', '-z', expected, actual).out.split('\0').filter(Boolean),
+    const off = [...(await g(...DIFF, '--name-only', '-z', expected, actual)).out.split('\0').filter(Boolean),
       ...[...sourceTree.keys()].filter((p) => !expectedTree.has(p) && lst(join(top, p)))];
     if (off.length) stop(`the checkout's tracked files are not the source commit plus the previous patch: ${off.join(', ')}`);
     // 2. The replacement, on the index only: the previous patch out, the new one in.
-    g('read-tree', expected);
+    await g('read-tree', expected);
     if (previous) {
-      cached('the previous patch cannot be taken out again', '-R', previous);
-      if (g('write-tree').out.trim() !== g('rev-parse', `${o.source}^{tree}`).out.trim()) stop('taking the previous patch out does not give the source commit');
+      await cached('the previous patch cannot be taken out again', '-R', previous);
+      if ((await g('write-tree')).out.trim() !== (await g('rev-parse', `${o.source}^{tree}`)).out.trim()) stop('taking the previous patch out does not give the source commit');
     }
-    if (!nothing) cached('the patch does not apply to the source commit', patch);
-    const wanted = g('write-tree').out.trim(), wantedTree = tree(top, senv, wanted);
+    if (!nothing) await cached('the patch does not apply to the source commit', patch);
+    const wanted = (await g('write-tree')).out.trim(), wantedTree = await tree(top, senv, wanted);
     if (gitlinks(wantedTree).length) stop('the patch adds a gitlink (submodule)');
     // The same rule as for the copy: no link the patch adds or changes may lead out of the checkout, or into .git.
     for (const [path, entry] of wantedTree) {
       if (!entry.startsWith('120000 ') || expectedTree.get(path) === entry) continue;
-      const to = line(g('cat-file', 'blob', entry.slice(7)).out);
+      const to = line((await g('cat-file', 'blob', entry.slice(7))).out);
       const end = lead(isAbsolute(to) ? to : `${dirname(join(top, path))}${sep}${to}`);
       if (!within(end, top) || gitDirs.some((d) => within(end, d))) stop(`the patch makes ${path} a link that leads outside the checkout or into .git: ${to}`);
     }
     // 3. What changes in the working tree: nothing below a link, and no new file over one Git does not track.
-    const changes = g(...DIFF, '--name-status', '-z', expected, wanted).out.split('\0');
+    const changes = (await g(...DIFF, '--name-status', '-z', expected, wanted)).out.split('\0');
     for (let i = 0; i + 1 < changes.length; i += 2) {
       const path = changes[i + 1];
       let at = top;
@@ -458,9 +500,9 @@ function apply(o) {
     if (changes.length < 2) return { code: 0, json: { ok: true } };
     // 4. One patch from the old state to the new one, made by Git from the two trees, checked whole and then applied.
     const delta = join(scratch, 'delta.patch');
-    writeFileSync(delta, g(...DIFF, '--binary', '--full-index', expected, wanted).raw);
-    try { git(top, files, [...QUIET, ...APPLY, '--check', delta]); } catch (e) { if (!(e instanceof Stop)) throw e; stop(`the change does not fit the checkout's files: ${e.message}`); }
-    try { git(top, files, [...QUIET, ...APPLY, delta]); } catch (e) { if (!(e instanceof Stop)) throw e; stop(`git apply failed after its check passed, so the checkout MAY BE PARTLY CHANGED; compare it with git status: ${e.message}`); }
+    writeFileSync(delta, (await g(...DIFF, '--binary', '--full-index', expected, wanted)).raw);
+    try { await git(top, files, [...QUIET, ...APPLY, '--check', delta]); } catch (e) { if (!(e instanceof Stop)) throw e; stop(`the change does not fit the checkout's files: ${e.message}`); }
+    try { await git(top, files, [...QUIET, ...APPLY, delta]); } catch (e) { if (!(e instanceof Stop)) throw e; stop(`git apply failed after its check passed, so the checkout MAY BE PARTLY CHANGED; compare it with git status: ${e.message}`); }
     return { code: 0, json: { ok: true } };
   } finally {
     rmSync(scratch, { recursive: true, force: true });
@@ -477,7 +519,7 @@ function remove(o) {
   return { code: 0, json: { ok: true } };
 }
 
-function main() {
+async function main() {
   const [command, ...rest] = process.argv.slice(2);
   const usage = (message) => { console.error(`dev-copy: ${message}\n${USAGE}`); return 2; };
   if (!Object.hasOwn(OPTIONS, command ?? '')) return usage(command ? `unknown command: ${command}` : 'no command');
@@ -491,9 +533,9 @@ function main() {
   let result;
   try {
     if (command === 'check') {
-      const found = check(o.copy);
+      const found = await check(o.copy);
       result = found.length ? { code: 1, json: { ok: false, found } } : { code: 0, json: { ok: true } };
-    } else result = { make, diff, apply, remove }[command](o);
+    } else result = await { make, diff, apply, remove }[command](o);
   } catch (e) {
     // Any failure is a refusal: a file error counts like a stop, so nothing is reported as fine by accident.
     const reason = e instanceof Stop ? e.message : `${e.code ?? e.name}: ${e.message}`;
@@ -504,4 +546,4 @@ function main() {
   return result.code;
 }
 
-process.exitCode = main();
+process.exitCode = await main();
