@@ -1,6 +1,6 @@
 ---
 name: mstack-codex-led-dev
-description: Use when working in Codex and the user wants another installed vendor offered by mstack-vendors (claude or codex) to write each phase while this session manages, reviews and commits the accepted tree, for an execution plan, a list of issues or one larger task. Runs in Codex only.
+description: Use when working in Codex and the user wants another installed vendor offered by mstack-vendors (claude) to write each phase while this session manages, reviews and commits the accepted tree, for an execution plan, a list of issues or one larger task. Runs in Codex only.
 ---
 
 # mstack dev workflow

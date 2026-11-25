@@ -1,7 +1,7 @@
 {
   "name": "mstack-claude-led-dev",
   "version": "0.1.0",
-  "description": "Claude Code coordinator workflow where another installed vendor offered by mstack-vendors (codex or claude) writes each phase of a plan folder, a list of issues, or one larger task while Claude Code briefs it, runs validation, reviews every phase, processes findings with mstack-receive-review, and commits only the exact accepted tree. Runs in Claude Code only.",
+  "description": "Claude Code coordinator workflow where another installed vendor offered by mstack-vendors (codex) writes each phase of a plan folder, a list of issues, or one larger task while Claude Code briefs it, runs validation, reviews every phase, processes findings with mstack-receive-review, and commits only the exact accepted tree. Runs in Claude Code only.",
   "author": {
     "name": "mubeda"
   },

@@ -329,8 +329,8 @@ test('the developer part prints no host-part line', () => {
 
 test('no part names, checks or installs a bridge', () => {
   const src = readFileSync(scriptPath, 'utf8');
-  assert.doesNotMatch(src, /agent-bridges|bridge/i);
-  for (const out of allOutputs) assert.doesNotMatch(out, /agent-bridges|bridge/i);
+  assert.doesNotMatch(src, /bridge/i);
+  for (const out of allOutputs) assert.doesNotMatch(out, /bridge/i);
 });
 
 test('--developer antigravity exits 2', () => {

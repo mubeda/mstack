@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: antigravity-dev-other-vendor
+expected_outcome: |
+  In Antigravity when the prompt says another vendor writes the code while this session reviews and commits it,
+  mstack-auto announces mstack-antigravity-led-dev on the first line and loads it as the user's own prompt,
+  naming no Claude Code or Codex workflow as the choice.
+context:
+  scaffold_script: place-files.sh

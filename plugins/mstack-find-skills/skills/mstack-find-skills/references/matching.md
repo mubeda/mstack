@@ -25,7 +25,7 @@ When a skill from the mstack marketplace fits the work, list it before any other
 | A bug, regression, flaky test, crash, hang, leak or performance problem | `mstack-diagnose` |
 | An idea whose goal or reason is not settled yet | `mstack-brainstorm` |
 | A requirement that turns out to be undecided | `mstack-write-specs` |
-| Execution of a plan | `mstack-codex-review-workflow` (Claude Code) or `mstack-claude-review-workflow` (Codex); in Claude Code, `mstack-claude-pm-codex-dev` when Codex is to write the code |
+| Execution of a plan | This host's review workflow (`mstack-claude-led-review` in Claude Code, `mstack-codex-led-review` in Codex, `mstack-antigravity-led-review` in Antigravity), or this host's dev workflow (`mstack-claude-led-dev`, `mstack-codex-led-dev`, `mstack-antigravity-led-dev`) when another vendor is to write the code |
 | Choosing a model or effort | `mstack-best-model-for` |
 | Acting on review feedback (reviewer output, review bots, pull-request comments) | `mstack-receive-review` |
 | Owning a long-running goal across sessions (a release, a backlog, a multi-step project) | `mstack-chief-of-staff` |
@@ -39,7 +39,6 @@ When a skill from the mstack marketplace fits the work, list it before any other
 | One epic detailed for developers by a product person | `mstack-epic` |
 | Customer feedback (tickets, interviews, surveys) to turn into evidence with counts and quotes | `mstack-evidence` |
 | Meeting notes or a transcript to turn into decisions, action items and open points | `mstack-decisions` |
-| A second opinion from another model on a design or diff | a read-only run of the other vendor's own client (`codex exec`, or `claude -p`), as the skill that needs the review describes it |
 | Which other vendor can review or write code from this session, and what to install or sign in for it | `mstack-vendors` |
 
 ## 3. Score each skill against each work item

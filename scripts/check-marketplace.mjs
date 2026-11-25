@@ -25,8 +25,7 @@ const kinds = {
   review: ['mstack-claude-led-review', 'mstack-codex-led-review', 'mstack-antigravity-led-review'],
   dev: ['mstack-claude-led-dev', 'mstack-codex-led-dev', 'mstack-antigravity-led-dev'],
 };
-const oldWorkflows = ['mstack-codex-review-workflow', 'mstack-claude-review-workflow', 'mstack-claude-pm-codex-dev'];
-const allSixRequired = false;
+const allSixRequired = true;
 const newWorkflows = Object.values(kinds).flat();
 const leaderOf = (name) => name.split('-')[1];
 const hostTitle = { claude: 'Claude Code', codex: 'Codex', antigravity: 'Antigravity' };
@@ -34,9 +33,6 @@ const hostTitle = { claude: 'Claude Code', codex: 'Codex', antigravity: 'Antigra
 // three. A plugin with only an Antigravity manifest is accepted only when this table names it ('antigravity').
 // MSTACK_CHECK_HOSTS (a JSON object of the same shape) adds rows for the tests.
 const singleHost = {
-  'mstack-codex-review-workflow': 'claude',
-  'mstack-claude-review-workflow': 'codex',
-  'mstack-claude-pm-codex-dev': 'claude',
   ...Object.fromEntries(newWorkflows.map((name) => [name, leaderOf(name)])),
   ...JSON.parse(process.env.MSTACK_CHECK_HOSTS ?? '{}'),
 };
@@ -165,7 +161,7 @@ for (const [kind, list] of Object.entries(kinds)) {
   assert.equal(bad.length, 0, bad.map((name) => `${kind} kind: SKILL.md of ${name} differs below the name and description; edit every copy (${present.join(', ')})`).join('\n'));
 }
 
-// Workflows ship identical notices and reference files (new workflows across both kinds, old workflows among themselves).
+// Workflows ship identical notices and reference files across all six plugins.
 const checkShared = (members) => {
   if (members.length < 2) return;
   const noticeText = (name) => readOrNull(`plugins/${name}/skills/${name}/THIRD_PARTY_NOTICES.md`);
@@ -190,10 +186,8 @@ const checkShared = (members) => {
   }
 };
 const presentNew = newWorkflows.filter((name) => folders.includes(name));
-const presentOld = oldWorkflows.filter((name) => folders.includes(name));
-const presentWorkflows = [...presentOld, ...presentNew];
+const presentWorkflows = [...presentNew];
 checkShared(presentNew);
-checkShared(presentOld);
 
 // Each new workflow names its leader host in skills/<name>/host.md (outside references/).
 for (const name of presentNew) {
@@ -262,13 +256,10 @@ for (const name of readdirSync(resolve(root, 'plugins'))) {
   assert(!existsSync(resolve(root, copy)), `${copy} exists; the review rules live only in mstack-receive-review`);
 }
 
-// Every workflow that carries a fixture plan folder must pass the plan linter (and mstack-claude-pm-codex-dev's evals require it).
+// Every workflow carries a fixture plan folder that must exist and pass the plan linter.
 for (const name of presentWorkflows) {
   const fixturePlan = resolve(root, `plugins/${name}/skills/${name}/evals/_fixture/plan`);
-  if (!existsSync(fixturePlan)) {
-    assert.notEqual(name, 'mstack-claude-pm-codex-dev', `${name}: evals/_fixture/plan is missing`);
-    continue;
-  }
+  assert(existsSync(fixturePlan), `${name}: evals/_fixture/plan is missing`);
   const fixtureLint = spawnSync(process.execPath, [resolve(planSkill, 'scripts/check-plan.mjs'), fixturePlan], { encoding: 'utf8' });
   assert.equal(fixtureLint.status, 0, `${name}: check-plan.mjs rejects evals/_fixture/plan:\n${fixtureLint.stdout}${fixtureLint.stderr}`);
 }

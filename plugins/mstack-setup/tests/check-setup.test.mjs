@@ -48,14 +48,18 @@ function run(m, args, env = {}) {
 }
 
 const MANDATORY_CLAUDE = ['node', 'git', 'codegraph-cli', 'codegraph-connected', 'ponytail',
-  'codex-cli', 'mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup'];
+  'codex-cli', 'mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup', 'mstack-vendors'];
 
 function completeClaude(m, base = '.claude') {
   m.stub('node').stub('git').stub('codegraph').stub('codex');
   const cache = `${base}/plugins/cache`;
   m.skill(`${cache}/ponytail/ponytail/5.3.3/skills/ponytail`);
-  for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup']) m.skill(`${cache}/mstack/${s}/0.1.0/skills/${s}`);
-  m.file(`${base}/plugins/installed_plugins.json`, JSON.stringify({ version: 2, plugins: { 'ponytail@ponytail': [{}],  'mstack-find-skills@mstack': [{}], 'mstack-best-model-for@mstack': [{}], 'mstack-receive-review@mstack': [{}], 'mstack-research@mstack': [{}], 'mstack-setup@mstack': [{}] } }));
+  const mstackMand = ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup', 'mstack-vendors'];
+  for (const s of mstackMand) m.skill(`${cache}/mstack/${s}/0.1.0/skills/${s}`);
+  m.file(`${base}/plugins/installed_plugins.json`, JSON.stringify({
+    version: 2,
+    plugins: { 'ponytail@ponytail': [{}], ...Object.fromEntries(mstackMand.map((s) => [`${s}@mstack`, [{}]])) },
+  }));
   const cfg = base === '.claude' ? '.claude.json' : `${base}/.claude.json`;
   m.file(cfg, JSON.stringify({ mcpServers: { codegraph: { command: 'codegraph', args: ['serve', '--mcp'] } } }));
   return m;
@@ -202,7 +206,7 @@ test('(m) CLAUDE_CONFIG_DIR replaces ~/.claude', () => {
   assert.equal(plain.state('ponytail'), 'MISSING', plain.out);
 });
 
-// The Codex plugin (Codex as developer in mstack-claude-pm-codex-dev) and the two newer mstack skills.
+// The Codex plugin (Codex as the developer in mstack-claude-led-dev) and the newer mstack skills.
 test('claude: the Codex plugin in the install record is an ok optional codex-plugin row', () => {
   const m = machine().file('.claude/plugins/installed_plugins.json', JSON.stringify({ version: 2, plugins: { 'codex@openai-codex': [{}] } }));
   const r = run(m, ['--host', 'claude']);
@@ -217,14 +221,14 @@ test('claude: without the Codex plugin the codex-plugin row is MISSING and optio
   assert.deepEqual([row?.state, row?.tier], ['MISSING', 'optional'], r.out);
 });
 
-test('codex: no codex-plugin row and no mstack-claude-pm-codex-dev row', () => {
+test('codex: no codex-plugin row', () => {
   const r = run(machine(), ['--host', 'codex']);
-  assert.equal(r.json.items.some((i) => i.id === 'codex-plugin' || i.id === 'mstack-claude-pm-codex-dev'), false, r.out);
+  assert.equal(r.json.items.some((i) => i.id === 'codex-plugin'), false, r.out);
 });
 
-test('claude: a missing mstack-claude-pm-codex-dev is an optional MISSING row', () => {
+test('claude: a missing mstack-claude-led-dev is an optional MISSING row', () => {
   const r = run(machine(), ['--host', 'claude']);
-  const row = r.json.items.find((i) => i.id === 'mstack-claude-pm-codex-dev');
+  const row = r.json.items.find((i) => i.id === 'mstack-claude-led-dev');
   assert.deepEqual([row?.state, row?.tier], ['MISSING', 'optional'], r.out);
 });
 
@@ -241,7 +245,7 @@ for (const host of ['claude', 'codex']) {
     const r = run(machine(), ['--host', host]);
     assert.equal(r.json.items.find((i) => i.id === 'mstack-explain-me-better')?.tier, 'optional', r.out);
   });
-  for (const skill of ['mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-vendors']) {
+  for (const skill of ['mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui']) {
     test(`${host}: ${skill} is an optional row`, () => {
       const r = run(machine(), ['--host', host]);
       assert.equal(r.json.items.find((i) => i.id === skill)?.tier, 'optional', r.out);
@@ -343,10 +347,10 @@ test('the vendor rows are optional, and block nothing for a caller that sends no
 
 // Antigravity: skills in ~/.gemini/config/skills, in plugins/<plugin>/skills/<name>, never in ~/.agents/skills (the skills CLI's global folder
 // for the agent is ~/.gemini/config/skills; .agents/skills is its workspace folder); the code index connects through mcp_config.json.
-const MSTACK_ALL = ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup',
+const MSTACK_ALL = ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup', 'mstack-vendors',
   'mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator',
   'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions',
-  'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-vendors'];
+  'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-antigravity-led-review', 'mstack-antigravity-led-dev'];
 const agy = (m) => {
   m.file('.gemini/config/skills/.keep').file('.gemini/config/plugins/.keep');
   writeFileSync(join(m.bin, 'agy'), `#!/bin/sh\necho "$@" >> "${m.root}/agy-calls.log"\n`); chmodSync(join(m.bin, 'agy'), 0o755);
@@ -463,9 +467,9 @@ test('needs: a value with no name in it is a usage error, on every host', () => 
   }
 });
 
-test('antigravity: the 23 mstack rows keep today\'s tiers', () => {
+test('antigravity: the 25 mstack rows keep today\'s tiers', () => {
   const r = run(machine(), ANTI);
-  for (const id of MSTACK_ALL) assert.equal(item(r, id)?.tier, MSTACK_ALL.indexOf(id) < 5 ? 'mandatory' : 'optional', id);
+  for (const id of MSTACK_ALL) assert.equal(item(r, id)?.tier, MSTACK_ALL.indexOf(id) < 6 ? 'mandatory' : 'optional', id);
 });
 
 test('antigravity: ui-ux-pro-max is one WARN row and a complete setup still exits 0', () => {
@@ -484,11 +488,10 @@ test('antigravity: a caller that needs ui-ux-pro-max is blocked by its WARN row'
   assert.equal(r.status, 1, r.out);
 });
 
-test('antigravity: the four vendor rows, and no codex-plugin or workflow row', () => {
+test('antigravity: no codex-plugin row', () => {
   const r = run(completeAnti(machine()), ANTI);
   for (const id of ALL_VENDOR) assert.equal(item(r, id)?.tier, 'optional', id);
-  const bad = r.json.items.map((i) => i.id).filter((id) => /^codex-plugin$|review-workflow$|pm-codex-dev$/.test(id));
-  assert.deepEqual(bad, []);
+  assert.equal(r.json.items.some((i) => i.id === 'codex-plugin'), false, r.out);
   for (const id of ['archify', 'gh', 'python3']) assert.equal(item(r, id)?.tier, 'optional', id);
 });
 
@@ -628,7 +631,7 @@ test('needs reviewer: no ready channel blocks nothing, and the vendor rows are s
 // One client installed is enough (the user's rule of 2026-11-24): another vendor's client is never needed without --needs.
 function completeCodex(m) {
   m.stub('node').stub('git').stub('codegraph');
-  const names = ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup'];
+  const names = ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup', 'mstack-vendors'];
   m.skill('.codex/plugins/cache/ponytail/ponytail/5.3.3/skills/ponytail');
   for (const n of names) m.skill(`.codex/plugins/cache/mstack/${n}/0.1.0/skills/${n}`);
   m.file('.codex/config.toml', ['[mcp_servers.codegraph]', 'command = "codegraph"', '[plugins."ponytail@ponytail"]', 'enabled = true',
@@ -750,4 +753,76 @@ test('claude: signed in only when auth status exits 0 and prints JSON with logge
   assert.deepEqual(login('codex', 'claude', `echo '{"loggedIn": true}'; exit 1`), out);
   const unread = 'sign-in could not be checked: claude auth status exited 0 with an answer that could not be read';
   for (const body of ['exit 0', 'echo "Logged in"', `echo '{"loggedIn": "yes"}'`, `echo '{"loggedIn": true}' >&2`]) assert.deepEqual(login('codex', 'claude', body), ['LOGIN', unread, 1], body);
+});
+
+// ---- Task 5.2: per-host workflow pairs, mandatory mstack-vendors, R18 one-client setup, codex-plugin detail, no bridge ----
+const HOST_WORKFLOWS = {
+  claude: ['mstack-claude-led-review', 'mstack-claude-led-dev'],
+  codex: ['mstack-codex-led-review', 'mstack-codex-led-dev'],
+  antigravity: ['mstack-antigravity-led-review', 'mstack-antigravity-led-dev'],
+};
+const ALL_SIX_WORKFLOWS = Object.values(HOST_WORKFLOWS).flat();
+
+for (const host of ['claude', 'codex', 'antigravity']) {
+  test(`${host}: the two ${host}-led workflows are optional rows`, () => {
+    const r = run(machine(), ['--host', host]);
+    const own = HOST_WORKFLOWS[host];
+    const other = ALL_SIX_WORKFLOWS.filter((id) => !own.includes(id));
+    for (const id of own) {
+      const row = item(r, id);
+      assert.ok(row, `missing ${id}`);
+      assert.equal(row.tier, 'optional', id);
+      assert.equal(row.detail, 'mstack workflow', id);
+    }
+    for (const id of other) {
+      assert.equal(item(r, id), undefined, `${host} should not include ${id}`);
+    }
+  });
+
+  test(`${host}: mstack-vendors is a mandatory row`, () => {
+    const r = run(machine(), ['--host', host]);
+    const row = item(r, 'mstack-vendors');
+    assert.ok(row, 'missing mstack-vendors');
+    assert.equal(row.tier, 'mandatory');
+    assert.equal(row.detail, 'mstack skill');
+  });
+
+  test(`${host}: one-client machine with mandatory skills present and other vendor client absent passes setup`, () => {
+    const m = host === 'claude'
+      ? (() => { const x = completeClaude(machine()); rmSync(join(x.bin, 'codex')); return x; })()
+      : host === 'codex'
+        ? completeCodex(machine())
+        : completeAnti(machine());
+    const r = run(m, ['--host', host]);
+    assert.equal(r.status, 0, r.out);
+    assert.equal(r.state('mstack-vendors'), 'ok', r.out);
+    const otherCli = host === 'codex' ? 'claude-cli' : 'codex-cli';
+    assert.equal(r.state(otherCli), 'MISSING');
+    assert.equal(item(r, otherCli).blocking, false);
+    assert.equal(run(m, ['--host', host, '--needs', otherCli]).status, 1);
+  });
+
+  test(`${host}: no row names a bridge`, () => {
+    const m = host === 'claude' ? completeClaude(machine()) : host === 'codex' ? completeCodex(machine()) : completeAnti(machine());
+    const r = run(m, ['--host', host]);
+    for (const row of r.json.items) {
+      assert.doesNotMatch(`${row.id} ${row.detail}`, /bridge|companion/i, `${host} ${row.id}`);
+    }
+  });
+}
+
+test('R18 setup in Codex: without mstack-vendors the setup is incomplete', () => {
+  const m = completeCodex(machine());
+  rmSync(join(m.home, '.codex/plugins/cache/mstack/mstack-vendors'), { recursive: true, force: true });
+  const r = run(m, ['--host', 'codex']);
+  assert.equal(r.status, 1, r.out);
+  assert.ok(item(r, 'mstack-codex-led-review'), 'missing mstack-codex-led-review');
+  assert.ok(item(r, 'mstack-codex-led-dev'), 'missing mstack-codex-led-dev');
+  const v = item(r, 'mstack-vendors');
+  assert.deepEqual([v?.state, v?.tier, v?.blocking], ['MISSING', 'mandatory', true], r.out);
+});
+
+test('claude: codex-plugin names mstack-claude-led-dev', () => {
+  const r = run(machine(), ['--host', 'claude']);
+  assert.equal(item(r, 'codex-plugin')?.detail, 'OpenAI Codex plugin (Codex as the developer in mstack-claude-led-dev)');
 });

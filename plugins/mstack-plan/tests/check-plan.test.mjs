@@ -1,4 +1,4 @@
-// Tests for scripts/check-plan.mjs: approval lines, writer records, the eleven executors, start files and placeholders.
+// Tests for scripts/check-plan.mjs: approval lines, writer records, the eight executors, start files and placeholders.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -22,9 +22,6 @@ const sixWorkflows = [
 const allExecutors = [
   'none',
   'inline',
-  'mstack-codex-review-workflow',
-  'mstack-claude-review-workflow',
-  'mstack-claude-pm-codex-dev',
   ...sixWorkflows,
 ];
 
@@ -83,7 +80,7 @@ for (const value of allExecutors) {
   });
 }
 
-test('an unknown executor fails with a line that names all eleven allowed values', () => {
+test('an unknown executor fails with a line that lists exactly the eight allowed values', () => {
   const r = check('something-else');
   assert.equal(r.status, 1, r.out);
   const line = r.out.split('\n').find((l) => l.includes('Executor "something-else"'));
@@ -91,6 +88,9 @@ test('an unknown executor fails with a line that names all eleven allowed values
   for (const value of allExecutors) {
     assert.ok(line.includes(value), `${value} missing from: ${line}`);
   }
+  const listPart = line.split('must be ')[1] ?? '';
+  const seps = listPart.match(/, | or /g) ?? [];
+  assert.equal(seps.length, 7, `expected exactly 7 separators for 8 values, got ${seps.length} in: ${line}`);
 });
 
 test('a plan folder without receiving-review.md passes, because mstack-receive-review holds the review rules', () => {
@@ -268,13 +268,6 @@ test('a start file that names five of the six fails', () => {
   assert.ok(r.out.includes(`execute-plan.md: does not name the workflows (${sixWorkflows.join(', ')})`), r.out);
 });
 
-test('a start file that names the two old review workflows passes', () => {
-  const r = lint((dir) => {
-    writeFileSync(join(dir, 'execute-plan.md'), '# Execute plan\n\n- Recommended mode: Inline\n\nInline or mstack-codex-review-workflow or mstack-claude-review-workflow.\n');
-  });
-  assert.equal(r.status, 0, r.out);
-});
-
 test('a start file with a misspelled workflow name fails', () => {
   const r = lint((dir) => {
     writeFileSync(join(dir, 'execute-plan.md'), `# Execute plan\n\n- Recommended mode: Inline\n\nInline or ${sixWorkflows.slice(0, 4).join(', ')}, mstack-codex-led-development, mstack-antigravity-led-dev.\n`);
@@ -337,4 +330,76 @@ test('a legacy Closed line mentioning Executed by inside Evidence passes', () =>
     writeFileSync(path, `${readFileSync(path, 'utf8')}\n## Log\n- 2026-11-22 10:00 1.1 Closed. Evidence: report said Executed by: test runner.\n`);
   });
   assert.equal(r.status, 0, r.out);
+});
+
+test('two Executor lines fail even when the first is valid', () => {
+  const r = lint((dir) => {
+    const path = join(dir, 'progress.md');
+    const before = readFileSync(path, 'utf8');
+    const after = before.replace(/^(Plan status:.*)$/m, '$1\nExecutor: inline\nExecutor: mstack-old-review-workflow');
+    assert.notEqual(after, before);
+    writeFileSync(path, after);
+  });
+  assert.equal(r.status, 1, r.out);
+  assert.ok(r.out.includes('progress.md: more than one Executor line'), r.out);
+  assert.ok(r.out.includes('Executor "mstack-old-review-workflow"'), r.out);
+});
+
+test('an unknown workflow name in a task Owner cell fails', () => {
+  const r = lint((dir) => {
+    const path = join(dir, 'progress.md');
+    const before = readFileSync(path, 'utf8');
+    const after = before.replace(/\|\s*1\.1\s*\|([^|]*)\|([^|]*)\|\s*Open\s*\|\s*\|/, '| 1.1 |$1|$2| Open | mstack-old-review-workflow |');
+    assert.notEqual(after, before);
+    writeFileSync(path, after);
+  });
+  assert.equal(r.status, 1, r.out);
+  assert.ok(r.out.includes('progress.md: task 1.1 Owner'), r.out);
+});
+
+test('a start file that names an unknown workflow alongside the six fails', () => {
+  const r = lint((dir) => {
+    writeFileSync(join(dir, 'execute-plan.md'), `# Execute plan\n\n- Recommended mode: Inline\n\nInline or ${sixWorkflows.join(', ')}, plus mstack-old-review-workflow and mstack-legacy-pm-dev.\n`);
+  });
+  assert.equal(r.status, 1, r.out);
+  assert.ok(r.out.includes('execute-plan.md: unknown workflow'), r.out);
+});
+
+test('an unknown workflow name in a task Note cell fails', () => {
+  const r = lint((dir) => {
+    const path = join(dir, 'progress.md');
+    const before = readFileSync(path, 'utf8');
+    const after = before.replace(/\|\s*1\.1\s*\|([^|]*)\|([^|]*)\|\s*Open\s*\|\s*\|\s*\|/, '| 1.1 |$1|$2| Open | | handoff from mstack-old-review-workflow |');
+    assert.notEqual(after, before);
+    writeFileSync(path, after);
+  });
+  assert.equal(r.status, 1, r.out);
+  assert.ok(r.out.includes('progress.md: unknown workflow (mstack-old-review-workflow)'), r.out);
+});
+
+test('an unknown workflow name in the progress log fails', () => {
+  const r = lint((dir) => {
+    const path = join(dir, 'progress.md');
+    writeFileSync(path, `${readFileSync(path, 'utf8')}\n## Log\n- 2026-11-22 10:00 1.1 In progress. Owner: mstack-old-review-workflow.\n`);
+  });
+  assert.equal(r.status, 1, r.out);
+  assert.ok(r.out.includes('progress.md: unknown workflow (mstack-old-review-workflow)'), r.out);
+});
+
+test('a suffixed workflow name fails in Owner and in execute-plan.md', () => {
+  const r1 = lint((dir) => {
+    const path = join(dir, 'progress.md');
+    const before = readFileSync(path, 'utf8');
+    const after = before.replace(/\|\s*1\.1\s*\|([^|]*)\|([^|]*)\|\s*Open\s*\|\s*\|/, '| 1.1 |$1|$2| Open | mstack-claude-led-dev-v2 |');
+    assert.notEqual(after, before);
+    writeFileSync(path, after);
+  });
+  assert.equal(r1.status, 1, r1.out);
+  assert.ok(r1.out.includes('mstack-claude-led-dev-v2'), r1.out);
+
+  const r2 = lint((dir) => {
+    writeFileSync(join(dir, 'execute-plan.md'), `# Execute plan\n\n- Recommended mode: Inline\n\nInline or ${sixWorkflows.join(', ')}, plus mstack-claude-led-dev-v2.\n`);
+  });
+  assert.equal(r2.status, 1, r2.out);
+  assert.ok(r2.out.includes('execute-plan.md: unknown workflow (mstack-claude-led-dev-v2)'), r2.out);
 });

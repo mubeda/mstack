@@ -106,7 +106,7 @@ Report in this order:
 2. The triage table, or its path.
 3. What was posted, and what was drafted but not approved.
 4. The next step for each route, as the user's choice:
-   - the now rows: the mstack review workflow for this host (`mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex), given the table as its work items; in Antigravity no mstack delivery workflow exists yet: say so, and name the two above with their hosts;
+   - the now rows: this host's review workflow (`mstack-claude-led-review` in Claude Code, `mstack-codex-led-review` in Codex, `mstack-antigravity-led-review` in Antigravity), given the table as its work items;
    - rows routed to `mstack-write-specs`: one spec per issue, starting from the issue;
    - rows routed to `mstack-diagnose`: one diagnosis per bug, starting from the missing facts listed in its row.
 

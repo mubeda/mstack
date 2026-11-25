@@ -1,6 +1,6 @@
 # Plan format
 
-This file is the contract between `mstack-plan`, which writes a plan, and the agents that execute it: inline execution from `execute-plan.md`, `mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex, and `mstack-claude-pm-codex-dev` in Claude Code (Codex writes each phase, Claude reviews and commits it). All four plugins ship an identical copy. Change all four copies in the same change, and handle plans written by the previous version (see "Format changes").
+This file is the contract between `mstack-plan`, which writes a plan, and the agents that execute it: inline execution from `execute-plan.md`, and the six host-led workflows (`mstack-claude-led-review` and `mstack-claude-led-dev` in Claude Code, `mstack-codex-led-review` and `mstack-codex-led-dev` in Codex, and `mstack-antigravity-led-review` and `mstack-antigravity-led-dev` in Antigravity). All seven plugins ship an identical copy. Change all seven copies in the same change, and handle plans written by the previous version (see "Format changes").
 
 ## Folder layout
 
@@ -161,7 +161,7 @@ Spec: spec.md (sha256 <first 12 hex digits>)
 Plan status: Draft | Approved <yyyy-mm-dd>
 Plan review: <reviewer and model>, round <n>, <outcome>
 Written by: <vendor>[, <vendor>] | unknown
-Executor: none | inline | mstack-codex-review-workflow | mstack-claude-review-workflow | mstack-claude-pm-codex-dev | mstack-claude-led-review | mstack-codex-led-review | mstack-antigravity-led-review | mstack-claude-led-dev | mstack-codex-led-dev | mstack-antigravity-led-dev
+Executor: none | inline | mstack-claude-led-review | mstack-claude-led-dev | mstack-codex-led-review | mstack-codex-led-dev | mstack-antigravity-led-review | mstack-antigravity-led-dev
 Branch: <working branch, once execution starts>
 
 | Task | Title | Phase | State | Owner | Note |
@@ -209,7 +209,7 @@ A dropped task needs the user's recorded decision in the log. A dropped or remov
 
 When a later version of this format changes what a field or a file means, the skill that reads a plan written by the earlier version says what it does with each old value. An old value is never consent to new, wider behavior. Ask the user once instead.
 
-A plan written before `mstack-claude-pm-codex-dev` was an executor value keeps the executor its `progress.md` records, and its `execute-plan.md` offers two ways to run; the new workflow runs such a plan only when the user asks for it.
+A progress file whose `Executor:` value, or a start file whose workflow names, sit outside the eight allowed executors belong to a plan made for a workflow mstack no longer ships: a workflow stops before any work, the plan is made again with `mstack-plan` in a new folder, and an old start file opened for inline execution behaves as written.
 
 A plan folder written before `mstack-receive-review` existed holds a copy of the review rules, `receiving-review.md`, and its `execute-plan.md` still points inline execution at that copy; the copy keeps working, with the older rules. A workflow that executes such a plan loads `mstack-receive-review` and ignores the copy.
 

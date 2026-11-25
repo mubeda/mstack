@@ -4,4 +4,4 @@ focus: outcome
 weight: 1
 ---
 
-The reply does not say that `mstack-codex-review-workflow` or `mstack-claude-review-workflow` is missing, not installed or not available in this session, and it does not name `mstack-setup`.
+The reply does not say that any workflow is missing, not installed or not available in this session, does not name a Claude Code or Codex workflow as the choice, and does not name `mstack-setup`.

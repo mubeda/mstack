@@ -8,7 +8,7 @@
 // mstack works with one client installed, so without --needs they never block and never fail a run.
 // --vendors not-checked is for a run that cannot see the clients (inside Antigravity's sandbox, after the run outside it was
 // refused): no client is looked for or started, and the vendor rows read `not checked`, which is not ok for a caller that needs them.
-// Antigravity has no codex-plugin or workflow rows.
+// Each host carries its own two host-led workflows as optional rows; only Claude Code carries codex-plugin.
 // --needs is for one calling skill: a comma-separated list of row IDs and of the groups `reviewer` and `codegraph`.
 // Only those rows and `node` then block, whatever their tier. The group `reviewer` is the host's vendor rows, and one ready
 // channel meets it: the first ready channel's rows block and the other vendor rows do not. With none ready, none of them
@@ -199,19 +199,22 @@ const channels = ['claude', 'codex'].filter((v) => v !== host).map((v) => {
   }
   return ids;
 });
-for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup']) add(s, 'mandatory', hasSkill(s), 'mstack skill');
+for (const s of ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup', 'mstack-vendors']) add(s, 'mandatory', hasSkill(s), 'mstack skill');
 const uiOk = hasSkill('ui-ux-pro-max');
 add('ui-ux-pro-max', 'optional', uiOk, host === 'antigravity' && !uiOk ? 'UI design skill: not available in Antigravity' : 'UI design skill', host === 'antigravity' && !uiOk ? 'WARN' : undefined);
 add('archify', 'optional', hasSkill('archify'), 'diagram skill (mstack-explain-me-better offers diagrams with it)');
 add('gh', 'optional', which('gh'), 'GitHub command-line tool');
 add('python3', 'optional', which('python3') || (win && (which('python') || which('py'))), 'Python 3');
-const workflow = host === 'claude' ? 'mstack-codex-review-workflow' : 'mstack-claude-review-workflow';
-const workflows = host === 'antigravity' ? [] : [workflow];
-if (host === 'claude') add('codex-plugin', 'optional', pluginInstalled('codex'), 'OpenAI Codex plugin (Codex as developer in mstack-claude-pm-codex-dev)');
-const pmWorkflow = host === 'claude' ? ['mstack-claude-pm-codex-dev'] : [];
-for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', 'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-vendors', ...workflows, ...pmWorkflow]) {
+if (host === 'claude') add('codex-plugin', 'optional', pluginInstalled('codex'), 'OpenAI Codex plugin (Codex as the developer in mstack-claude-led-dev)');
+const workflows = {
+  claude: ['mstack-claude-led-review', 'mstack-claude-led-dev'],
+  codex: ['mstack-codex-led-review', 'mstack-codex-led-dev'],
+  antigravity: ['mstack-antigravity-led-review', 'mstack-antigravity-led-dev'],
+}[host];
+for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', 'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui']) {
   add(s, 'optional', hasSkill(s), 'mstack skill');
 }
+for (const w of workflows) add(w, 'optional', hasSkill(w), 'mstack workflow');
 
 // Which rows block: every mandatory one, or with --needs the rows the calling skill named, and node.
 // A caller that names the group `reviewer` is blocked through its first ready channel, and by no vendor row when none is ready.

@@ -78,7 +78,7 @@ Run these procedures through their mstack skill instead of doing them yourself. 
 |---|---|
 | An idea whose goal or reason is not settled | `mstack-brainstorm` |
 | Large work | `mstack-write-specs`, then `mstack-plan` |
-| Executing a plan | `mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex; in Claude Code, `mstack-claude-pm-codex-dev` when Codex is to write the code; in Antigravity no mstack delivery workflow exists yet: say so, and name these with their hosts |
+| Executing a plan | This host's review workflow (`mstack-claude-led-review` in Claude Code, `mstack-codex-led-review` in Codex, `mstack-antigravity-led-review` in Antigravity), or this host's dev workflow (`mstack-claude-led-dev`, `mstack-codex-led-dev`, `mstack-antigravity-led-dev`) when another vendor is to write the code |
 | A backlog to sort | `mstack-backlog-triage` |
 | Something broken, cause unknown | `mstack-diagnose` |
 | Review feedback to act on | `mstack-receive-review` |

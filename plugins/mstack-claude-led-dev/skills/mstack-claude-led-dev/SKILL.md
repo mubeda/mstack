@@ -1,6 +1,6 @@
 ---
 name: mstack-claude-led-dev
-description: Use when working in Claude Code and the user wants another installed vendor offered by mstack-vendors (codex or claude) to write each phase while this session manages, reviews and commits the accepted tree, for an execution plan, a list of issues or one larger task. Runs in Claude Code only.
+description: Use when working in Claude Code and the user wants another installed vendor offered by mstack-vendors (codex) to write each phase while this session manages, reviews and commits the accepted tree, for an execution plan, a list of issues or one larger task. Runs in Claude Code only.
 ---
 
 # mstack dev workflow

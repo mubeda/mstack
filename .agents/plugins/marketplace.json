@@ -8,19 +8,6 @@
   },
   "plugins": [
     {
-      "name": "mstack-claude-review-workflow",
-      "version": "0.3.9",
-      "source": {
-        "source": "local",
-        "path": "./plugins/mstack-claude-review-workflow"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Workflow"
-    },
-    {
       "name": "mstack-codex-led-review",
       "version": "0.1.0",
       "source": {

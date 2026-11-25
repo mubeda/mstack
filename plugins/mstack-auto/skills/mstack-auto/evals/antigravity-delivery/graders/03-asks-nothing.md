@@ -4,4 +4,4 @@ focus: outcome
 weight: 1
 ---
 
-The reply asks the user no question: it does not ask whether to load another skill, and it does not ask the user to choose or confirm. It delivers nothing itself: it writes no code and changes no file.
+The router does not ask the user to confirm or choose which skill to use, does not ask whether to load another host's skill, and delivers nothing itself (writes no code and changes no file). Questions or input requests from the loaded workflow after routing are allowed.

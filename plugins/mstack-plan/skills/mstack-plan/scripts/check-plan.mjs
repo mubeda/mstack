@@ -59,9 +59,6 @@ const SIX_WORKFLOWS = [
 const EXECUTORS = [
   'none',
   'inline',
-  'mstack-codex-review-workflow',
-  'mstack-claude-review-workflow',
-  'mstack-claude-pm-codex-dev',
   ...SIX_WORKFLOWS,
 ];
 const validVendors = (value) => {
@@ -190,9 +187,21 @@ const rows = [...progress.matchAll(/^\|\s*(\d+\.\d+)\s*\|[^|]*\|[^|]*\|\s*([^|]*
 const progressStatus = progress.match(new RegExp(`^Plan status: ${STATUS}`, 'm'))?.[1];
 if (!progressStatus) fail('progress.md: Plan status line must be "Draft" or "Approved <yyyy-mm-dd>"');
 else if (planStatus && progressStatus !== planStatus) fail(`progress.md: Plan status "${progressStatus}" differs from plan.md Status "${planStatus}"; the executor reads progress.md`);
-const executor = progress.match(/^Executor:[ \t]*(.*)$/m)?.[1].trim();
-if (executor !== undefined && !EXECUTORS.includes(executor)) {
-  fail(`progress.md: Executor "${executor}" must be ${EXECUTORS.slice(0, -1).join(', ')} or ${EXECUTORS.at(-1)}`);
+const executorLines = [...progress.matchAll(/^Executor:[ \t]*(.*)$/gm)];
+if (executorLines.length > 1) fail('progress.md: more than one Executor line');
+for (const m of executorLines) {
+  const value = m[1].trim();
+  if (!EXECUTORS.includes(value)) {
+    fail(`progress.md: Executor "${value}" must be ${EXECUTORS.slice(0, -1).join(', ')} or ${EXECUTORS.at(-1)}`);
+  }
+}
+const MSTACK_TOKEN = /(?<![A-Za-z0-9-])mstack-[a-z0-9-]+(?![A-Za-z0-9-])/g;
+const WORKFLOW_LIKE = /-(?:workflow|review|dev)(?:-|$)/;
+const ALLOWED_WORKFLOW_LIKE = new Set([...SIX_WORKFLOWS, 'mstack-receive-review']);
+const unknownWorkflows = (text) => [...new Set([...text.matchAll(MSTACK_TOKEN)].map((m) => m[0]).filter((tok) => WORKFLOW_LIKE.test(tok) && !ALLOWED_WORKFLOW_LIKE.has(tok)))];
+const badProgressWorkflows = unknownWorkflows(progress);
+if (badProgressWorkflows.length) {
+  fail(`progress.md: unknown workflow (${badProgressWorkflows.join(', ')}); allowed workflows are ${SIX_WORKFLOWS.join(', ')}`);
 }
 const progressHeader = progress.split(/^## /m)[0];
 const writtenByLines = [...progressHeader.matchAll(/^Written by:[ \t]*(.*)$/gm)];
@@ -225,6 +234,9 @@ for (const [id, st, rest] of rows) {
   // A removed task keeps its row, marked "removed", so its ID is never reused.
   if (!tasks.has(id) && !/\bremoved\b/i.test(rest)) fail(`progress.md: row ${id} has no task in the phase files and is not marked removed`);
   if (!['Open', 'In progress', 'Closed'].includes(st)) fail(`progress.md: task ${id} has state "${st}", not Open, In progress or Closed`);
+  const owner = (rest.split('|')[0] ?? '').trim();
+  const badOwner = unknownWorkflows(owner);
+  if (badOwner.length) fail(`progress.md: task ${id} Owner names unknown workflow (${badOwner.join(', ')})`);
 }
 for (const id of tasks.keys()) if (!rows.some(([r]) => r === id)) fail(`progress.md: no row for task ${id}`);
 
@@ -233,9 +245,12 @@ for (const word of ['Recommended mode', 'Inline']) {
   if (!execute.includes(word)) fail(`execute-plan.md: does not mention "${word}"`);
 }
 const hasSix = SIX_WORKFLOWS.every((name) => hasToken(execute, name));
-const hasOld = ['mstack-codex-review-workflow', 'mstack-claude-review-workflow'].every((name) => hasToken(execute, name));
-if (!hasSix && !hasOld) {
+if (!hasSix) {
   fail(`execute-plan.md: does not name the workflows (${SIX_WORKFLOWS.join(', ')})`);
+}
+const badExecute = unknownWorkflows(execute);
+if (badExecute.length) {
+  fail(`execute-plan.md: unknown workflow (${badExecute.join(', ')}); allowed workflows are ${SIX_WORKFLOWS.join(', ')}`);
 }
 
 // Template placeholders left behind.
