@@ -39,8 +39,8 @@ None known. This skill does every step itself.
 
 ## Cross-vendor reviewer
 
-None in this version. Warn the user and use a fresh subagent with `invoke_subagent`, on the tier `mstack-best-model-for` gives for `most capable`, told to change nothing. No source says which vendor's model runs a subagent tier, so record the review as "a subagent of this session; the vendor of its model is not known", never as cross-vendor and never as same-vendor. Never start a second Antigravity session for a review.
+From `mstack-vendors`, as `plugin-packaging.md` › Cross-vendor review says.
 
 ## mstack skills supported here
 
-Twenty-three of the twenty-six mstack skills, as of 2026-11-24: `mstack-auto`, `mstack-research`, `mstack-write-issue`, `mstack-anonymize`, `mstack-web-ui`, `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-vendors`, `mstack-setup`, and this skill. The three workflow skills, `mstack-codex-review-workflow`, `mstack-claude-review-workflow` and `mstack-claude-pm-codex-dev`, do not run here.
+Twenty-five of the twenty-nine mstack skills, as of 2026-11-24: `mstack-auto`, `mstack-research`, `mstack-write-issue`, `mstack-anonymize`, `mstack-web-ui`, `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-antigravity-led-review`, `mstack-antigravity-led-dev`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-vendors`, `mstack-setup`, and this skill. `mstack-claude-led-review`, `mstack-claude-led-dev`, `mstack-codex-led-review` and `mstack-codex-led-dev` are the Claude Code and Codex workflows and do not run here.

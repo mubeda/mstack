@@ -7,7 +7,7 @@ allowed_tools: [Read, Glob, Grep, Skill, Write, Edit, Bash]
 
 Plan the implementation of the password reset spec in ./shop/docs/specs/2026-11-09-add-password-reset.md.
 
-Answers to your start-up questions, so you do not need to ask them: put the plan in shop/docs/plans/password-reset/. There are no external sources beyond the repository. Reviewer: `gpt-6.2-sol` at `high` effort. Do not install anything. I cannot answer questions during this run, so where you would ask me a planning question, take your recommendation, record it as the agent's call in the questions record, and continue.
+Answers to your start-up questions, so you do not need to ask them: put the plan in shop/docs/plans/password-reset/. There are no external sources beyond the repository. Do not install anything. I cannot answer questions during this run, so where you would ask me a planning question, take your recommendation, record it as the agent's call in the questions record, and continue.
 
 This run plans one phase only, and I approve this outline: phase 1 "reset tokens: creation, storage, expiry", with task 1.1 "create and store a reset token" and task 1.2 "expire a reset token". Every other requirement of the spec is out of this run's scope. The phase and both tasks get tier standard; I chose it.
 

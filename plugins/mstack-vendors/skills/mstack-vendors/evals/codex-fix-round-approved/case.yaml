@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: codex-fix-round-approved
+expected_outcome: |
+  On host codex for Job: developer with a claude= full headless id model, the mstack-vendors result block carries
+  the exact sentence "Run it as an approved command, because it needs the network and writes under the home folder."
+  on BOTH the round-one Command-cell step line AND the fix-round step line.
+context:
+  scaffold_script: place-files.sh

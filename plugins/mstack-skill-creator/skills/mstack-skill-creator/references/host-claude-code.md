@@ -51,8 +51,8 @@ Anthropic's `skill-creator` is often installed (as `skill-creator:skill-creator`
 
 ## Cross-vendor reviewer
 
-Codex, through the `codex` skill of the skill-codex plugin, or `codex exec --sandbox read-only` with the prompt on stdin from a file (add `--skip-git-repo-check` when the folder is not a Git repository). When neither is available, warn the user and use a fresh read-only `Agent` subagent on the model and effort `mstack-best-model-for` returns for the tier `most capable`, recorded as a same-vendor review.
+From `mstack-vendors`, as `plugin-packaging.md` › Cross-vendor review says.
 
 ## mstack skills supported here
 
-Twenty-five of the twenty-six mstack skills, as of 2026-11-24: `mstack-auto`, `mstack-research`, `mstack-write-issue`, `mstack-anonymize`, `mstack-web-ui`, `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-codex-review-workflow`, `mstack-claude-pm-codex-dev`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-vendors`, `mstack-setup`, and this skill. `mstack-claude-review-workflow` is the Codex workflow and does not run here.
+Twenty-five of the twenty-nine mstack skills, as of 2026-11-24: `mstack-auto`, `mstack-research`, `mstack-write-issue`, `mstack-anonymize`, `mstack-web-ui`, `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-claude-led-review`, `mstack-claude-led-dev`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-vendors`, `mstack-setup`, and this skill. `mstack-codex-led-review`, `mstack-codex-led-dev`, `mstack-antigravity-led-review` and `mstack-antigravity-led-dev` are the Codex and Antigravity workflows and do not run here.

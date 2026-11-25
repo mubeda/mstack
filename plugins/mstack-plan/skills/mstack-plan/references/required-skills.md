@@ -2,9 +2,9 @@
 
 Read this at the start of section 0 of SKILL.md, before any question or other work, and again in Preflight, after the script ran. Its rules bind.
 
-## The four shared skills
+## The five shared skills
 
-For each of `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `mstack-research`:
+For each of `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review`, `mstack-research` and `mstack-vendors`:
 
 1. It is in this session's skill list (as `<name>` or `<plugin>:<name>`): continue.
 2. It is not in the list, but `scripts/check-required-skills.sh` (Preflight) reports it `ok` on disk: it was installed after this session started. Say that a new session is needed, and stop.
@@ -22,6 +22,6 @@ For each of `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-revie
 
 ## What the preflight found
 
-If `node` or `git` is missing (a `MISSING` line), tell the user and stop until it is installed, because no fallback replaces them. A `MISSING` shared skill is handled by "The four shared skills" above. If the checker warns that the cross-vendor reviewer is missing (a `WARN` line), tell the user that `mstack-setup` installs it (the login stays a step for the user), and continue without waiting. Warn the user that the plan review will run as a same-vendor review by a fresh subagent, which tends to miss more than a review by another vendor, and continue with the fallback in `references/plan-review.md` › When the run fails. The plan says so. In Antigravity the checker always prints that line, because this skill has no cross-vendor reviewer there: give the warning, name no install, and continue.
+If `node` or `git` is missing (a `MISSING` line), tell the user and stop until it is installed, because no fallback replaces them. A `MISSING` shared skill that is already in this session's skill list is loaded and does not stop the run; otherwise handle it by "The five shared skills" above. Availability of other vendors' clients is checked by `mstack-vendors` at Phase 7, not here.
 
 For any other missing item, the user runs `mstack-setup`: it installs the missing skills, plugins and command-line tools at user scope after one yes, and lists what it cannot install (`node`, `git`, logins) as steps for the user.

@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-The first message asks which model and effort the cross-vendor reviewer should use, and nowhere asks whether the plan should be reviewed at all.
+The first message asks no reviewer model, says the reviewers are chosen at the plan review, and nowhere asks whether the plan should be reviewed at all.

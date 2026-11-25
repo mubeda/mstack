@@ -5,7 +5,7 @@ description: Use when the user asks which other vendors or models can review cod
 
 # mstack-vendors
 
-Answers which other vendor's model can review code, review a plan or develop from this session, and how each review is recorded. A vendor is the provider of a model: `claude`, `codex` or `antigravity`. It is the interface that mstack skills will call when they want a reviewer or a developer of another vendor, so the rules on who may review whose work live in one place. No mstack skill calls it yet: today a person asks it.
+Answers which other vendor's model can review code, review a plan or develop from this session, and how each review is recorded. A vendor is the provider of a model: `claude`, `codex` or `antigravity`. It is the interface that mstack skills call when they want a reviewer or a developer of another vendor, so the rules on who may review whose work live in one place. Its callers are the six mstack workflows, `mstack-plan` (for its plan review and for the start file's inline run) and `mstack-skill-creator` (in Claude Code, Codex and Antigravity), and a person may still ask it directly.
 
 Another vendor is always optional. mstack works with one client installed: when no other vendor can be reached, the answer recommends a fallback review by this session's own vendor, with a warning. That is an answer, never a stop and never an error. Only a developer job can end with "no developer here", and that too is a line of the answer.
 
@@ -58,7 +58,7 @@ These are the steps of called mode. User mode uses step 2 and `## Availability` 
 3. **Take the leader's vendor** from the script's `leader` line, by the part "The leader's vendor" of `references/vendor-rules.md`.
 4. **Fill each section** by `references/vendor-rules.md`, one job group at a time, in the caller's order.
 5. **Fill the commands and the steps** as `## Commands and steps` says.
-6. **End with the result block** of `references/result-block.md`. Decide every section first, then write the block once: the message that holds the block holds no draft of it, no correction of it and no notes on how you got there. The note of step 1 was written before the vendor check and is not repeated here. It is this skill's last output. In called mode the block ends this skill, not the calling skill's work: the calling skill goes on with its own next step.
+6. **End with the result block** of `references/result-block.md`. Decide every section first, then write the complete literal `## mstack-vendors result` block once into your visible assistant message **before** making any tool call of the calling skill's next step — including before reading `references/review-prompt.md` or any diff or plan file, before writing a review prompt file, before starting a fallback subagent, and before running any reviewer, fallback or developer command. The message that holds the block holds no draft of it, no correction of it and no notes on how you got there. The note of step 1 was written before the vendor check and is not repeated here. Never skip printing the literal `## mstack-vendors result` block because a section recommends `a fallback review` or because you continue as the calling skill in the same turn: output the complete block text first, and only after that text emit the calling skill's next tool call or question in the same turn.
 
 ## Availability
 

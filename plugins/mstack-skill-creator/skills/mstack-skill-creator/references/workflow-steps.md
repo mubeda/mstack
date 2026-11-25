@@ -9,7 +9,9 @@ Read this in Phase 0 (the required shared skills and the optional steps), Phase 
 | Research on the web (Claude Code, Codex and Antigravity) | `mstack-research`; in OpenCode and Cursor the built-in step below |
 | A written spec | `mstack-write-specs` |
 | A step-by-step plan | `mstack-plan` |
-| Building with reviews | `mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex |
+| Building with reviews | `mstack-claude-led-review` and `mstack-claude-led-dev` in Claude Code, `mstack-codex-led-review` and `mstack-codex-led-dev` in Codex, `mstack-antigravity-led-review` and `mstack-antigravity-led-dev` in Antigravity |
+| The reviewers and their commands (Claude Code, Codex, Antigravity) | `mstack-vendors` |
+| Processing review findings (Claude Code, Codex, Antigravity) | `mstack-receive-review` |
 | An interrupted session | `mstack-handoff` |
 | A shipped script that fails | `mstack-diagnose` |
 | A skill idea taken from an issue tracker | `mstack-backlog-triage` |
@@ -21,7 +23,7 @@ Use the mstack skill when it is installed and the "mstack skills supported here"
 
 ## Required shared skills
 
-In Claude Code, Codex and Antigravity, `mstack-find-skills`, `mstack-best-model-for` and `mstack-research` are required. For each one: when it is in the session's skill list, continue. When its folder exists in one of the skill folders the host file lists but the session has not loaded it, say that a new session is needed, and stop. Only those install folders count: a source checkout of the skill elsewhere on disk is not an install. Otherwise print this block, once per missing skill with its name in place of `<name>`, and stop. Print every line of it in every host and run none of its commands:
+In Claude Code, Codex and Antigravity, `mstack-find-skills`, `mstack-best-model-for`, `mstack-research`, `mstack-vendors` and `mstack-receive-review` are required. For each one: when it is in the session's skill list, continue. When its folder exists in one of the skill folders the host file lists but the session has not loaded it, say that a new session is needed, and stop. Only those install folders count: a source checkout of the skill elsewhere on disk is not an install. Otherwise print this block, once per missing skill with its name in place of `<name>`, and stop. Print every line of it in every host and run none of its commands:
 
 ```text
 mstack-skill-creator needs <name>, which is not installed.
@@ -33,11 +35,11 @@ Or install mstack-setup the same way and run it: it installs everything the msta
 Then start a new session.
 ```
 
-Stopping means that you write no file and take no further step of any phase. There is no built-in fallback for these three in Claude Code, Codex and Antigravity. When the user said to continue without asking, stop all the same: that sentence answers the setup questions, and it is not a yes to working without the skills this run depends on. In OpenCode and Cursor they are not required.
+Stopping means that you write no file and take no further step of any phase. There is no built-in fallback for these five in Claude Code, Codex and Antigravity. When the user said to continue without asking, stop all the same: that sentence answers the setup questions, and it is not a yes to working without the skills this run depends on. In OpenCode and Cursor they are not required.
 
 ## When a skill is missing
 
-This part is about the other skills of the table, never about the three required ones above. In Claude Code, Codex and Antigravity, a step's skill that is supported here but not installed is installed with `mstack-setup`: name it, use the step's built-in fallback below, and go on. This skill installs nothing itself there.
+This part is about the other skills of the table, never about the five required ones above. In Claude Code, Codex and Antigravity, a step's skill that is supported here but not installed is installed with `mstack-setup`: name it, use the step's built-in fallback below, and go on. This skill installs nothing itself there.
 
 ### OpenCode and Cursor
 

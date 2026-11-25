@@ -1,7 +1,7 @@
 schema_version: "1.1"
 name: missing-helper
 expected_outcome: |
-  The request of plugin-target in a session that has loaded none of the three required shared skills, on a machine
+  The request of plugin-target in a session that has loaded none of the five required shared skills, on a machine
   that has none of them on disk. The run stops in Phase 0 with nothing written, and prints the install block for a
   missing skill: the Claude Code and Codex lines as before, an Antigravity line with `agy plugin install` and the
   repository address, and `antigravity` among the agents of the skills CLI line.
@@ -9,6 +9,6 @@ context:
   scaffold_script: place-files.sh
 notes: |
   The negative preflight fixture. Load only the branch copy of mstack-skill-creator: no mstack-find-skills, no
-  mstack-best-model-for, no mstack-research. The prompt says no copy is on disk either, because a copy on disk that
+  mstack-best-model-for, no mstack-research, no mstack-vendors, no mstack-receive-review. The prompt says no copy is on disk either, because a copy on disk that
   the session has not loaded leads to "start a new session" and not to the install block. The repository is the one
   of plugin-target.

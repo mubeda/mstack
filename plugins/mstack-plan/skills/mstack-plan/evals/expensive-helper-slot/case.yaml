@@ -8,8 +8,8 @@ expected_outcome: |
 context:
   scaffold_script: place-files.sh
 notes: |
-  The run loads the branch copies of mstack-plan and of its four shared skills. It has no subagent tool, and its
-  `PATH` holds no real `codex`, `claude` or `agy`, so the cross-vendor reviewer is missing and no client starts.
+  The run loads the branch copies of mstack-plan and of its five shared skills. It has no subagent tool, and its
+  `PATH` holds no real `codex`, `claude` or `agy`, so no client starts.
   Exception: `place-files.sh` puts a changed copy of mstack-best-model-for into the run folder's
   `.claude/skills/` (its Codex standard tier cell is gpt-6.2-astra), and the session loads this copy instead of
   the branch copy; the runner loads no other copy of that skill. `MODEL_SKILL` names the skill folder to copy

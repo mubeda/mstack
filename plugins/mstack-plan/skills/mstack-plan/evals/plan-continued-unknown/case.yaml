@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: plan-continued-unknown
+expected_outcome: |
+  In Codex, mstack-plan resumes a Draft plan with Written by: unknown, keeps Written by: unknown unchanged while
+  logging codex as the continuing vendor, passes check-plan.mjs, sends Writers: unknown to mstack-vendors, and runs
+  the handed claude reviewer command after "Yes.".
+context:
+  scaffold_script: place-files.sh

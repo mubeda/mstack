@@ -1,13 +1,12 @@
 schema_version: "1.1"
 name: expensive-slots
 expected_outcome: |
-  One turn. The user named standard for every phase and task and chose the offered alternative reviewer model
-  without naming it. The run asks no tier question, asks one question of its own about the plan reviewer and a
-  separate one about the Codex fallback reviewer, each with gpt-6.2-astra and gpt-6.2-sol, and no file names
-  gpt-6.2-astra while the questions are open.
+  At Phase 7, mstack-vendors offers a flagged Codex reviewer model (gpt-6.2-astra) and the user accepts the
+  recommended vendor without typing the model name. The run asks one question of its own about the flagged plan
+  reviewer naming gpt-6.2-astra and the alternative gpt-6.2-sol. After the user declines, a refreshed called
+  message carries codex=gpt-6.2-sol, vendors/calls.log launches gpt-6.2-sol (never gpt-6.2-astra), and gpt-6.2-astra
+  is not recorded as the reviewer in progress.md or execute-plan.md.
 context:
   scaffold_script: place-files.sh
 notes: |
-  The run loads the branch copies of mstack-plan and of its four shared skills. It has no subagent tool, and its
-  `PATH` holds no real `codex`, `claude` or `agy`, so the cross-vendor reviewer is missing and no client starts.
-  One turn: the questions stay open.
+  Updated for mstack-vendors: plan reviewer consent happens at Phase 7, and fallback reviewers have no slot.

@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: cursor-built-in
+expected_outcome: |
+  In Cursor without mstack-vendors, mstack-skill-creator does NOT stop for mstack-vendors; Phase 8 follows
+  references/host-cursor.md's built-in reviewer (direct codex exec / claude -p) or plugin-packaging.md item 2;
+  names no bridge and no plugin of another repository and installs none; no vendors/sent-*.txt exists.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  `cursor-agent` 2026.11.22 is on PATH on this machine but is not signed in ("Error: Authentication required"), so
+  this case ran in Claude Code with a prompt stating the host is Cursor and `mstack-vendors` not loaded.

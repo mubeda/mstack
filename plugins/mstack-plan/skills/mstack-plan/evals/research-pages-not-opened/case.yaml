@@ -10,4 +10,4 @@ context:
 notes: |
   The research block is fixed text in the prompt, so the case needs no network and no run of mstack-research. The
   prompt approves a one-phase outline and stops after the plan files are written, so a run stays short. The run
-  loads the branch copies of mstack-plan and of its four shared skills.
+  loads the branch copies of mstack-plan and of its five shared skills.

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Report which skills and tools mstack-plan needs on this host.
-#   bash check-required-skills.sh --host claude   (running in Claude Code; Codex reviews the plan)
-#   bash check-required-skills.sh --host codex    (running in Codex; Claude reviews the plan)
-#   bash check-required-skills.sh --host antigravity   (running in Antigravity; the plan review is same-vendor)
+#   bash check-required-skills.sh --host claude       (Claude Code)
+#   bash check-required-skills.sh --host codex        (Codex)
+#   bash check-required-skills.sh --host antigravity  (Antigravity)
 # Exit 0 when every required item is present, 1 otherwise. Recommended items only print a note.
 set -u
 [ -n "${HOME:-}" ] || { echo "HOME is not set, so the skill folders cannot be found" >&2; exit 2; }
@@ -73,19 +73,7 @@ has_skill() { # $1 = skill folder name
   cache_hit_recorded "*/skills/$1/SKILL.md"
 }
 
-# skill-codex installs a skill folder named `codex`; other plugins can ship one too, so match its plugin path
-# or, for a standalone copy, its `codex exec` instructions.
-has_codex_skill() {
-  local r
-  cache_hit_recorded "*skill-codex*/skills/codex/SKILL.md" && return 0
-  for r in "${roots[@]}"; do [ -f "$r/codex/SKILL.md" ] && grep -q "codex exec" "$r/codex/SKILL.md" && return 0; done
-  return 1
-}
-
 missing=0
-reviewer() { # $1 = label, $2 = command; a missing reviewer is a warning, because reviews fall back to a same-vendor subagent
-  if eval "$2"; then echo "ok       $1"; else echo "WARN     $1 is missing; reviews will run as a same-vendor fallback"; fi
-}
 check() { # $1 = label, $2 = command that succeeds when present
   if eval "$2"; then echo "ok       $1"; else echo "MISSING  $1"; missing=1; fi
 }
@@ -95,19 +83,20 @@ recommend() { # $1 = label, $2 = command that succeeds when present
 
 check "node on PATH (runs check-plan.mjs)" "command -v node >/dev/null"
 check "git on PATH"                        "command -v git >/dev/null"
-check "mstack-find-skills (names the skills per task)"   "has_skill mstack-find-skills"
+check "mstack-find-skills (names the skills per task)"       "has_skill mstack-find-skills"
 check "mstack-best-model-for (models for helpers and reviews)" "has_skill mstack-best-model-for"
-check "mstack-receive-review (processes every review)" "has_skill mstack-receive-review"
-check "mstack-research (research outside the repository)" "has_skill mstack-research"
+check "mstack-receive-review (processes every review)"       "has_skill mstack-receive-review"
+check "mstack-research (research outside the repository)"    "has_skill mstack-research"
+check "mstack-vendors (reviewers and their commands)"        "has_skill mstack-vendors"
 if [ "$host" = claude ]; then
-  reviewer "codex skill (skill-codex plugin)" "has_codex_skill"
-  reviewer "codex CLI logged in"              "command -v codex >/dev/null && codex login status >/dev/null 2>&1"
-  recommend "mstack-codex-review-workflow (workflow execution)" "has_skill mstack-codex-review-workflow"
+  recommend "mstack-claude-led-review (workflow execution)" "has_skill mstack-claude-led-review"
+  recommend "mstack-claude-led-dev (workflow execution)"    "has_skill mstack-claude-led-dev"
 elif [ "$host" = antigravity ]; then
-  reviewer "cross-vendor reviewer for Antigravity" "false"
+  recommend "mstack-antigravity-led-review (workflow execution)" "has_skill mstack-antigravity-led-review"
+  recommend "mstack-antigravity-led-dev (workflow execution)"    "has_skill mstack-antigravity-led-dev"
 else
-  reviewer "claude CLI logged in"             "command -v claude >/dev/null && claude auth status >/dev/null 2>&1"
-  recommend "mstack-claude-review-workflow (workflow execution)" "has_skill mstack-claude-review-workflow"
+  recommend "mstack-codex-led-review (workflow execution)" "has_skill mstack-codex-led-review"
+  recommend "mstack-codex-led-dev (workflow execution)"    "has_skill mstack-codex-led-dev"
 fi
 recommend "mstack-write-specs (writes the spec when there is none)" "has_skill mstack-write-specs"
 recommend "mstack-diagnose (bug and performance tasks)"            "has_skill mstack-diagnose"

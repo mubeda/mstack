@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: single-host-codex
+expected_outcome: |
+  In Claude Code, skills-repo/AGENTS.md declares `codex-note` as Codex only under `## Single-host plugins`.
+  mstack-skill-creator creates plugins/codex-note with ONLY `.codex-plugin/plugin.json` and ONE registry entry
+  in `.agents/plugins/marketplace.json`, no Claude or Antigravity manifest, no Claude registry entry, and
+  `node scripts/check-plugins.mjs` exits 0 both in the session log and on rerun.
+context:
+  scaffold_script: place-files.sh

@@ -17,14 +17,14 @@ This file is the same on every host. It names roles. The table says which tool p
 | Your subagent tool | `Agent`, with `model` and `effort` from `mstack-best-model-for` set on every call | The session's agent tool, or a separate `codex exec` run | `invoke_subagent`, on the subagent tier from `mstack-best-model-for` | None: use the fresh-session command | None: use the fresh-session command |
 | Loading a skill | The Skill tool | Read its SKILL.md and follow it | Read its SKILL.md with `read_file` and follow it | The `skill` tool | By its description, or `/<name>` |
 | The fresh-session command | `claude -p` | `codex exec` | None: use your subagent tool, or hand the prompt to the user | `opencode run` | `cursor-agent -p` |
-| The cross-vendor reviewer | Codex (the skill-codex `codex` skill, or `codex exec`) | Claude, by a read-only `claude -p` run with the review prompt on stdin | None yet: a subagent of this session, the vendor of its model not known | A read-only run of another vendor's own client that is installed: `codex exec`, else `claude -p` | A read-only run of another vendor's own client that is installed: `codex exec`, else `claude -p` |
+| The cross-vendor reviewer | From `mstack-vendors` (Phase 8) | From `mstack-vendors` (Phase 8) | From `mstack-vendors` (Phase 8) | A read-only run of another vendor's own client that is installed: `codex exec`, else `claude -p` | A read-only run of another vendor's own client that is installed: `codex exec`, else `claude -p` |
 | Your vendor for `mstack-best-model-for` | `claude` | `codex` | `antigravity` | Not used | Not used |
 | The host file | `references/host-claude-code.md` | `references/host-codex.md` | `references/host-antigravity.md` | `references/host-opencode.md` | `references/host-cursor.md` |
 | The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md | The folder of this SKILL.md | The folder of this SKILL.md | The folder of this SKILL.md |
 
 Read your host file once in Phase 0. On a host the table does not list, follow the portable path (no subagents, a numbered round for questions, the comparison test handed to the user) and say which parts were untested there.
 
-In Claude Code, Codex and Antigravity, before the first subagent or fresh-session run, load `mstack-best-model-for` in called mode once, for your vendor (table above) and the tiers `standard` (the comparison and test runs) and `most capable` (a fallback reviewer). Set what its "How to set" column gives on each of those runs: on a subagent the model and effort, or in Antigravity the subagent tier; on a headless run of the Claude Code client the full model id, never the alias of the Model column, because an alias can run another model there.
+In Claude Code, Codex and Antigravity, before the first subagent, fresh-session run or Phase 8 `mstack-vendors` call, load `mstack-best-model-for` in called mode once (`Vendor: both` in Claude Code and Codex, `Vendor: all` in Antigravity), requesting the tier `standard` (the comparison and test runs on this host's vendor) and the task description `code review` (for the reviewer vendors of Phase 8's `Models` line: `codex` alone in Claude Code, `claude` alone in Codex, both `claude` and `codex` in Antigravity). Set what its "How to set" column gives on each of those runs: on a subagent the model and effort, or in Antigravity the subagent tier; on a headless run of the Claude Code client or in a `Models` entry for `claude`, always use the full headless model id from `Claude headless id` / `How to set`, never an alias, because an alias can run another model there.
 
 ## Files in this skill
 
@@ -43,13 +43,13 @@ In Claude Code, Codex and Antigravity, before the first subagent or fresh-sessio
 
 1. **Confirm the target before you write.** No file of the created skill exists until the user confirmed where it goes.
 2. **Evidence before "finished".** A skill is finished only after the static check passed and a comparison test ran and its result was shown. Otherwise call it untested.
-3. **Use what is installed.** When an mstack skill covers a step and the host file lists it as supported here, run it. Otherwise use the fallback in `references/workflow-steps.md`, and say so. The three required shared skills have no fallback: without them Phase 0 stops.
+3. **Use what is installed.** When an mstack skill covers a step and the host file lists it as supported here, run it. Otherwise use the fallback in `references/workflow-steps.md`, and say so. The five required shared skills have no fallback: without them Phase 0 stops.
 4. **Self-contained.** Everything the created skill uses sits in its own folder. Other skills are named, never pointed at by path. The one exception is an agent definition of a plugin skill, which Claude Code loads only from the plugin's `agents/` folder: the skill names it by its listed type and states what it does without it.
 5. **Copy nothing unlicensed.** Adapted text is rewritten and credited inside the created skill's folder.
 6. **No private data in a public repository.** Names of people and companies, home paths, private hosts and credentials stay out.
 7. **Never overwrite without a yes.** An existing folder at the target location is shown to the user first.
 8. **No outward action.** Never commit, push, open a pull request or publish. Offer the next step.
-9. **A called skill's result block is not your answer.** `mstack-find-skills`, `mstack-best-model-for` and `mstack-research` each end with a result block. It ends the called skill, not your run: read it, and go straight on with your own next step. Your turn ends only at a question to the user, at a stop this file names, or with the Phase 9 report.
+9. **A called skill's result block is not your answer.** `mstack-find-skills`, `mstack-best-model-for`, `mstack-research` and `mstack-vendors` each end with a result block. It ends the called skill, not your run: read it, and go straight on with your own next step. Your turn ends only at a question to the user, at a stop this file names, or with the Phase 9 report.
 
 ## When the request does not fit
 
@@ -57,7 +57,7 @@ In Claude Code, Codex and Antigravity, before the first subagent or fresh-sessio
 - A name that breaks the rules or is longer than 64 characters: propose a valid one and ask.
 - A target folder you cannot write to: report the error, and write nothing anywhere else without asking.
 - A host that is none of the five: follow the portable path, and say which parts are untested there.
-- No network: report research, the public search, install offers and a reviewer of another vendor as not run, and continue the local steps.
+- No network: report research, the public search, install offers and, in Claude Code, Codex and Antigravity when no `mstack-vendors` block can be had, the review as not run with the reason (OpenCode and Cursor keep their built-in review steps), and continue the local steps.
 - An interrupted session: continue from the files already written, and offer `mstack-handoff` when it is installed.
 
 ## Phases
@@ -77,7 +77,7 @@ In Claude Code, Codex and Antigravity, before the first subagent or fresh-sessio
 
 ### 0. Start
 
-1. Read the host file for this host. In Claude Code, Codex and Antigravity, then check the three shared skills this skill calls, `mstack-find-skills`, `mstack-best-model-for` and `mstack-research`, as `references/workflow-steps.md` › Required shared skills says. A missing one stops the run there, with its install block and nothing written, also when the user said to continue without asking. In OpenCode and Cursor this check does not apply.
+1. Read the host file for this host. In Claude Code, Codex and Antigravity, then check the five shared skills this skill calls, `mstack-find-skills`, `mstack-best-model-for`, `mstack-research`, `mstack-vendors` and `mstack-receive-review`, as `references/workflow-steps.md` › Required shared skills says. A missing one stops the run there, with its install block and nothing written, also when the user said to continue without asking. In OpenCode and Cursor this check does not apply.
 2. Detect the target as `references/plugin-packaging.md` describes: a plugin target (both registries exist) or a local target.
 3. Ask in one round with your question tool, skipping what the user already said:
    - Create a new skill, or improve an existing one (which)?
@@ -124,7 +124,7 @@ Plugin target only. Add every file the repository requires, set the versions, an
 
 ### 8. Review
 
-For a plugin target, or when the user accepted it: get a read-only review from the cross-vendor reviewer of everything the earlier phases wrote, packaging included, as `references/plugin-packaging.md` › Cross-vendor review describes. Verify every finding against the files before acting. With no reviewer of another vendor, warn the user and use the fallback of the host file: a fresh context of your own vendor, recorded as same-vendor, or a subagent whose vendor is not known, recorded as that, or, when this session can start neither, your own second read of the files against the review prompt, recorded as same-vendor. The review is never left out. After fixing findings, run the static check, the scan and, for a plugin target, the repository's checks again.
+For a plugin target, or when the user accepted it: get a read-only review of everything the earlier phases wrote, packaging included, following `references/plugin-packaging.md` › Cross-vendor review for this host. In Claude Code, Codex and Antigravity, follow `Claude Code, Codex and Antigravity` there (`mstack-vendors` and `mstack-receive-review`, making no reviewer choice of your own, and reporting the review as not run with the reason if no block can be had). In OpenCode and Cursor, follow `OpenCode and Cursor` there and the host file. After fixing verified findings, run the static check, the scan and, for a plugin target, the repository's checks again.
 
 ### 9. Report
 

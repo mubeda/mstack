@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: start-file-missing-vendors
+expected_outcome: |
+  In Claude Code without mstack-vendors, execute-plan.md stops before any task with the install commands for
+  mstack-vendors and the name mstack-setup, and changes no file.
+context:
+  scaffold_script: place-files.sh

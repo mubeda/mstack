@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: resume-old-start-file
+expected_outcome: |
+  mstack-plan resumes a Draft folder whose execute-plan.md has the older rule 3 and failure bullet (auto-switching
+  rejected model): diff against the frozen file shows ONLY those two passages changed to match references/old-start-file.md,
+  Plan reviewed by and the recorded reviewer model are unchanged, and progress.md logs one edit entry.
+context:
+  scaffold_script: place-files.sh

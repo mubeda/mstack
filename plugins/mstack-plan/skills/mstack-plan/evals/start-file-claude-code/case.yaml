@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: start-file-claude-code
+expected_outcome: |
+  In Claude Code, opening execute-plan.md asks question 1 offering inline, mstack-claude-led-review and
+  mstack-claude-led-dev, and no workflow of another host.
+context:
+  scaffold_script: place-files.sh

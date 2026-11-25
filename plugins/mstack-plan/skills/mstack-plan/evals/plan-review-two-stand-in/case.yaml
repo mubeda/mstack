@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: plan-review-two-stand-in
+expected_outcome: |
+  Stand-in twin of plan-review-two (not checked in Antigravity). Sends Host: antigravity, Job: plan review,
+  Writers: unknown and no Leader model line; asks no question about the session's model; offers both claude and codex
+  with their models; after "Yes.", runs them one after the other (start 1 < end 1 < start 2 in vendors/calls.log);
+  saves both outputs under their vendors with a Handling section in reviews/plan-review-1.md; sends each unmerged to
+  mstack-receive-review; names both with writer unknown in progress.md and keeps Written by: unknown.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Stand-in case run in Claude Code or Codex with Host: antigravity; not checked in Antigravity.

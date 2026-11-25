@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: resume-current-start-file
+expected_outcome: |
+  mstack-plan resumes a Draft folder whose execute-plan.md already holds the current rule 3 and failure bullet
+  (or has no old failure bullet): cmp against execute-plan.frozen.md prints nothing, and progress.md logs no
+  start-file edit entry.
+context:
+  scaffold_script: place-files.sh

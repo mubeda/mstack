@@ -1,13 +1,11 @@
 # execute-plan.md template
 
-Read this in Phase 5. Copy the template into `<plan-folder>/execute-plan.md` and fill every placeholder that is known at planning time: the title, the plan folder, the dates, the base branch, the slug, the planning host, the plan reviewer with its model and effort (`<review model>`, `<review effort>`), the helper and fallback-reviewer models (`<cheap helper: claude>`, `<cheap helper: codex>`, `<standard helper: claude>`, `<standard helper: codex>`, `<fallback reviewer: claude>`, `<fallback reviewer: codex>`, each written as the model and its effort, from `mstack-best-model-for`'s answers for the tiers `cheap`, `standard` and `most capable`; a helper or fallback-reviewer placeholder whose answer is flagged as expensive holds the model that rule 8 of SKILL.md's phase 3, with `references/expensive-choices.md`, settled for that slot), the three Antigravity ones (`<cheap helper: antigravity>`, `<standard helper: antigravity>`, `<fallback reviewer: antigravity>`: for a plan made in Antigravity each is written as "the subagent tier `<tier>`", the tier of the choice rule 8 settled for that slot: the tier that the `antigravity` row for `cheap`, `standard` or `most capable` names under "How to set", or, when that row is flagged and got no yes, the tier of the alternative recorded for the slot; for a plan made in Claude Code or Codex, whose model block has no such row, each is written as `none (planned in <host>)`, with `Claude Code` or `Codex` as the host), and the recommended mode. Rule 8's principle of SKILL.md's phase 3 holds for every value you fill in: the start file names no flagged model that has no yes for its slot. That includes the reviewer recommendation of question 2: when a model it would recommend for a host is flagged in the model block, recommend the first model below it that is not flagged, and name the flagged one only as "the alternative, flagged as expensive: ask before using". A Claude reviewer's `<review model>` is the full model id that ran. When the plan review was run by an Antigravity subagent, `<review model>` is its subagent tier and the line ends there, without ", effort <review effort>". Leave the runtime placeholders exactly as written (`<model>`, `<effort>`, `<branch>`, `<repository root>`, `<tmp>`), because the session that executes the plan chooses or resolves them, possibly on another host. The file must work on its own: the session that executes it may not have `mstack-plan` installed, so everything the executor needs is in the file, and nothing points back into this skill's folder.
+Read this in Phase 5. Copy the template into `<plan-folder>/execute-plan.md` and fill every planning-time placeholder: the title (`<plan title>`), the plan folder (`<path of the plan folder, relative to the repository root>`), the date (`<yyyy-mm-dd>`), the base branch (`<base>`), the slug (`<slug>`), the planning host (`<Claude Code | Codex | Antigravity>`), the recommended mode and its reason (`<Inline | Workflow>`, `<one sentence from the plan>`, `<a | b>`, `<the reason above>`), and the helper models (`<cheap helper: claude>`, `<cheap helper: codex>`, `<standard helper: claude>`, `<standard helper: codex>`, each written as the model and its effort from `mstack-best-model-for`'s answers for `cheap` and `standard`, and `<cheap helper: antigravity>`, `<standard helper: antigravity>`: for a plan made in Antigravity each is written as "the subagent tier `<tier>`" settled by rule 8 of `SKILL.md` phase 3, and for a plan made in Claude Code or Codex each is written as `none (planned in <host>)`, with `Claude Code` or `Codex` as the host). Set `- Plan reviewed by: pending (Phase 7 plan review)` in Phase 5 so Phase 6's `check-plan.mjs` passes, then replace it in Phase 7 once the plan review completes (one entry per reviewer: vendor, model and effort when set, and Record value, separated by `; ` when two reviewers ran; or `fallback review (<Record>)`). Rule 8's principle of `SKILL.md` phase 3 holds for every value you fill in: the start file names no flagged model that has no yes for its slot. Leave every runtime placeholder in code spans or code blocks (`<branch>`, `<repository root>`, `<prompt file>`, `<scratch file>`, `<workflow>`, `<name>`) untouched, because the executing session fills them at run time, possibly on another host. The file must work on its own: the session that executes it may not have `mstack-plan` installed, so everything the executor needs is in the file, and nothing points back into this skill's folder.
 
 Pick the recommended mode from the plan itself.
 
-- Recommend **Workflow** when a round has two or more phases, or when the plan has more than about eight tasks, or when a shipped mistake would be costly (security, stored data, money, a public API). Lanes run in parallel and every task gets its own cross-vendor review.
-- Recommend **Inline** otherwise. One session implements the tasks in order, and one cross-vendor review covers the whole branch. It costs the fewest tokens.
-
-- A plan made in Antigravity recommends **Inline** whatever the two rules above say, because no mstack workflow runs in that host yet. Its reason says so.
+- Recommend **Workflow** when a round has two or more phases, or when the plan has more than about eight tasks, or when a shipped mistake would be costly (security, stored data, money, a public API). Lanes run in parallel and every task or phase gets its own review.
+- Recommend **Inline** otherwise. One session implements the tasks in order, and one review covers the whole branch. It costs the fewest tokens.
 
 Write the reason as one sentence that names the fact from the plan that decided it.
 
@@ -21,14 +19,25 @@ You are about to execute an approved implementation plan. Read this whole file b
 - Plan folder: <path of the plan folder, relative to the repository root>
 - Spec: <plan-folder>/spec.md (binding authority; the plan argues from it)
 - Planned on: <Claude Code | Codex | Antigravity>, <yyyy-mm-dd>
-- Plan reviewed by: <Codex | Claude | a same-vendor subagent> <review model>, effort <review effort>
+- Plan reviewed by: <reviewer and model>
 - Base branch: <base>
 - Recommended mode: <Inline | Workflow>, because <one sentence from the plan>
 
 ## 1. Check the plan
 
 1. Read `progress.md`, `plan.md`, `spec.md` and every file in `phases/`.
-   Check that `mstack-receive-review` is in this session's skill list (as `mstack-receive-review` or `<plugin>:mstack-receive-review`), because every review of this run is processed with it. When it is missing, stop before any work and print the install commands: `claude plugin install mstack-receive-review@mstack` (Claude Code) or `codex plugin add mstack-receive-review@mstack` (Codex), after `<claude|codex> plugin marketplace add mubeda/mstack`, or `agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/mstack-receive-review` (Antigravity), or `npx skills add mubeda/mstack --skill mstack-receive-review -g -a <claude-code|codex|antigravity> -y`; name `mstack-setup`, and say a new session is needed after the install.
+   Check that the three shared skills `mstack-vendors`, `mstack-best-model-for` and `mstack-receive-review` are in this session's skill list (each as `<name>` or `<plugin>:<name>`). When any of them is missing, stop before any work or file change, print this install block once per missing skill (every line, never running any command), and end your turn:
+
+   ```text
+   This start file needs <name>, which is not installed.
+   Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install <name>@mstack
+   Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add <name>@mstack
+   Antigravity: agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/<name>
+   Skills CLI:  npx skills add mubeda/mstack --skill <name> -g -a <claude-code|codex|antigravity> -y
+   Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
+   Then start a new session.
+   ```
+
 2. If `progress.md` says `Plan status: Draft`, stop. Tell the user the plan is not approved and ask them to approve it, or to finish it with `mstack-plan`.
 3. Compute the sha256 of `spec.md` (`sha256sum spec.md` or `shasum -a 256 spec.md`). If its first 12 hex digits differ from the `Spec` line of `progress.md`, the spec changed after planning. Stop and ask the user whether to re-plan or continue on the old plan.
 4. When `progress.md` has a `Branch` line, continue on that branch. Tasks marked Closed are never redone, but check first that each one's last logged commit is on the branch (`git merge-base --is-ancestor <commit> HEAD`). When it is not, because a workflow closed the task and stopped before integrating it, cherry-pick the logged commits from the logged branch. When that branch is gone, set the task back to In progress and log why.
@@ -36,33 +45,32 @@ You are about to execute an approved implementation plan. Read this whole file b
 
 ## 2. Ask the user first
 
-Before any other work, ask the user these questions in one message, using the host's question tool (in Claude Code `AskUserQuestion`; in Codex a numbered list in chat, then wait; in Antigravity `ask_question`, then wait). Skip a question only when the user's opening message already answers it.
+Before any other work, ask the user these two questions in one message, using the host's question tool (in Claude Code `AskUserQuestion`; in Codex a numbered list in chat, then wait; in Antigravity `ask_question`, then wait). Skip a question only when the user's opening message already answers it. In Antigravity this run sends no `Leader model` line and does not ask for it.
 
-1. How should the plan be executed?
-   (a) Inline. This session implements every task in order, red-green, then gets one review of the whole branch: cross-vendor in Claude Code and Codex, same-vendor in Antigravity.
-   (b) Workflow. In Claude Code, the `mstack-codex-review-workflow` skill (Codex reviews). In Codex, the `mstack-claude-review-workflow` skill (Claude reviews). Parallel writer lanes, a cross-vendor review per lane, one integrated branch.
-   (c) Codex develops. In Claude Code only, the `mstack-claude-pm-codex-dev` skill: Codex writes each phase, and Claude reviews, validates and commits it.
+1. How should the plan be executed? Show only option (a) and the two workflows of the host this session runs in — never offer or name another host's workflows in your question:
+   - (a) Inline. This session implements every task in order, red-green, then gets one review of the whole branch through `mstack-vendors` (or its fallback review when it offers none).
+   - (b) Review workflow: parallel writer lanes on this host, a review per lane through `mstack-vendors`, one integrated branch. Offer only this host's review workflow: `mstack-claude-led-review` in Claude Code, `mstack-codex-led-review` in Codex, `mstack-antigravity-led-review` in Antigravity.
+   - (c) Dev workflow: a developer of another vendor writes each phase, and this host reviews, validates and commits it. Offer only this host's dev workflow: `mstack-claude-led-dev` in Claude Code, `mstack-codex-led-dev` in Codex, `mstack-antigravity-led-dev` in Antigravity.
    I recommend (<a | b>), because <the reason above>.
-   In Antigravity offer only (a): no mstack workflow runs there, and the review of the branch is the same-vendor one of the review step.
-2. Which reviewer model and effort? I recommend <the recorded model and effort when this host's reviewer is the same vendor as the plan review, otherwise `gpt-6.2-sol` and `high` for Codex reviewers, `claude-opus-5-5` and `medium` for Claude reviewers>. A Claude reviewer takes a full model id, never an alias, because an alias can run another model in a headless run. Skip this question in Antigravity, where no model is chosen for the review.
-3. May this run commit each finished task to the branch in `progress.md`'s `Branch` line, or, when there is none, create the branch `plan/<slug>` from `<base>` and commit to it? Pushing and opening a pull request happen only when the user asks.
+2. May this run commit each finished task to the branch in `progress.md`'s `Branch` line, or, when there is none, create the branch `plan/<slug>` from `<base>` and commit to it? Pushing and opening a pull request happen only when the user asks.
 
 ## 3. Workflow execution
 
-1. Load the workflow skill for this host. If it is not installed, give the user its install command and offer inline execution instead.
-   - Claude Code: `claude plugin marketplace add mubeda/mstack`, then `claude plugin install mstack-codex-review-workflow@mstack`, then start a new session.
-   - Codex: `codex plugin marketplace add mubeda/mstack`, then `codex plugin add mstack-claude-review-workflow@mstack`, then start a new session.
-   - Either host, with the skills CLI: ask the user the scope (global or this repository), the method (symlink or copy) and the agents, then run `npx skills add mubeda/mstack --skill <workflow> -a <claude-code | codex> -y`, adding `-g` for global and `--copy` for copy.
-   - Choice (c), Claude Code only: `claude plugin marketplace add mubeda/mstack`, then `claude plugin install mstack-claude-pm-codex-dev@mstack`, then start a new session; or with the skills CLI, after the same three questions, `npx skills add mubeda/mstack --skill mstack-claude-pm-codex-dev -a claude-code -y`. It also needs the OpenAI Codex plugin for Claude Code; `mstack-setup` reports and installs it.
-2. Give the workflow this plan folder as its work items, and tell it that every review is processed with `mstack-receive-review` without asking the user. It reads the folder as an `mstack-plan` plan: every task is a work item, `progress.md` is its status file, and each task's Skills, Read first and Done when go into the lane brief.
-3. The answers to questions 2 and 3 above answer the workflow's own model, effort and commit questions. The workflow still asks its execution mode question, and Workflow mode is recommended when a round has more than one phase. For choice (c), the same two answers answer its reviewer and commit questions; it still asks which developer model and effort to use.
+1. Load the workflow skill the user picked for this host from question 1. If it is not installed, print its install lines for this host (never run `agy plugin install`) and offer inline execution instead:
+   - Claude Code: `claude plugin marketplace add mubeda/mstack`, then `claude plugin install <workflow>@mstack`, then start a new session.
+   - Codex: `codex plugin marketplace add mubeda/mstack`, then `codex plugin add <workflow>@mstack`, then start a new session.
+   - Antigravity: `agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/<workflow>`, then start a new session.
+   - Any host, with the skills CLI: print `npx skills add mubeda/mstack --skill <workflow> -g -a <claude-code | codex | antigravity> -y` for the user to run (or hand the install to `mstack-find-skills` or `mstack-setup`; never run installs yourself).
+   - Or run `mstack-setup`, which reports and installs missing skills and tools for this host.
+2. Give the workflow this plan folder as its work items, and tell it that every review is processed with `mstack-receive-review` without asking the user. It reads the folder as an `mstack-plan` plan: every task is a work item, `progress.md` is its status file, and each task's Skills, Read first and Done when go into the lane or phase brief.
+3. The answer to question 2 above answers the workflow's own commit question. The workflow asks its remaining setup questions (such as execution mode, models, and in Antigravity its leader-model setup question).
 
 ## 4. Inline execution
 
 ### Rules for the whole run
 
-1. Work on the branch from question 3. Never work directly on the default branch without the user's consent.
-2. Set `Executor: inline` and `Branch: <branch>` in `progress.md`.
+1. Work on the branch from question 2. Never work directly on the default branch without the user's consent.
+2. Set `Executor: inline` and `Branch: <branch>` in `progress.md`. On every task you close, record every vendor whose models changed that task's files in its Closed log line: write `Executed by: claude.` in Claude Code and `Executed by: codex.` in Codex when this session did the whole task; when closing a resumed In progress task that another vendor also edited, list all distinct writers (for example `Executed by: claude, codex.`), or write `Executed by: unknown.` when the interrupted work's writer is not recorded; in Antigravity omit `Executed by:` completely (a missing `Executed by:` means `unknown`; never guess a vendor).
 3. Keep going without status check-ins. Stop and ask only for: an irreversible or destructive operation, a security-sensitive action, a side effect outside this repository (a push, a publish, a merge), a reviewer model that was rejected (the review step below), or a plan so broken that every way forward is a guess. When the context or the session is running out, stop at a safe point, make sure `progress.md` is current, write a handoff with `mstack-handoff` when it is installed, and give its path; the next session continues from `progress.md` and the handoff.
 4. When the plan is wrong in a small way (a renamed function, a moved file), make the smallest change that still satisfies the spec, and log it in `progress.md` as `Ruling: <what>, because <why>. Cost if wrong: <impact>.`
 5. Never claim a task is done without fresh evidence: run its Done when command in this session, read the whole output and the exit code, and copy the evidence into the log.
@@ -80,36 +88,40 @@ Pick the next task by dependencies. A task is ready when every task in its Depen
    - The output does not match because the code is wrong: debug it before changing anything (load `mstack-diagnose` when it is installed). Never patch the symptom.
    - The output does not match because the plan is wrong: apply rule 4.
 5. Run the task's Done when command and the phase's lint and format commands.
-6. Commit the task's files together with `progress.md`, where the task is now Closed and the log line carries the command, the result and the commit range.
+6. Commit the task's files together with `progress.md`, where the task is now Closed and the log line carries `Executed by: <writers>.` (for example `claude`, `codex`, `claude, codex` on a resumed task, or `unknown` when prior writers are not recorded) before `Evidence:` in Claude Code and Codex (and no `Executed by:` in Antigravity), then `Evidence:` with the command, the result and the commit range.
 
 After a phase's last task, run its Checkpoint and log the result. A failing checkpoint reopens the task that owns the failure.
 
 ### After the last task
 
 1. Run every check in `plan.md` › End-to-end verification and log each result.
-2. Get one review of the whole branch, read-only. In Claude Code and Codex it is cross-vendor, with the model and effort from question 2. In Antigravity it is the same-vendor review of the Antigravity bullet below, which takes no model from a question. Write its output outside the repository: `<tmp>` below is the session's scratch folder when the host has one, otherwise `${TMPDIR:-/tmp}/mstack-plan-<slug>`, created first. Put a path in double quotes in these commands when it contains a space.
-   - Claude Code (Codex reviews, through the `codex` skill of the skill-codex plugin; timeout at least 600 seconds for `high`, 1200 for `xhigh`, 1800 for `max`):
+2. Get one read-only review of the whole branch through `mstack-vendors`. Never invent or write a reviewer command, flag or model of your own: copy the command from the `mstack-vendors` result block and follow its `Steps`.
+   - **Collect `Writers:`** from the `Executed by:` field of every Closed task log line in `progress.md` (plus this session's own vendor if this session edited code: `claude` in Claude Code, `codex` in Codex, `unknown` in Antigravity). Use only task executors, never `Written by:` from the plan header. If every Closed task has a known vendor (`claude`, `codex`, `antigravity`, `other`) and none is `unknown`, list the distinct vendors separated by commas (for example `codex`). If any Closed task has no `Executed by:` or holds `unknown`, or if this session edited code in Antigravity, set `Writers: unknown`.
+   - **Look up reviewer models** once with `mstack-best-model-for` in called mode for `Task: code review` (`Vendor: both`). Build the `Models:` line for `claude` and `codex` without this host's own vendor (`codex` alone in Claude Code, `claude` alone in Codex, both `claude` and `codex` in Antigravity), always converting any Claude model to its full headless id from `Claude headless id` / `How to set`, never an alias.
+   - **Call `mstack-vendors`** with this exact literal message kept verbatim in the conversation (never a summary). `mstack-plan` wrote this start file, so this inline run calls on `mstack-plan`'s behalf (`Called by: mstack-plan`). In Antigravity this run sends no `Leader model` line and does not ask for it:
 
-     Write this prompt to `<tmp>/review-prompt.md` with your file tool, never with `echo` or a heredoc, so no shell expands anything in it:
+     ```text
+     Called by: mstack-plan
+     Host: <claude-code | codex | antigravity>
+     Workspace: <repository root>
+
+     Job: code review
+     Writers: <vendors from Executed by | unknown>
+     Workflow: review
+     Models: <vendor>=<model id> <effort>[; <vendor>=<model id> <effort>]
+     ```
+
+     Write the `mstack-vendors` result block into the conversation before running any command.
+   - **Offer or fall back:**
+     - When `Recommend:` names one or more reviewers: ask the user once with your question tool which offered reviewers should review and on which model (the recommendation is the default; never offer `antigravity`). If any chosen default model is flagged as expensive in `mstack-best-model-for`, ask a question of its own naming the next non-flagged model down (a model the user explicitly typed draws no question; a session that cannot ask runs the recommendation on non-flagged models). Whenever the user's chosen reviewer subset or any model or effort differs from the discovery block's `Recommend:` and `Models:`, send one more literal message to `mstack-vendors` with `Models:` holding only the chosen reviewer(s) and their final model and effort (full headless id for Claude), and run only that execution block's commands.
+     - When `Recommend:` says `a fallback review`: ask no pick question and no model question, warn the user that no other vendor is reviewing and this is a fallback review, and follow the block's `Steps` for the fallback review.
+   - **Run the final block:** First check that the branch diff exists and is non-empty (`git -C <repository root> diff <base>...HEAD > <scratch>/branch.diff && test -s <scratch>/branch.diff`, where `<scratch>` is a folder outside the repository). If `git diff` exits non-zero (for example a base branch that does not exist) or `<scratch>/branch.diff` is empty, launch no reviewer: fix the base branch and rerun, or report an empty diff as nothing to review, never as a clean review. When the diff is non-empty, write the review prompt below to `<prompt file>` in `<scratch>` using your file tool (never `echo` or a heredoc), together with that branch diff (or its path when the block's `Steps` ask for one):
 
      ```text
      Read-only code review. Do not edit or run anything that changes files. Review branch <branch> against <base> (git diff <base>...HEAD). The plan is in <plan-folder> and the spec it implements is <plan-folder>/spec.md. Check that every requirement in the spec is met, and check correctness, regressions, missing tests and scope. Number the findings. For each one give where it is (file and line), what fails, and how to see it fail. End with one verdict line that says whether the branch can be merged as it is. No findings is a valid result.
      ```
 
-     ```bash
-     codex exec -m <model> --config model_reasoning_effort="<effort>" --sandbox read-only -C <repository root> - \
-       < <tmp>/review-prompt.md 2> <tmp>/codex-review.err > <tmp>/codex-review.md
-     ```
-   - Codex (Claude reviews, through the Claude Code client's own headless mode; it needs network and writes under the home folder, so run it as an approved command). The review gets reading tools only, so write the branch's changes to a file first, and add one line to the prompt above: "The diff is in <tmp>/branch.diff." The command is for a session that is not itself Claude Code.
-
-     ```bash
-     git -C <repository root> diff <base>...HEAD > <tmp>/branch.diff && test -s <tmp>/branch.diff && \
-       cd <repository root> && claude -p --safe-mode --model <model> --effort <effort> --output-format json --permission-mode plan --tools "Read,Grep,Glob" --settings '{"advisorModel":"off"}' --add-dir <tmp> \
-       < <tmp>/review-prompt.md > <tmp>/claude-review.json 2> <tmp>/claude-review.err
-     ```
-     Claude starts only when the diff was written and is not empty; `--add-dir <tmp>` lets the reviewer read it. When `git diff` failed (for example a base that does not exist) or the diff is empty, no review ran: fix the base and run it again, and report an empty diff as nothing to review, never as a clean review. Copy the command whole: Claude Code loads the user's own setup (settings, plugins, hooks, a second advisor model) unless these flags are used. `<model>` is a full model id, never an alias. The review is the `result` field of the JSON. It counts only when all four hold: the file parses as JSON, `is_error` is `false`, the keys of `modelUsage` are only the model id you asked for, and `permission_denials` is an empty list. Give it at least 600 seconds, and do not go on before the command has completed and you have read its output.
-   - Antigravity (no cross-vendor reviewer yet): warn the user that the review is same-vendor, write the prompt above to `<tmp>/review-prompt.md`, and give it to a fresh, read-only subagent, `invoke_subagent` on <fallback reviewer: antigravity>. When that says `none (planned in <host>)`, review the branch yourself against the same prompt and log it as a self-review. Otherwise log it as a same-vendor review, and say which it was in the final report.
-   - An empty output, a non-zero exit, or a Claude result that fails one of its four checks is never a clean review. Read the end of the `.err` file, fix the cause (a rejected effort: the next lower level, without asking; a rejected model: ask the user once for another model and record it, because the model chosen in question 2 is not consent to another one), and rerun once. If it still fails, the user names no other model, or this host's reviewer is not installed, warn the user that the review will be same-vendor, and run the same review prompt through a fresh, read-only subagent of this host (in Claude Code the `Agent` tool with the model and effort of <fallback reviewer: claude>; in Codex a separate `codex exec -m <fallback model> --config model_reasoning_effort="<fallback effort>" --sandbox read-only -C <repository root> - < <tmp>/review-prompt.md`, where those two are the model and effort of <fallback reviewer: codex>, with the prompt above written to that file, as an approved command because it needs network). Log it as a same-vendor review, and say so in the final report. The fallback never waits on the user; a rejected model is the one thing that does.
-3. Process the review with the `mstack-receive-review` skill, without asking the user anything. Verify every finding against the code and reproduce it before accepting it. Fix each real finding with a test you saw fail and then pass. Send an unclear finding back to the reviewer once. Reject a finding that is wrong, cannot be verified, or contradicts a decision the user already made, with the reason. Log every finding and its outcome in `progress.md`.
-4. Report to the user: the goal and the outcome in the first line, then the final `progress.md` table, the end-to-end results, every Ruling, every review finding with what happened to it (fixed, rejected and why, deferred), and what was not run and why. Offer to open a pull request. Do not push without the user's request.
+     Execute the commands and `Steps` of the final block in full: fill only the run-time placeholders the block names (`<prompt file>` and `<scratch file>`); with two reviewers, run them one after the other so the second starts only after the first completes (each with its own approval outside the sandbox in Antigravity, keeping each exit code and output apart); wait for every command to complete and read its output before going on; handle failures and any rejected model exactly as the `Steps` say.
+3. Process each reviewer's output unchanged and unmerged with `mstack-receive-review`, once per review, sending the three caller lines (`Review:`, `Writers:`, `Reviewer vendor:`) that the block's `Steps` specify, without asking the user anything. Verify every finding against the code and reproduce it before accepting it. Fix each real finding with a test you saw fail and then pass. Send an unclear finding back to the reviewer once. Reject a finding that is wrong, cannot be verified, or contradicts a decision the user already made, with the reason. Log every review (its vendor or fallback, model when set, and exact Record value from `mstack-receive-review`, never upgrading it to `cross-vendor`) and every finding with its outcome in `progress.md`.
+4. Report to the user: the goal and the outcome in the first line, then the final `progress.md` table, the end-to-end results, every Ruling, every review with its Record value and every review finding with what happened to it (fixed, rejected and why, deferred), and what was not run and why. Offer to open a pull request. Do not push without the user's request.
 ````

@@ -45,16 +45,8 @@ Write the prompt to a file with the file tool and pass it on stdin, so no shell 
 
 ## Cross-vendor reviewer
 
-Claude, by a read-only run of the Claude Code client with the review prompt on stdin. It needs the network, so run it as an approved command:
-
-```bash
-cd "<working folder>" && claude -p --safe-mode --model <model> --effort <effort> --output-format json --permission-mode plan --tools "Read,Grep,Glob" --settings '{"advisorModel":"off"}' < "<prompt file>" > "<result file>"
-```
-
-`<model>` is the full model id and `<effort>` the effort that `mstack-best-model-for` returns for the vendor `claude` and the tier `most capable`. The id is in its "How to set" column; never pass the alias, because an alias can run another model. When that row says `Expensive: yes`, ask the user before the run. Put what the reviewer reads in the working folder. The review is the `result` field of the JSON in `<result file>`; `is_error` must be `false`, and `modelUsage` should name only `<model>`. Wait for the command to end and read its output before you report. Claude Code loads the user's own setup (settings, plugins, hooks, a second advisor model) unless these flags are used, so copy the command whole. The flags were confirmed on 2026-11-23 with Claude Code 2.1.330 from a clean shell; a run started from this host was not confirmed.
-
-When the `claude` command is not installed, or the run still fails after one rerun, warn the user and use a separate read-only `codex exec --sandbox read-only` run (with `--skip-git-repo-check` when the folder is not a Git repository) on the model and effort `mstack-best-model-for` returns for the tier `most capable`, recorded as a same-vendor review.
+From `mstack-vendors`, as `plugin-packaging.md` › Cross-vendor review says.
 
 ## mstack skills supported here
 
-Twenty-four of the twenty-six mstack skills, as of 2026-11-24: `mstack-auto`, `mstack-research`, `mstack-write-issue`, `mstack-anonymize`, `mstack-web-ui`, `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-claude-review-workflow`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-vendors`, `mstack-setup`, and this skill. `mstack-codex-review-workflow` and `mstack-claude-pm-codex-dev` drive Claude Code tools and do not run here.
+Twenty-five of the twenty-nine mstack skills, as of 2026-11-24: `mstack-auto`, `mstack-research`, `mstack-write-issue`, `mstack-anonymize`, `mstack-web-ui`, `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-codex-led-review`, `mstack-codex-led-dev`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-vendors`, `mstack-setup`, and this skill. `mstack-claude-led-review`, `mstack-claude-led-dev`, `mstack-antigravity-led-review` and `mstack-antigravity-led-dev` are the Claude Code and Antigravity workflows and do not run here.

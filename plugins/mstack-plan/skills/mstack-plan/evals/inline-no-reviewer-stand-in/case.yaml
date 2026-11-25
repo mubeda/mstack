@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: inline-no-reviewer-stand-in
+expected_outcome: |
+  Stand-in twin of inline-no-reviewer (not checked in Antigravity). Sends Writers: unknown and no Leader model line;
+  no pick question and no model question; fresh read-only review names the planted whitespace defect; warning shown;
+  progress.md logs the review as writer unknown, never cross-vendor; calls.log does not exist.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Stand-in case run in Claude Code or Codex with Host: antigravity; not checked in Antigravity.

@@ -20,4 +20,4 @@ This credit is the only place in this skill that names that project. Nothing of 
 
 ## From this repository
 
-`scripts/codex-dev.mjs` is adapted from the `mstack-claude-pm-codex-dev` skill of this repository, under the same license. It is not a third-party component. It runs the OpenAI Codex plugin's own script, which the user installs separately; nothing of that plugin is copied into this skill.
+`scripts/codex-dev.mjs` is adapted from this repository's earlier Codex-developer workflow, under the same license. It is not a third-party component. It runs the OpenAI Codex plugin's own script, which the user installs separately; nothing of that plugin is copied into this skill.
