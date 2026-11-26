@@ -66,6 +66,7 @@ One row per mstack skill. "Next in its chain" names the skill that takes this on
 | Meeting notes or a transcript, and the decisions, action items and open points in them | `mstack-decisions` | Claude Code, Codex, Antigravity | | |
 | A file or a text whose personal, customer or company identifiers are to be replaced before it is given to a model or to other people: anonymizing, redacting or cleaning data. Not what the data shows or what was decided in it | `mstack-anonymize` | Claude Code, Codex, Antigravity | | |
 | A web page, a screen, a component, a form or a layout to build, restyle, polish or review for how it looks, behaves and can be used, small changes of that kind included. Not native apps, images or server code | `mstack-web-ui` | Claude Code, Codex, Antigravity | | |
+| Git merge, rebase, cherry-pick, stash-pop, or staged marker conflicts to resolve, or unmerged paths left by a Git operation | `mstack-resolve-merge-conflicts` | Claude Code, Codex, Antigravity | | |
 | A new agent skill to create, or an existing one to fix, improve, test or benchmark | `mstack-skill-creator` | Claude Code, Codex, Antigravity | | |
 | Which installed or public skill fits a job, or installing a skill that was found | `mstack-find-skills` | Claude Code, Codex, Antigravity | | |
 | A question to answer from the web, forums or official documentation, or what a package's documentation, changes or known fixes say for the version in use | `mstack-research` | Claude Code, Codex, Antigravity | | |

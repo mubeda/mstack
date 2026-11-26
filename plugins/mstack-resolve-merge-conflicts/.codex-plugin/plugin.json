@@ -1,0 +1,27 @@
+{
+  "name": "mstack-resolve-merge-conflicts",
+  "version": "0.1.0",
+  "description": "Resolves Git merge, rebase, cherry-pick, stash-pop, and staged marker-only conflicts using a read-only local Node.js script that extracts only unresolved paths, compact hunks, diff3 stages, and commit subjects instead of loading full files into context. Traces both sides' intent from local Git history before editing, regenerates lockfiles and generated files instead of hand-merging them, handles rename/delete conflicts against the merge base, escalates genuine intent contradictions, binaries, and submodules, verifies zero remaining markers after staging, runs project checks, and asks before committing, continuing, or aborting. Node.js 18 or later and Git, nothing to install. One skill for Claude Code, Codex and Antigravity.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "git",
+    "merge-conflicts",
+    "rebase",
+    "mstack"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Resolve Merge Conflicts",
+    "shortDescription": "Compact Git conflict extraction, intent tracing, lockfile regeneration, and marker verification.",
+    "longDescription": "Resolves Git merge, rebase, cherry-pick, stash-pop, and staged marker-only conflicts without dumping whole files into context. A read-only local Node.js script extracts only unresolved paths, compact hunks, diff3 stages, and commit subjects. Traces intent from local Git history, regenerates lockfiles, escalates genuine contradictions, binaries, and submodules, verifies zero remaining markers after staging, and asks before committing or continuing.",
+    "developerName": "mubeda",
+    "category": "Development",
+    "capabilities": [
+      "Read",
+      "Write"
+    ]
+  }
+}

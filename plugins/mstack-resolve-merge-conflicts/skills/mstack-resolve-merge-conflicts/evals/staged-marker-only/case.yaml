@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: staged-marker-only
+expected_outcome: |
+  The skill detects conflict markers in an already-staged file while ignoring an untouched doc file
+  with example markers, resolves and re-stages the file, passes --verify, confirms a clean rerun
+  is a no-op, and asks before committing.
+context:
+  scaffold_script: place-files.sh
