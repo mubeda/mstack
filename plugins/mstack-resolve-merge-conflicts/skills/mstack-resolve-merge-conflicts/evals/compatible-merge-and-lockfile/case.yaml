@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: compatible-merge-and-lockfile
+expected_outcome: |
+  The skill inspects conflicts with scripts/conflict-context.mjs, traces intent from both branches,
+  merges additive imports and compatible validation+logging logic while preserving unrelated lines,
+  traces the incoming rename and applies local edits to the relocated file, handles package-lock.json
+  without hand-editing conflict markers, stages resolved files before running --verify and node --test,
+  and asks the user before running git commit.
+context:
+  scaffold_script: place-files.sh

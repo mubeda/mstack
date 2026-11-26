@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Daily-driver agent skills for Claude Code, Codex CLI and Antigravity, packaged as independently installable plugins.",
-    "version": "0.15.0"
+    "version": "0.16.0"
   },
   "plugins": [
     {
@@ -91,7 +91,7 @@
     {
       "name": "mstack-skill-creator",
       "description": "Create or improve agent skills (SKILL.md folders) that Claude Code, Codex, Antigravity, OpenCode and Cursor all load: an interview, a check for an existing skill, writing by portable rules, a static check, a comparison test against a baseline, and for an mstack-style repository the full plugin packaging and the cross-vendor review that mstack-vendors offers. Uses the other mstack skills when they are installed. Never commits or publishes on its own.",
-      "version": "0.3.11",
+      "version": "0.3.12",
       "author": {
         "name": "mubeda"
       },
@@ -121,7 +121,7 @@
     {
       "name": "mstack-find-skills",
       "description": "Find the skills that fit a job: the installed skills scored per task, then vetted public candidates from skills.sh for the gaps only (audits, installs, license and the skill's own text), installed only after the user's yes. Called by the other mstack skills for their tasks. One skill for Claude Code, Codex and Antigravity.",
-      "version": "0.2.11",
+      "version": "0.2.12",
       "author": {
         "name": "mubeda"
       },
@@ -131,7 +131,7 @@
     {
       "name": "mstack-setup",
       "description": "Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: a status script for the host, then one list of install commands (codegraph, ponytail, the other vendors' clients, the mstack skills) that runs only after one yes, and a final check. One skill for Claude Code, Codex and Antigravity.",
-      "version": "0.2.12",
+      "version": "0.2.13",
       "author": {
         "name": "mubeda"
       },
@@ -211,7 +211,7 @@
     {
       "name": "mstack-auto",
       "description": "A router for the mstack skills. Give it any prompt and it starts the one mstack skill that fits, after one line that says which skill and why. It picks the earliest missing step of a chain (brainstorm, spec, plan, delivery), asks one question on a real tie, names a fitting skill that is missing or runs only on another host, and hands a job no mstack skill covers to mstack-find-skills. It starts only when asked and never does the job itself. One skill for Claude Code, Codex and Antigravity.",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "author": {
         "name": "mubeda"
       },
@@ -256,6 +256,16 @@
         "name": "mubeda"
       },
       "source": "./plugins/mstack-web-ui",
+      "category": "development"
+    },
+    {
+      "name": "mstack-resolve-merge-conflicts",
+      "description": "Resolves Git merge, rebase, cherry-pick, stash-pop, and staged marker-only conflicts using a read-only local Node.js script that extracts only unresolved paths, compact hunks, diff3 stages, and commit subjects instead of loading full files into context. Traces both sides' intent from local Git history before editing, regenerates lockfiles and generated files instead of hand-merging them, handles rename/delete conflicts against the merge base, escalates genuine intent contradictions, binaries, and submodules, verifies zero remaining markers after staging, runs project checks, and asks before committing, continuing, or aborting. Node.js 18 or later and Git, nothing to install. One skill for Claude Code, Codex and Antigravity.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-resolve-merge-conflicts",
       "category": "development"
     }
   ]

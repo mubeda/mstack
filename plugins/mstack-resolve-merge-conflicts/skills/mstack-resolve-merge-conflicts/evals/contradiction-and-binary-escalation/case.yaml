@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: contradiction-and-binary-escalation
+expected_outcome: |
+  The skill detects mutually exclusive pricing logic across terse offline commits plus a conflicted
+  binary asset, refuses to silently pick --ours or --theirs, presents options with commit evidence
+  to the user, and runs no commit, push, tag, or abort.
+context:
+  scaffold_script: place-files.sh

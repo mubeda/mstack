@@ -35,6 +35,7 @@ When a skill from the mstack marketplace fits the work, list it before any other
 | A known problem, change or deferred follow-up to write up as one tracker issue | `mstack-write-issue` |
 | A file or a text whose personal, customer or company identifiers are to be replaced before it goes to a model or to other people | `mstack-anonymize` |
 | A web page, screen, component or form to build, restyle or review | `mstack-web-ui` |
+| Resolving Git merge, rebase, cherry-pick, stash-pop, or staged conflict markers | `mstack-resolve-merge-conflicts` |
 | A product-level plan for an initiative, split into ordered epics, with no code | `mstack-product-plan` |
 | One epic detailed for developers by a product person | `mstack-epic` |
 | Customer feedback (tickets, interviews, surveys) to turn into evidence with counts and quotes | `mstack-evidence` |
