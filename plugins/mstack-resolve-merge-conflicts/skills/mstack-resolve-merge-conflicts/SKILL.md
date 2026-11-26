@@ -81,9 +81,10 @@ Take one side wholesale (`git checkout --ours -- "<path>"` or `git checkout --th
    node "<skill-folder>/scripts/conflict-context.mjs" --verify
    ```
    It must exit `0` (`unmerged files: 0` and `marked files: 0`). If it exits `1`, fix every listed path or remaining marker, re-stage it, and re-run `--verify` until it exits `0`.
-3. Run project checks:
-   - **Single-stop operation (`merge`, `cherry-pick`, `revert`, `squash-merge`, `marker-only`, or final rebase commit):** discover and run the project's build, lint, or test command covering the touched area and full suite where practical.
-   - **Intermediate stop in a multi-commit rebase (`k/n` where `k < n`):** run fast targeted checks/tests for the conflicted area first.
+3. Run project checks (with untrusted-command provenance gate):
+   - **Provenance & trust gate before executing project code:** Before running any test, build, lint, codegen, or package-manager command, check whether the incoming branch came from an untrusted source (such as an external PR or fork) or modified executable build, test, script, or tool configuration files (for example `package.json` scripts, `Makefile`, `pyproject.toml`, `Cargo.toml`, `.npmrc`, build/codegen configs, or hook scripts) in `git diff --name-only HEAD...<incoming-ref>` (or the staged/worktree diff). Whenever the incoming changes are untrusted or modified any build/test/script configuration and the session is not running inside a no-secret, no-network, write-confined sandbox, show the exact command and its provenance (which files changed) and ask the user with your question tool for approval before executing it.
+   - **Single-stop operation (`merge`, `cherry-pick`, `revert`, `squash-merge`, `marker-only`, or final rebase commit):** discover and run the approved project build, lint, or test command covering the touched area and full suite where practical.
+   - **Intermediate stop in a multi-commit rebase (`k/n` where `k < n`):** run fast targeted checks/tests for the conflicted area first (applying the same provenance gate).
    - **No automated check discoverable:** state clearly that no test or build command was found, confirm `--verify` passed, and never fabricate a passing check.
 
 ### 5. Report and ask before finishing the Git operation

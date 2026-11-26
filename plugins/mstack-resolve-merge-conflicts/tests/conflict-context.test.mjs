@@ -449,6 +449,10 @@ test('Task 1.3: skips modified binaries and Markdown setext ======= headings, fl
   writeRepoFile(repo, 'unterm.txt', 'a\n<<<<<<< HEAD\nno end\n');
   // Nested conflict markers
   writeRepoFile(repo, 'nested.txt', '<<<<<<< A\n<<<<<<< B\nx\n=======\ny\n>>>>>>> B\n=======\nz\n>>>>>>> A\n');
+  // Orphaned closing and diff3 base markers must fail --verify
+  writeRepoFile(repo, 'orphan-end.txt', 'resolved\n>>>>>>> incoming\n');
+  writeRepoFile(repo, 'orphan-base.txt', 'resolved\n||||||| base\n');
+  git(repo, ['add', 'orphan-end.txt', 'orphan-base.txt']);
 
   const sum = runCli(repo, ['--json']);
   assert.equal(sum.status, 0, sum.stderr);
@@ -457,10 +461,12 @@ test('Task 1.3: skips modified binaries and Markdown setext ======= headings, fl
   assert.equal(byPath.has('setext.md'), false, 'lone ======= in Markdown setext heading must not fail --verify');
   assert.ok(byPath.get('unterm.txt')?.parse_error);
   assert.ok(byPath.get('nested.txt'));
+  assert.ok(byPath.get('orphan-end.txt')?.parse_error, 'orphaned >>>>>>> must be flagged');
+  assert.ok(byPath.get('orphan-base.txt')?.parse_error, 'orphaned ||||||| must be flagged');
 
   const ver = runCli(repo, ['--verify', '--json']);
   assert.equal(ver.status, 1);
-  assert.equal(ver.json.marked_files.length, 2);
+  assert.equal(ver.json.marked_files.length, 4);
 
   // Index-only add/add conflict with zero markers still fails --verify independently
   const idxRepo = initRepo({ 'base.txt': 'x\n' });

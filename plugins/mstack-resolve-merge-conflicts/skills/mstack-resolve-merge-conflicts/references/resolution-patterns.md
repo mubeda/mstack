@@ -9,15 +9,15 @@ Recognized lockfiles and generated files (`generated=true` in `conflict-context.
 1. **Never hand-edit conflict markers inside a lockfile or generated artifact.**
 2. Resolve the source manifest first (for example `package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`).
 3. Check out one clean baseline side of the lockfile (`git checkout --ours -- <path>` or `--theirs`) so markers are removed before regeneration.
-4. Regenerate using the project's own tool, preferring offline flags when available:
-   - npm (`package-lock.json`): `npm install --package-lock-only --offline` (ask before omitting `--offline`)
-   - pnpm (`pnpm-lock.yaml`): `pnpm install --lockfile-only --offline` (ask before omitting `--offline`)
+4. Regenerate using the project's own tool, preferring offline and script-disabled flags when available:
+   - npm (`package-lock.json`): `npm install --package-lock-only --offline --ignore-scripts` (ask before omitting `--offline`)
+   - pnpm (`pnpm-lock.yaml`): `pnpm install --lockfile-only --offline --ignore-scripts` (ask before omitting `--offline`)
    - yarn (`yarn.lock`): `yarn install --mode=update-lockfile` (ask first if network access is required)
    - Cargo (`Cargo.lock`): `cargo generate-lockfile --offline` or `cargo check --offline` (ask before online resolution)
    - Go (`go.sum`): `go mod tidy` (ask before running if module downloads may access the network)
    - Python (`uv.lock` / `poetry.lock`): `uv lock --offline` / `poetry lock --no-update` (ask before network access)
    - Other generated artifacts (protobuf, GraphQL, OpenAPI, build outputs): run the repository's documented codegen command.
-5. **Network gate:** If offline regeneration fails or the tool needs network access, ask the user with your question tool before running any networked command.
+5. **Trust & network gate:** Before executing any lockfile or codegen command, check whether the incoming branch comes from an untrusted source or modified package-manager, build, or codegen configuration (for example `package.json` scripts, `.npmrc`, `Cargo.toml`, `pyproject.toml`, or codegen configs). If so—or if offline regeneration fails and the tool needs network access—show the exact command and changed config provenance and ask the user with your question tool before running it (unless inside a no-secret, no-network, write-confined sandbox).
 6. **Missing tool:** If the required package manager or generator binary is not on `PATH`, do not hand-merge the file. Report the missing tool and give the user the exact regeneration command to run.
 
 ## 2. Deleted-modified and renamed paths (`deleted-by-them`, `deleted-by-us`)

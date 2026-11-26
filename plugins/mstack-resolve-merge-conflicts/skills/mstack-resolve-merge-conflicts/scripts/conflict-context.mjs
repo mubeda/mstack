@@ -302,6 +302,9 @@ function parseConflictHunks(lines, context, markerSize = 7) {
   while (i < lines.length) {
     const startMatch = START_RE.exec(lines[i]);
     if (!startMatch) {
+      if (!parseError && (BASE_RE.test(lines[i]) || END_RE.test(lines[i]))) {
+        parseError = `stray conflict marker at line ${i + 1}`;
+      }
       i++;
       continue;
     }
@@ -572,9 +575,9 @@ function serializeReport(repoRoot, report, includeDetails, maxLines) {
 }
 
 function firstMarkerLine(lines, markerSize = 7) {
-  const { start: START_RE } = getMarkerRegexes(markerSize);
+  const { start: START_RE, base: BASE_RE, end: END_RE } = getMarkerRegexes(markerSize);
   for (let i = 0; i < lines.length; i++) {
-    if (START_RE.test(lines[i])) return i + 1;
+    if (START_RE.test(lines[i]) || BASE_RE.test(lines[i]) || END_RE.test(lines[i])) return i + 1;
   }
   return null;
 }
@@ -599,10 +602,15 @@ function getStagedEntry(repoRoot, relPath) {
 }
 
 function isWorktreeContentModified(repoRoot, relPath) {
-  const r = runGit(repoRoot, ['-c', 'diff.renames=false', 'diff', '--no-renames', '--quiet', '--', relPath], { allowFail: true });
-  if (r.status === 0) return false;
-  if (r.status === 1) return true;
-  throw new Error(`git diff --quiet failed for ${relPath}: ${(r.stderr || r.stdout || `exit ${r.status}`).trim()}`);
+  const r = runGit(repoRoot, [
+    '-c', 'diff.renames=false', 'diff', '--no-renames', '--no-ext-diff', '--no-textconv', '--numstat', '-z', '--', relPath,
+  ]);
+  for (const rec of r.stdout.split('\0')) {
+    if (!rec) continue;
+    const [added, deleted] = rec.split('\t');
+    if (added !== '0' || deleted !== '0') return true;
+  }
+  return false;
 }
 
 function scanTrackedMarkerSnapshots(repoRoot, unmerged, context, maxLines) {
