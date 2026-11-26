@@ -84,6 +84,28 @@ test('a host tool name outside a table row fails, inside a row passes', () => {
   const good = run(ok(fm, '| Role | Claude Code |\n|---|---|\n| question tool | `AskUserQuestion` |\n'));
   assert.equal(good.status, 0, good.out);
 });
+test('an Antigravity tool name outside a table row fails, inside a row passes', () => {
+  const fm = `name: demo-skill\ndescription: ${GOOD}`;
+  for (const tool of ['ask_question', 'invoke_subagent']) {
+    const bad = run(ok(fm, `Do this step with ${tool}.\n`));
+    assert.equal(bad.status, 1, tool); assert.match(bad.out, new RegExp(`FAIL .*host tool "${tool}"`));
+    const good = run(ok(fm, `| Role | Antigravity |\n|---|---|\n| the tool | \`${tool}\` |\n`));
+    assert.equal(good.status, 0, good.out);
+  }
+});
+// Added after the phase 8 review.
+test('a host tool name matches only as a whole word', () => {
+  const r = run(ok(`name: demo-skill\ndescription: ${GOOD}`, 'Save the field task_questions and the flag invoke_subagents.\n'));
+  assert.equal(r.status, 0, r.out);
+});
+test('a host tool name in a table that is not the host table fails', () => {
+  const r = run(ok(`name: demo-skill\ndescription: ${GOOD}`, '| Step | Work |\n|---|---|\n| 1 | Start the run with `invoke_subagent` |\n'));
+  assert.equal(r.status, 1); assert.match(r.out, /FAIL .*host tool "invoke_subagent"/);
+});
+test('a host table written without leading pipes is still the host table', () => {
+  const r = run(ok(`name: demo-skill\ndescription: ${GOOD}`, 'Role | Claude Code | Antigravity\n--- | --- | ---\nquestion tool | `AskUserQuestion` | `ask_question`\n\nAsk with your question tool.\n'));
+  assert.equal(r.status, 0, r.out);
+});
 
 // Added by task 1.4, after the plan review.
 test('a missing nested scripts file fails', () => {

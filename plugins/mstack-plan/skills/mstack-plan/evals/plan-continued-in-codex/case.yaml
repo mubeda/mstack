@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: plan-continued-in-codex
+expected_outcome: |
+  In Codex, mstack-plan continues a Draft plan written in Claude Code, updates Written by to "claude, codex", sends
+  Host: codex, Writers: claude, codex and Models with a claude= full headless id entry and no codex= entry, receives
+  a fallback-only block, asks no reviewer pick question, shows the warning, and records the fallback review by the
+  block's Steps and mstack-receive-review (never upgraded to cross-vendor).
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,9 @@
+{
+  "name": "mstack-antigravity-led-dev",
+  "version": "0.1.0",
+  "description": "Antigravity coordinator workflow where another installed vendor offered by mstack-vendors (claude or codex) writes each phase of a plan folder, a list of issues, or one larger task while Antigravity briefs it, runs validation, reviews every phase (plus an optional third-vendor reviewer), processes findings with mstack-receive-review, and commits only the exact accepted tree. Runs in Antigravity only.",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "mubeda"
+  }
+}

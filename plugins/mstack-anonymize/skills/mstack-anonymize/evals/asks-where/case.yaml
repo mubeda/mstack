@@ -1,0 +1,51 @@
+schema_version: "1.1"
+name: asks-where
+expected_outcome: |
+  The request names a file and no destination, so the session asks once, with this host's question tool,
+  whether the result goes to a file or to the chat, and says in the question that a result printed in the chat
+  is read by this session's model. It runs nothing on notes.txt, opens neither notes.txt nor the terms file,
+  and writes no file.
+notes: |
+  How to run it. `place-files.sh` builds a run root in the current folder (`work/notes.txt`, `config/` with a
+  made-up terms file, `planted.txt`, `notes.sha256`). Start the session with
+  `../_fixture/launch.sh <run root> prompt.md 1 --model <full model id>` and check the trace with
+  `node ../_fixture/trace-check.mjs --work <run root>/work --script <plugin>/skills/mstack-anonymize/scripts/anonymize.mjs
+  --terms <run root>/config/mstack/anonymize-terms.txt --protect notes.txt --protect <run root>/planted.txt
+  --protect-below "$(dirname "$(node <plugin>/skills/mstack-anonymize/scripts/anonymize.mjs --print-terms-path)")" <run root>/trace-1.jsonl`.
+  `planted.txt` holds the original values for the graders, so the command protects it, and it protects the whole
+  folder that holds the terms file of the real environment (nothing at or below it may be read or listed), which
+  the launcher's folders do not hide from a read by its path. The file a script call writes with `--out` is
+  protected from that call on, under any name. A trace that has no `result` record behind its last model turn
+  fails as incomplete.
+  The case is one turn: it ends at the question. `reply-1.md` is used only by the self-test, where the case is
+  listed with `questions` 1: its first line is the question it answers, and its answer makes the case's subagent
+  record its question and stop before it processes the file.
+  "The reply" in the graders is every message the session wrote in the turn, not only its last one.
+  What this case does not show: what the session does after an answer, which the other cases cover.
+  A trace file without any tool call fails the check unless `--no-tool-calls-expected` is given. The flag only
+  lifts that one failure: a call that breaks a rule fails with it as without it. In Claude Code loading the skill
+  is a tool call, so this case is checked without the flag there.
+  From inside another agent's session, start the launcher from a clean environment, with `CLAUDE_BIN` naming
+  the client program and a `PATH` that holds only `node` and the system's commands.
+  In the self-test for Antigravity the case's prompt gets this text appended: "Work in the folder
+  {workspace}/work. This is a test machine: its terms file is {workspace}/config/mstack/anonymize-terms.txt;
+  pass it to the script with --terms." So the script reads the case's made-up terms file and never the user's own.
+  The check for a self-test case is
+  `node <skill folder>/evals/_fixture/trace-check.mjs --work <workspace>/work --script <skill folder>/scripts/anonymize.mjs
+  --terms <workspace>/config/mstack/anonymize-terms.txt --protect <workspace>/work/notes.txt --protect <workspace>/planted.txt
+  --protect-below "$(dirname "$(node <skill folder>/scripts/anonymize.mjs --print-terms-path)")"
+  --encoding <of the batch session> --harness <results>/transcripts/session.jsonl
+  --encoding <of the case's subagent> <results>/transcripts/<case id>/session.jsonl
+  --encoding <of subagent-1> <results>/transcripts/<case id>/subagent-1.jsonl`, and so on for every `subagent-<n>.jsonl`
+  of the case. Each `--encoding` is `full` or `short` and comes from that file's own `Transcript` cell in the
+  collector's run log (the session's line, the case's row, the row of each subagent below it); it is repeated in
+  front of each file, because the files of one case can differ. The record `subagent-<n>.json` stays beside its
+  transcript: the check reads the subagent's id from it and fails when a started subagent has no transcript among
+  the files or a transcript belongs to no start. A transcript whose steps do not count from 0 without a gap
+  fails as incomplete. A script call without `--terms`, or with another terms file than
+  the case's, fails the check there. In Codex no trace check exists.
+  protected inputs: `work/notes.txt`, also when it is reached by its absolute path or by a link, which the check resolves; the case's terms file and the whole folder of the real environment's terms file; `planted.txt`.
+  What the check cannot see: a read inside an allowed command, a read by a path the check was not given, and a
+  route no tool call records (not checked in Antigravity).
+context:
+  scaffold_script: place-files.sh

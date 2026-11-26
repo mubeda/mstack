@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: antigravity-not-approved
+expected_outcome: |
+  In Antigravity, when the user refuses the run outside the sandbox, the session rereads the product plan
+  itself and says that the run was not approved. It never says that no client is installed.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [skills]
+notes: |
+  A Claude Code fixture only. It is never in a self-test batch, because the person of the self-test approves
+  every listed run, so this outcome is not checked in Antigravity. No `hide`, no `outside_sandbox`, no `append`.
+  Every grader about a command is read from the session's tool calls: in Claude Code from the shell tool's
+  commands in the trace, in the self-test from the `CommandLine` of the `run_command` calls, which must carry
+  the case's `PATH` when the case hides a client. A lookup (`command -v <client>`) is not a launch. A route
+  that no tool call records is not checked in Antigravity.

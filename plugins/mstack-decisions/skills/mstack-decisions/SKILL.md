@@ -11,12 +11,12 @@ You turn the notes or the transcript of one meeting into a record people can act
 
 This file is the same on every host. It names roles, and this table says what plays each role.
 
-| Role | Claude Code | Codex | Claude desktop | ChatGPT desktop |
-|---|---|---|---|---|
-| Your question tool | A numbered question in chat, then wait | A numbered question in chat, then wait | A numbered question in chat, then wait | A numbered question in chat, then wait |
-| Your subagent tool | `Agent`, with a fresh context | The session's agent tool, if it has one | None | None |
-| Running a script | Your shell tool, with `node` | Your shell tool, with `node` | The code tool when the session has one, otherwise check by reading | The code tool when the session has one, otherwise check by reading |
-| Saving a file | Your file tool | Your file tool | Your file tool when the session has one, otherwise print the document | Your file tool when the session has one, otherwise print the document |
+| Role | Claude Code | Codex | Antigravity | Claude desktop | ChatGPT desktop |
+|---|---|---|---|---|---|
+| Your question tool | A numbered question in chat, then wait | A numbered question in chat, then wait | A numbered question with `ask_question`, then wait | A numbered question in chat, then wait | A numbered question in chat, then wait |
+| Your subagent tool | `Agent`, with a fresh context | The session's agent tool, if it has one | None: you read it yourself, because no source says which vendor runs an Antigravity subagent | None | None |
+| Running a script | Your shell tool, with `node` | Your shell tool, with `node` | `run_command`, with `node` | The code tool when the session has one, otherwise check by reading | The code tool when the session has one, otherwise check by reading |
+| Saving a file | Your file tool | Your file tool | `write_file` | Your file tool when the session has one, otherwise print the document | Your file tool when the session has one, otherwise print the document |
 
 ## Files in this skill
 
@@ -30,7 +30,7 @@ This file is the same on every host. It names roles, and this table says what pl
 ## Ground rules
 
 1. **Only what was decided is a decision.** A suggestion, an agreement nobody confirmed and a discussion are not. They go where the format says.
-2. **Nobody is guessed.** When the notes do not show who said or decided something, write "speaker unclear". When an action has no owner or no date, write "no owner named" or "no date".
+2. **Nobody is guessed.** When the notes do not show who said or decided something that belongs in the record, record it with the exact words "speaker unclear": never leave such a statement out for lack of a speaker, and never reword the mark. What the method keeps out of the record (an opinion, a wish, a personal plan nobody took on) stays out, with or without a speaker. When an action has no owner or no date, write "no owner named" or "no date".
 3. **Nothing the notes do not hold.** No number, no date, no reason and no "everyone agreed" that is not in the notes.
 4. **Exact words, with their place.** Every decision rests on a quote copied character for character, with the file and the line or time it came from.
 5. **The product plan and the epic are read, never written.** You list what a decision changes in them. You do not change them, also not to add a link.

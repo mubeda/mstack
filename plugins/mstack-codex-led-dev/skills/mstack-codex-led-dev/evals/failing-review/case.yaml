@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: failing-review
+expected_outcome: |
+  Item T1 mul(a, b). Round 1 fails negative factor check, leader catches it without committing, resumes same session at high effort, round 2 passes and commits with block Record cross-vendor.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-codex-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

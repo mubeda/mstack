@@ -1,0 +1,34 @@
+schema_version: "1.1"
+name: antigravity-pages-fetched
+expected_outcome: |
+  In Antigravity, with the research plugin installed, a called request with three items: the session fetches
+  the addresses its reader returned into a scratch folder without reading them, the reader reads the fetched
+  files, a claim says `opened` only for a page whose fetch succeeded and whose file the reader read, every other
+  page claim says `not opened` with `low`, and no page text reaches the session.
+notes: |
+  Runs only in the self-test, in a person's own Antigravity session: the Antigravity reader's tools do not
+  exist in Claude Code, so this case is never run there.
+  Self-test batch entry: `hide` `curl`, `wget` and the version manager's own program where the machine has one; no
+  `outside_sandbox`; `append`:
+  `Run every shell command as: cd {workspace} && PATH={workspace}/bin:{case}/path <command>. This form replaces every other form named above; the stand-ins of this test machine are in {workspace}/bin.` (with `curl` and `wget` hidden, the real programs are not on that path)
+  That puts the stand-in `bin/curl` first on `PATH`. It ignores the address and reaches no network, writes
+  one line per call (its exit code, then its arguments) to `bin/curl-calls.log`, copies `marker-page.html` to its
+  `--output` file on the first call and exits 0, and writes nothing and exits 22 on every later call. So one
+  fetch succeeds and every other fails, whatever the reader's addresses are.
+  Every grader but those on the reply's own lines is read from the case's transcripts (`session.jsonl`, each
+  `subagent-<n>.json` and `subagent-<n>.jsonl`) and the curl log, with `evals/_fixture/reader-check.mjs`.
+  `<e>` is the run log's `Transcript` column for that file, `full` or `short`:
+  `node reader-check.mjs --encoding <e> --fetched <each file a log line with exit 0 names after --output> subagent-<n>.jsonl ...`,
+  the same with `--search-call` for the transcript of each search call,
+  `node reader-check.mjs --encoding <e> --session session.jsonl --workspace <the case's workspace> --scratch <scratch folder>` and
+  `node reader-check.mjs --encoding <e> --no-text evals/antigravity-pages-fetched/page-phrases.txt session.jsonl`, and the
+  same with `--sent-only` for each `subagent-<n>.jsonl` (a reader's transcript holds the page in its read results).
+  `page-phrases.txt` holds the marker and runs of eight or more words of the page, which is worded so oddly that
+  a fact told in other words does not hold them; it lies beside this file and not
+  under `files/`, so the session's workspace never holds it.
+  A case whose transcripts or curl log are missing is not run, never passed, and so is one for which the
+  script prints `NOT RUN` (exit 3): a cut record of a short transcript is no evidence.
+  The stand-in's error text on a failed call must not show up anywhere: the fetch throws away what curl prints.
+  The files under node_modules/nanoid are a hand-written stand-in for version 2.1.11, not the package's code.
+context:
+  scaffold_script: place-files.sh

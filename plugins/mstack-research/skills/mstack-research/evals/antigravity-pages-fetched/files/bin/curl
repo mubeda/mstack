@@ -1,0 +1,27 @@
+#!/bin/sh
+# Stand-in for curl in the eval case antigravity-pages-fetched. It reaches no network and ignores the address.
+# The first call copies marker-page.html to the --output file and exits 0; every later call writes nothing and
+# exits 22 with an error text, as curl --fail does on an HTTP error. Each call adds one line to curl-calls.log beside this file:
+# the exit code, then the arguments.
+here=$(cd "$(dirname "$0")" && pwd)
+log="$here/curl-calls.log"
+code=22
+[ -s "$log" ] || code=0
+all="$*"
+if [ "$code" -eq 0 ]; then
+  out=
+  status=
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --output|-o) out=${2:-}; shift ;;
+      --write-out|-w) status=200; shift ;;
+    esac
+    shift
+  done
+  if [ -n "$out" ] && cp "$here/../marker-page.html" "$out"; then :; else code=23; fi
+  # What --write-out '%{http_code}' prints for a page that was served.
+  [ "$code" -eq 0 ] && [ -n "$status" ] && printf '%s' "$status"
+fi
+printf 'exit %s: %s\n' "$code" "$all" >> "$log"
+[ "$code" -eq 22 ] && echo "curl: (22) The requested URL returned error: 404" >&2
+exit "$code"

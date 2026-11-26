@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: expensive-roles
+expected_outcome: |
+  F4 / R12: despite every task carrying - Approved models: gpt-6.2-astra, leader asks one separate R12 question for flagged developer default gpt-6.2-astra (next down gpt-6.2-sol) and one separate R12 question for flagged reviewer default opus/claude-opus-5-5 (next down sonnet/claude-sonnet-5-5); user declines both; launched commands use gpt-6.2-sol and claude-sonnet-5-5.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-antigravity-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

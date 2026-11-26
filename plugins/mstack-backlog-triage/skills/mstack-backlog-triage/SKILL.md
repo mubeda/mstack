@@ -1,22 +1,22 @@
 ---
 name: mstack-backlog-triage
-description: Use when the user asks to triage issues or a backlog, sort open issues into what to do now, next or later, find duplicates, decide what goes in the next batch, or label and comment on open issues after reading them, even if they do not name this skill. Reads every open issue in full, classifies each (bug with or without a reproduction, feature, chore, duplicate, not actionable) with evidence, requires a duplicate search before recommending anything for now, routes items to mstack-write-specs or mstack-diagnose when they need it, and outputs a table the mstack review workflows accept. Drafts comments and label changes but posts nothing without approval of the exact text. Works in Claude Code and Codex. It does not write specs or code.
+description: Use when the user asks to triage issues or a backlog, sort open issues into what to do now, next or later, find duplicates, decide what goes in the next batch, or label and comment on open issues after reading them, even if they do not name this skill. Reads every open issue in full, classifies each (bug with or without a reproduction, feature, chore, duplicate, not actionable) with evidence, requires a duplicate search before recommending anything for now, routes items to mstack-write-specs or mstack-diagnose when they need it, and outputs a table the mstack review workflows accept. Drafts comments and label changes but posts nothing without approval of the exact text. Works in Claude Code, Codex and Antigravity. It does not write specs or code.
 ---
 
 # mstack backlog triage
 
-You read a tracker's open issues, decide for each one what it is and when it should be worked on, and hand the result to whatever comes next. The output is a triage table and, when the user approves them word for word, tracker comments and label changes. You write no specs, no code and no plans: issues that need a spec go to `mstack-write-specs`, bugs that need diagnosing go to `mstack-diagnose`, and the issues for now go to the mstack review workflow for this host.
+You read a tracker's open issues, decide for each one what it is and when it should be worked on, and hand the result to whatever comes next. The output is a triage table and, when the user approves them word for word, tracker comments and label changes. You write no specs, no code and no plans: issues that need a spec go to `mstack-write-specs`, bugs that need diagnosing go to `mstack-diagnose`, and the issues for now go to the mstack review workflow for this host, where one exists (step 9).
 
 ## Host tools
 
-| Role | Claude Code | Codex |
-|---|---|---|
-| Your question tool | `AskUserQuestion` | A numbered round in chat, then wait for the reply |
-| Your subagent tool | `Agent`, with `model` and `effort` set to `mstack-best-model-for`'s answer for the tier `standard` | The session's agent tool if it has one, with that answer's model and effort set, otherwise do the step yourself |
-| The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md |
-| The user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/`, but only under a plugin that `claude plugin list` shows as installed, because the cache keeps leftover copies (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/`, but only under a plugin that Codex has enabled in its `config.toml` (`CODEX_HOME` replaces `~/.codex`) |
-| `gh` commands | Run directly | Run as approved (escalated) commands, because the sandbox turns the network off |
-| `<scratch>` | The session's scratch folder, outside the repository | `${TMPDIR:-/tmp}/mstack-triage-<repository name>` |
+| Role | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| Your question tool | `AskUserQuestion` | A numbered round in chat, then wait for the reply | `ask_question`, then wait for the reply |
+| Your subagent tool | `Agent`, with `model` and `effort` set to `mstack-best-model-for`'s answer for the tier `standard` | The session's agent tool if it has one, with that answer's model and effort set, otherwise do the step yourself | `invoke_subagent` with the subagent tier that `mstack-best-model-for` gives for vendor `antigravity` and the tier `standard` |
+| The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md | The folder of the SKILL.md you read |
+| The user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/`, but only under a plugin that `claude plugin list` shows as installed, because the cache keeps leftover copies (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/`, but only under a plugin that Codex has enabled in its `config.toml` (`CODEX_HOME` replaces `~/.codex`) | In the workspace `.agents/skills/` and `.agents/plugins/`; for the user `~/.gemini/config/skills/` and `~/.gemini/config/plugins/` |
+| `gh` commands | Run directly | Run as approved (escalated) commands, because the sandbox turns the network off | Run with `run_command` |
+| `<scratch>` | The session's scratch folder, outside the repository | `${TMPDIR:-/tmp}/mstack-triage-<repository name>` | `${TMPDIR:-/tmp}/mstack-triage-<repository name>` |
 
 ## Files in this skill
 
@@ -41,13 +41,14 @@ You read a tracker's open issues, decide for each one what it is and when it sho
 
 1. It is in this session's skill list (as `mstack-best-model-for` or `<plugin>:mstack-best-model-for`): continue.
 2. Its folder exists on disk (in the user skill folders the host table names) but the session has not loaded it: say that a new session is needed, and stop.
-3. Otherwise it is not installed. Print this once, then continue without subagents: do every delegated step yourself, one after another, start no subagent in this run, and say so in the report.
+3. Otherwise it is not installed. Print this block once, whole and unchanged, at the top of your next message to the user, then continue without subagents: do every delegated step yourself, one after another, start no subagent in this run, and say so in the report.
 
    ```text
    mstack-backlog-triage runs without subagents, because mstack-best-model-for is not installed. To install it:
    Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-best-model-for@mstack
    Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-best-model-for@mstack
-   Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex> -y
+   Antigravity: agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/mstack-best-model-for
+   Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex|antigravity> -y
    Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
    A new session picks it up.
    ```
@@ -105,7 +106,7 @@ Report in this order:
 2. The triage table, or its path.
 3. What was posted, and what was drafted but not approved.
 4. The next step for each route, as the user's choice:
-   - the now rows: the mstack review workflow for this host (`mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex), given the table as its work items;
+   - the now rows: this host's review workflow (`mstack-claude-led-review` in Claude Code, `mstack-codex-led-review` in Codex, `mstack-antigravity-led-review` in Antigravity), given the table as its work items;
    - rows routed to `mstack-write-specs`: one spec per issue, starting from the issue;
    - rows routed to `mstack-diagnose`: one diagnosis per bug, starting from the missing facts listed in its row.
 

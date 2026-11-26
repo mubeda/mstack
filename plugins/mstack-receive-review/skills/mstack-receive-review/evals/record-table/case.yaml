@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: record-table
+expected_outcome: |
+  Ten reviews arrive with ten sets of caller's lines, one per input of the table that sets how a review is recorded.
+  The log records them, in order, as -, writer unknown, writer unknown, writer unknown, reviewer unknown, reviewer unknown, cross-vendor, writer unknown, writer unknown (a list with an empty member) and reviewer unknown (two names where one reviewer vendor belongs), each in the finding's log entry and in the tally per source.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-receive-review]

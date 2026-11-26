@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Builds a throwaway machine under the target folder (default: the current folder): home/, codex-home/, bin/ of stubs.
 # Stubs for claude, codex, npm, npx and codegraph append their arguments to calls.log and install nothing.
+# The codex stub answers `login status` as a signed-in client does.
 set -eu
 T="$(cd "${1:-.}" && pwd)"
 H="$T/home"; B="$T/bin"; L="$T/calls.log"
@@ -16,13 +17,12 @@ skill() { mkdir -p "$H/$1"; printf -- "---\nname: x\ndescription: Use when testi
 C=.claude/plugins/cache
 
 
-mkdir -p "$H/$C/skill-codex/skill-codex/1.3.1/skills/codex"; echo "Run codex exec." > "$H/$C/skill-codex/skill-codex/1.3.1/skills/codex/SKILL.md"
-for s in mstack-best-model-for mstack-receive-review mstack-research mstack-setup mstack-plan mstack-write-specs mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-codex-review-workflow; do skill "$C/mstack/$s/0.1.0/skills/$s"; done
+for s in mstack-best-model-for mstack-receive-review mstack-research mstack-setup mstack-vendors mstack-plan mstack-write-specs mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-claude-led-review mstack-claude-led-dev; do skill "$C/mstack/$s/0.1.0/skills/$s"; done
 
 skill "$C/mstack/mstack-find-skills/0.1.0/skills/mstack-find-skills"
 skill ".agents/skills/archify"
 stub claude '*"plugin install ponytail"*) echo "Error: marketplace ponytail could not be reached" >&2; exit 1 ;;'
-stub codex; stub npx
+stub codex '"login status") echo "Logged in using ChatGPT" ;;'; stub npx
 # The npm stub "installs" codegraph by dropping a codegraph stub, so the later connect command is logged too.
 {
   echo '#!/bin/sh'
@@ -32,12 +32,12 @@ stub codex; stub npx
   echo 'esac'
   echo 'exit 0'
 } > "$B/npm"
-# The install record: the plugins the case installs elsewhere, plus one "<skill>@mstack" entry per cached mstack skill,
+# The install record: one "<skill>@mstack" entry per cached mstack skill,
 # because a skill in the cache counts only when its plugin is recorded.
 mkdir -p "$H/.claude/plugins"
-rec='{"version":2,"plugins":{"skill-codex@skill-codex":[{}]}}'
-for d in "$H/$C"/mstack/*/; do rec="${rec%\}\}},\"$(basename "$d")@mstack\":[{}]}}"; done
-echo "$rec" > "$H/.claude/plugins/installed_plugins.json"
+rec=''
+for d in "$H/$C"/mstack/*/; do rec="$rec${rec:+,}\"$(basename "$d")@mstack\":[{}]"; done
+echo "{\"version\":2,\"plugins\":{$rec}}" > "$H/.claude/plugins/installed_plugins.json"
 chmod +x "$B"/*
 # testenv runs one command on this test machine only: its own home folders and a PATH of stubs and a few basic tools.
 for t in sh cat ls grep head tail chmod; do p="$(command -v "$t")" && ln -sf "$p" "$B/$t"; done

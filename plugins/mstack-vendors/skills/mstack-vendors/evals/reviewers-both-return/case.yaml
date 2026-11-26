@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: reviewers-both-return
+expected_outcome: |
+  An Antigravity leader on a Gemini model with two reviewers that both return findings: both runs start before either is collected, and each review is handed over on its own, unmerged, with its three lines.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in reviewers: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log and print a fixed answer in the real output form. No reviewer model runs. The host is the `Host` line of
+  the called message, so the case runs in Claude Code also for an Antigravity host, where `./ask-outside` stands for
+  the client's approval prompt. It shows that the text is followed, not what another client does.

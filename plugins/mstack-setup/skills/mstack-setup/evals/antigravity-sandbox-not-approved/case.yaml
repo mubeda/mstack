@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: antigravity-sandbox-not-approved
+expected_outcome: |
+  One turn. An Antigravity session whose sandbox does not show the claude and codex clients, and a user who does not approve the run of the status script outside it. The reply first says that the check must run outside the sandbox and that the client will ask for approval; after the refusal it reports the four vendor rows as not checked, because the run outside the sandbox was not approved, never as missing or signed out. calls.log holds no install call.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The prompt names Antigravity as the host, so in Claude Code or Codex this case is a fixture: it shows that the
+  text is followed, not what an Antigravity session does. `./testenv` stands for the sandbox, and `./ask-outside`
+  stands for the client's approval prompt: it logs the request to `calls.log` and prints "not approved". A Claude Code and Codex fixture only.

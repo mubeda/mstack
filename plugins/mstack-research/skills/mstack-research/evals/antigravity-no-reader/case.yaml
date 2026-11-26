@@ -1,0 +1,30 @@
+schema_version: "1.1"
+name: antigravity-no-reader
+expected_outcome: |
+  In Antigravity, with mstack-research installed with the skills CLI, so that the session lists no reader
+  agent of it: the session searches itself, fetches and opens no page, starts no subagent, marks every page
+  claim `not opened` with `low`, keeps the version claim from the lockfile, and ends with
+  `Search: ran, pages not opened (no restricted reader)`.
+notes: |
+  The self-test runs this case in the dev workflow batch, whose cases file lists `mstack-research` under
+  `loose_skills`, so the install shape is real there: the skill folder alone, no plugin and no agent.
+  Self-test batch entry: `hide` `curl`, `wget` and the version manager's own program where the machine has one; no
+  `outside_sandbox`; `append`:
+  `Run every shell command as: cd {workspace} && PATH={workspace}/bin:{case}/path <command>. This form replaces every other form named above; the stand-ins of this test machine are in {workspace}/bin.` (with `curl` and `wget` hidden, the real programs are not on that path)
+  That puts the case's stand-in `bin/curl` and `bin/wget` first on `PATH`: they reach no network, fail, and
+  write each call to `bin/fetch-calls.log`, which must not exist after the run.
+  Also run in Claude Code as a fixture, where the install shape is only stated in the prompt: load
+  `mstack-research` there as a loose skill too, so that the session lists no reader agent of the plugin.
+  Claude Code has no search tool of the Antigravity column's name, so the fixture run is told that the search
+  tool is the session's own.
+  The search tool reaches the network; in Claude Code the run's `PATH` starts with the case's `bin` folder too.
+  In Claude Code the graders about calls are read from the trace: no call of the page tool or the subagent
+  tool, also not a refused one, and no shell command that starts `curl` or `wget` (`command -v curl` is the
+  skill's own probe and is not a fetch).
+  In the self-test they are read from the case's `session.jsonl`, with
+  `node evals/_fixture/reader-check.mjs --encoding <full or short, from the run log> --session session.jsonl --workspace <the case's workspace> --no-fetch`.
+  `UNVERIFIED` or `NOT RUN` from the script (exit 3) is not a pass: a person reads the command it names.
+  What a search result put into the model's context is not checked in Antigravity.
+  The files under node_modules/nanoid are a hand-written stand-in for version 2.1.11, not the package's code.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: user-mode-codex
+expected_outcome: |
+  A person in Codex asks which vendors they can use. The answer is a table of vendors and jobs with a state and a reason per cell: claude is not available for any job, because it is not signed in, with how to sign in. It installs nothing. This case runs in Codex.
+context:
+  scaffold_script: place-files.sh

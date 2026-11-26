@@ -1,0 +1,3 @@
+#!/bin/sh
+# Stand-in for the Antigravity client: logs every call to calls.log beside bin/ and does nothing else.
+echo "agy $*" >> "$(dirname "$0")/../calls.log"

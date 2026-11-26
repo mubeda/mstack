@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: two-reviewers
+expected_outcome: |
+  Antigravity stand-in: user answers gemini-4-neon-medium then Yes. Question recommends claude and codex with models,
+  both run sequentially (start 1 < end 1 < start 2 in calls.log), exit codes and outputs stay apart, and both reach
+  mstack-receive-review unmerged with their caller lines.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: stand-in (Claude Code, Codex; Host: antigravity).
+  Prepared replies: replies/01.md ("gemini-4-neon-medium"), replies/02.md ("Yes.").

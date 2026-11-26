@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: antigravity-comparison
+expected_outcome: |
+  A session that runs in Antigravity is at the comparison test (Phase 5) of a local skill. It runs the two comparison
+  runs as subagents of this session, one per run, with the skill's path given only to the run with the skill, or,
+  when it cannot start them, hands the prompt and the two setups to the user and calls the skill untested. It starts
+  no second Antigravity session and names no fresh-session command for Antigravity.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture: the prompt names Antigravity as the host, and the case is run in Claude Code or Codex, where it shows
+  only that the text is followed. Antigravity's tools do not exist there, so the prompt asks for the exact call in
+  place of a call that cannot be made. Give the run no `agy` command on PATH and no subagent tool of its own client.

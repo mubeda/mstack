@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Sandbox wrapper: exposes node, git and stand-in bin/agy, hides claude and codex.
+set -eu
+work="@WORK@"
+mkdir -p "$work/sandbox-bin" "$work/sandbox-home"
+ln -sf "$(command -v node)" "$work/sandbox-bin/node"
+ln -sf "$(command -v git)" "$work/sandbox-bin/git"
+ln -sf "$work/bin/agy" "$work/sandbox-bin/agy"
+exec env HOME="$work/sandbox-home" PATH="$work/sandbox-bin:/usr/bin:/bin" "$@"

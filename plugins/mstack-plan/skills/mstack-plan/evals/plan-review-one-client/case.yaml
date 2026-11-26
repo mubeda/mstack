@@ -1,0 +1,15 @@
+schema_version: "1.1"
+name: plan-review-one-client
+expected_outcome: |
+  In a contained Codex environment whose login-shell PATH hides claude while keeping signed-in codex working,
+  mstack-plan calls the real mstack-vendors (no handed block), writes the mstack-vendors result block with
+  Recommend: a fallback review, claude not available (not installed: reason) and provisional block Record
+  reviewer unknown BEFORE running the fallback command, asks no reviewer pick question, runs the nested read-only
+  codex exec fallback without a model option, passes Reviewer vendor taken from .err to mstack-receive-review, shows
+  the warning, and records same-vendor on provider: openai (or reviewer unknown in the non-OpenAI/missing header
+  variant), never cross-vendor.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Runs with the real mstack-vendors in Codex (no handed block, no mock sentence). Also run in a stand-in variant
+  with a missing or non-OpenAI .err header to verify Reviewer vendor: unknown -> record reviewer unknown.

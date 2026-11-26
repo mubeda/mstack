@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: plan-review-one
+expected_outcome: |
+  In Claude Code, mstack-plan resumes the Draft plan at Phase 7, writes a called message to mstack-vendors with
+  Host: claude-code, Job: plan review, Writers: claude, a codex= entry in Models and no Leader model line, asks once
+  offering codex with its model and never antigravity, runs the handed codex command after "Yes.", processes findings
+  through mstack-receive-review with the three caller lines, saves reviews/plan-review-1.md with a Handling section,
+  and updates progress.md Plan review with codex, its model and cross-vendor.
+context:
+  scaffold_script: place-files.sh

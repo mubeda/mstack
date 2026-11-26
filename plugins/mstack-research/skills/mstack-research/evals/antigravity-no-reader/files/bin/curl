@@ -1,0 +1,5 @@
+#!/bin/sh
+# Stand-in for curl in the eval case antigravity-no-reader: it reaches no network. A session that follows the
+# skill never starts it; a call is written to fetch-calls.log beside this file and fails.
+printf 'curl %s\n' "$*" >> "$(cd "$(dirname "$0")" && pwd)/fetch-calls.log"
+exit 22

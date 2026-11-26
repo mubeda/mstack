@@ -34,19 +34,19 @@ Codex reads `name` and `description` and nothing else from the frontmatter. Code
 Run each comparison run with the test repository as the working folder, so its `.agents/skills/` loads.
 
 ```bash
-codex exec -C <test repository> --sandbox workspace-write -o <run>/outputs/reply.md - < <run>/prompt.md 2> <run>/stderr.txt
+codex exec -C "<test repository>" --sandbox workspace-write -o "<run>/outputs/reply.md" - < "<run>/prompt.md" 2> "<run>/stderr.txt"
 ```
 
-Write the prompt to a file with the file tool and pass it on stdin, so no shell expands anything in it. For the baseline, run the same command in a copy of the repository without the skill. Keep `--skip-git-repo-check` off inside a Git repository.
+Write the prompt to a file with the file tool and pass it on stdin, so no shell expands anything in it. For the baseline, run the same command in a copy of the repository without the skill. Keep `--skip-git-repo-check` off inside a Git repository, and add it when the test folder is not one. Keep the quotes: a folder name may hold a space.
 
 ## Native skill creator
 
-`skill-creator` is a system skill on every Codex install. Its `init_skill.py` scaffolds a folder and its `quick_validate.py` lints frontmatter. When the user wants the `agents/openai.yaml` file, offer the Codex creator's script that generates it. This skill's own `scripts/check-skill.mjs` replaces the linter for the four-host rules.
+`skill-creator` is a system skill on every Codex install. Its `init_skill.py` scaffolds a folder and its `quick_validate.py` lints frontmatter. When the user wants the `agents/openai.yaml` file, offer the Codex creator's script that generates it. This skill's own `scripts/check-skill.mjs` replaces the linter for the five-host rules.
 
 ## Cross-vendor reviewer
 
-Claude, through the `claude-review` skill of the agent-bridges `claude` plugin, run as an approved command. When it is missing, warn the user and use a separate read-only `codex exec --sandbox read-only` run on the model and effort `mstack-best-model-for` returns for the tier `most capable`, recorded as a same-vendor review.
+From `mstack-vendors`, as `plugin-packaging.md` › Cross-vendor review says.
 
 ## mstack skills supported here
 
-Twenty-three of the twenty-five mstack skills, as of 2026-11-17: `mstack-auto`, `mstack-research`, `mstack-write-issue`, `mstack-anonymize`, `mstack-web-ui`, `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-claude-review-workflow`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-setup`, and this skill. `mstack-codex-review-workflow` and `mstack-claude-pm-codex-dev` drive Claude Code tools and do not run here.
+Twenty-five of the twenty-nine mstack skills, as of 2026-11-24: `mstack-auto`, `mstack-research`, `mstack-write-issue`, `mstack-anonymize`, `mstack-web-ui`, `mstack-receive-review`, `mstack-chief-of-staff`, `mstack-explain-me-better`, `mstack-product-plan`, `mstack-epic`, `mstack-evidence`, `mstack-decisions`, `mstack-brainstorm`, `mstack-write-specs`, `mstack-plan`, `mstack-codex-led-review`, `mstack-codex-led-dev`, `mstack-handoff`, `mstack-diagnose`, `mstack-backlog-triage`, `mstack-find-skills`, `mstack-best-model-for`, `mstack-vendors`, `mstack-setup`, and this skill. `mstack-claude-led-review`, `mstack-claude-led-dev`, `mstack-antigravity-led-review` and `mstack-antigravity-led-dev` are the Claude Code and Antigravity workflows and do not run here.

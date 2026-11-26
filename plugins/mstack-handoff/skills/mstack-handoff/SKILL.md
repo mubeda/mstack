@@ -1,23 +1,23 @@
 ---
 name: mstack-handoff
-description: Use when the user is running out of context or tokens, wants to pause, wants to hand long-running work to another agent, session or host, or says "write a handoff", "hand this off", "save where we are" or "continue from this handoff". Writes one resumable handoff file (branch, HEAD, uncommitted paths, pull request, issue status, gates green and due with exact commands, approved and blocked decisions, next commands first) without committing, stashing or leaking secrets, verifies it, and stops; or resumes from such a file. Works in Claude Code and Codex. It does not continue the work itself.
+description: Use when the user is running out of context or tokens, wants to pause, wants to hand long-running work to another agent, session or host, or says "write a handoff", "hand this off", "save where we are" or "continue from this handoff". Writes one resumable handoff file (branch, HEAD, uncommitted paths, pull request, issue status, gates green and due with exact commands, approved and blocked decisions, next commands first) without committing, stashing or leaking secrets, verifies it, and stops; or resumes from such a file. Works in Claude Code, Codex and Antigravity. It does not continue the work itself.
 ---
 
 # mstack handoff
 
-You write one file that lets a fresh agent session, on this host or the other one, continue the current work exactly where it stopped. Or, given such a file, you resume from it. Writing the handoff is the whole job: you do not finish the remaining work, and you stop once the file is written and checked.
+You write one file that lets a fresh agent session, on this host or another one, continue the current work exactly where it stopped. Or, given such a file, you resume from it. Writing the handoff is the whole job: you do not finish the remaining work, and you stop once the file is written and checked.
 
 The file holds only what no other file holds: the uncommitted work, the live decisions, the gates still due, and the next commands. Everything else (specs, plans, `progress.md`, issues, pull requests, commits) goes in as a path or a link.
 
 ## Host tools
 
-| Role | Claude Code | Codex |
-|---|---|---|
-| Your question tool | `AskUserQuestion` | A numbered question in chat, then wait for the reply |
-| The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md |
-| Commands that need network (`gh`) | Run directly | Run as approved (escalated) commands, because the sandbox turns the network off |
+| Role | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| Your question tool | `AskUserQuestion` | A numbered question in chat, then wait for the reply | `ask_question`, then wait for the reply |
+| The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md | The folder of the SKILL.md you read |
+| Commands that need network (`gh`) | Run directly | Run as approved (escalated) commands, because the sandbox turns the network off | Run with `run_command` |
 
-On either host, when a sandbox refuses to write the handoff file outside the repository, ask for approval of that one write. Do not move the file into the repository to avoid the prompt.
+On every host, when a sandbox refuses to write the handoff file outside the repository, ask for approval of that one write. Do not move the file into the repository to avoid the prompt.
 
 ## Files in this skill
 

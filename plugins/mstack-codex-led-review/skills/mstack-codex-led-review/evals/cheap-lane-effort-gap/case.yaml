@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: cheap-lane-effort-gap
+expected_outcome: |
+  Workflow mode with a standard task (1.1) and a cheap task (1.2), using a handed models.md. In variant lower-available,
+  the second code review job group in vendors/sent-1.txt sets the reviewer's effort one listed level lower (medium).
+  In variant already-lowest, the second job group repeats the first group's model and effort. Stops after the selection question.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code, Codex.
+  Two variants controlled by models-lower.md vs models-lowest.md (default lower-available; set CHEAP_GAP_VARIANT=lowest in place-files.sh).
+  Prepared replies: none (stops after selection question).

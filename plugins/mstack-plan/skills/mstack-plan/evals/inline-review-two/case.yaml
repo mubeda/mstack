@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: inline-review-two
+expected_outcome: |
+  Stand-in case (not checked in Antigravity). With every task Closed and no Executed by:, inline execution sends
+  Called by: mstack-plan, Host: antigravity, Job: code review, Workflow: review, Writers: unknown and no Leader model
+  line; asks one question naming claude and codex; after "Yes.", runs both sequentially (start 1 < end 1 < start 2 in
+  calls.log); hands both unmerged to mstack-receive-review with caller lines; execute-plan.md holds no reviewer command.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Stand-in case run in Claude Code or Codex with Host: antigravity; not checked in Antigravity.

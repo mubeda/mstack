@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: review-writers-unknown
+expected_outcome: |
+  Writers unknown: the available vendor other than the leader's is offered, recorded writer unknown, not cross-vendor.
+context:
+  scaffold_script: place-files.sh

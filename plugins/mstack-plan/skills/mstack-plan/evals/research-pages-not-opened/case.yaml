@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: research-pages-not-opened
+expected_outcome: |
+  The research block ends with "Search: ran, pages not opened (shell commands denied)" and its one page claim says
+  "not opened". The plan lists that claim under Sources marked not opened, states the token length as a fact in no
+  step and no Global constraint, keeps shop/docs/deploy.md as the source of the claim read from that file, and the
+  approval summary names "pages not opened" among the gaps.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The research block is fixed text in the prompt, so the case needs no network and no run of mstack-research. The
+  prompt approves a one-phase outline and stops after the plan files are written, so a run stays short. The run
+  loads the branch copies of mstack-plan and of its five shared skills.

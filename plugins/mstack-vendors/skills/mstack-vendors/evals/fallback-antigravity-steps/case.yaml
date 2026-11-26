@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: fallback-antigravity-steps
+expected_outcome: |
+  An Antigravity leader on a Claude model, writers claude, codex not available: the fallback row is same-vendor, the steps start one read-only subagent of the same session on the tier that inherits its model, and no step and no command starts the Antigravity client.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in reviewers: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log and print a fixed answer in the real output form. No reviewer model runs. The host is the `Host` line of
+  the called message, so the case runs in Claude Code also for an Antigravity host, where `./ask-outside` stands for
+  the client's approval prompt. It shows that the text is followed, not what another client does.

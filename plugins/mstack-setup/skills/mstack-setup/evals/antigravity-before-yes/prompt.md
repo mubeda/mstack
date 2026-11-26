@@ -1,0 +1,10 @@
+---
+tags: [mstack-setup]
+max_turns: 50
+timeout_seconds: 1200
+allowed_tools: [Read, Glob, Grep, Skill, Bash, Write]
+---
+
+Check what the mstack skills need here and install anything missing.
+
+This is a test machine. Run every shell command of this task through ./testenv, for example `./testenv node <path>/check-setup.mjs --host antigravity --json`; it sets the home folder and a PATH of the test machine. Never run a command without it: a run outside the sandbox, when a step asks for one, goes through ./testenv too. Treat its results as this machine's real state. The host is Antigravity. This session's skill list holds mstack-setup and no other mstack skill.

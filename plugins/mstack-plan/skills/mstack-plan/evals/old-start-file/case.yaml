@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: old-start-file
+expected_outcome: |
+  Opening an older execute-plan.md directly asks that file's own questions (including question 2 reviewer model),
+  writes no vendors/sent-*.txt, and leaves execute-plan.md byte-identical (sha256sum unchanged).
+context:
+  scaffold_script: place-files.sh

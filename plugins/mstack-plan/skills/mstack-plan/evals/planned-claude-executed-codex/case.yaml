@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: planned-claude-executed-codex
+expected_outcome: |
+  In Codex, plan has Written by: claude, task 1.1 Closed with Executed by: codex, and task 1.2 Open. Codex closes
+  task 1.2 writing Executed by: codex, sends Host: codex and Writers: codex (not claude!) for the code review, asks
+  no question offering codex, and runs one start claude line in vendors/calls.log.
+context:
+  scaffold_script: place-files.sh

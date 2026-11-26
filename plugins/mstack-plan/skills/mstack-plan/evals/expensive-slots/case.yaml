@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: expensive-slots
+expected_outcome: |
+  At Phase 7, mstack-vendors offers a flagged Codex reviewer model (gpt-6.2-astra) and the user accepts the
+  recommended vendor without typing the model name. The run asks one question of its own about the flagged plan
+  reviewer naming gpt-6.2-astra and the alternative gpt-6.2-sol. After the user declines, a refreshed called
+  message carries codex=gpt-6.2-sol, vendors/calls.log launches gpt-6.2-sol (never gpt-6.2-astra), and gpt-6.2-astra
+  is not recorded as the reviewer in progress.md or execute-plan.md.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Updated for mstack-vendors: plan reviewer consent happens at Phase 7, and fallback reviewers have no slot.

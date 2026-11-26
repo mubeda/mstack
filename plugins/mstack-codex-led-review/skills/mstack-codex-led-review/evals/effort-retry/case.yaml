@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: effort-retry
+expected_outcome: |
+  The handed reviewer runs review-reject-high at effort high, which fails with a rejected-effort error. Following the
+  block's Steps, the workflow retries once in place at the next lower effort (medium) without writing a second called
+  message to mstack-vendors, hands the accepted output to mstack-receive-review, and runs no fallback review.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code, Codex.
+  Prepared replies: replies/01.md ("Yes.").

@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: approval-other-model
+expected_outcome: |
+  Task 1.1 carries "- Approved models: fable (user, 2026-11-22)" rather than gpt-6.2-astra. In Codex, the workflow
+  still asks its expensive-model question for gpt-6.2-astra vs gpt-6.2-sol before starting any lane.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Codex (not checked in Antigravity).
+  Prepared replies: none (stops on the lane expensive-model question).

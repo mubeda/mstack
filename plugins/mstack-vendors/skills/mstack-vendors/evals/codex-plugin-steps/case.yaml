@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: codex-plugin-steps
+expected_outcome: |
+  A Claude Code leader with the Codex plugin: the developer row is available and the steps give the brief's first line Phase <phase-id>, the codex:codex-rescue start, jobs, wait until it stops exiting 3, result --phase and --thread on a fix round.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log. No developer model runs. The host is the `Host` line of the called message, so the case runs in
+  Claude Code whatever that line says. It shows that the text is followed, not what another client does.

@@ -5,7 +5,7 @@ timeout_seconds: 600
 allowed_tools: [Bash, Read, Write, Glob, Grep, Skill]
 ---
 
-Called by: mstack-codex-review-workflow
+Called by: mstack-claude-led-review
 Repository: example--org/shop
 
 F1: follow-up The CSV export loads every order into memory before it writes the file. The review of pull request 41 deferred streaming the rows, because that change only added the header row.

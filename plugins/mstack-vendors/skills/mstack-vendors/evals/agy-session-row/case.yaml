@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: agy-session-row
+expected_outcome: |
+  An Antigravity host on a Gemini model with no other client: the fallback row of the session itself is available without a check, and no client check and no sign-in check ran for antigravity.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: the host is the `Host` line of the called message, so it runs in Claude Code
+  also for an Antigravity host, where `./ask-outside` stands for the client's approval prompt. It shows that the text
+  is followed, not what an Antigravity session does.

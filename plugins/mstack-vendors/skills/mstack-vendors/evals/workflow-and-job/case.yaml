@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: workflow-and-job
+expected_outcome: |
+  A code review group without a Workflow line is answered as a review workflow with a warning, never as dev; a group with the unknown job deploy gets a warning and a section with no rows.
+context:
+  scaffold_script: place-files.sh

@@ -17,7 +17,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
+const root = process.env.MSTACK_CHECK_ROOT ?? fileURLToPath(new URL('../', import.meta.url));
 const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
 const gitQuiet = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
 const defaultBranch = process.env.CI_DEFAULT_BRANCH ?? 'main';
@@ -49,9 +49,15 @@ const changed = [
 ].filter(Boolean);
 const plugins = [...new Set(changed.map((path) => path.match(/^plugins\/([^/]+)\//)?.[1]).filter(Boolean))].sort();
 
-// Claude-only and Codex-only plugins carry one manifest; plugins on both hosts keep both versions equal.
-const manifest = (plugin) => [`plugins/${plugin}/.claude-plugin/plugin.json`, `plugins/${plugin}/.codex-plugin/plugin.json`]
-  .find((path) => existsSync(resolve(root, path))) ?? `plugins/${plugin}/.claude-plugin/plugin.json`;
+// Plugins for one host carry one manifest (Claude Code, Codex or Antigravity-only); plugins on several hosts keep their versions equal.
+// The working tree and the base are looked up independently, because a plugin's manifest set can change on a branch.
+const paths = (plugin) => ['.claude-plugin', '.codex-plugin', '.antigravity-plugin'].map((dir) => `plugins/${plugin}/${dir}/plugin.json`);
+const manifest = (plugin) => paths(plugin).find((path) => existsSync(resolve(root, path)));
+// Absence is decided by listing the base tree; any other Git failure stops the check instead of waiving the bump.
+const baseManifest = (plugin) => {
+  const found = paths(plugin).find((path) => git('ls-tree', '--name-only', base, '--', path));
+  return found ? gitQuiet('show', `${base}:${found}`) : null;
+};
 const parse = (version) => {
   const parts = /^(\d+)\.(\d+)\.(\d+)$/.exec(version ?? '');
   return parts ? parts.slice(1).map(Number) : null;
@@ -66,14 +72,17 @@ const isHigher = (a, b) => {
 const problems = [];
 let checked = 0;
 for (const plugin of plugins) {
-  if (!existsSync(resolve(root, manifest(plugin)))) continue; // plugin removed on this branch
+  const path = manifest(plugin);
+  if (!path) continue; // plugin removed on this branch
   let baseText;
   try {
-    baseText = gitQuiet('show', `${base}:${manifest(plugin)}`);
+    baseText = baseManifest(plugin);
   } catch {
-    continue; // plugin is new on this branch: nothing to bump past
+    console.error(`Version bump check: could not read ${plugin}'s manifest on ${base}; Git failed, so its bump cannot be checked.`);
+    process.exit(1);
   }
-  const current = JSON.parse(readFileSync(resolve(root, manifest(plugin)), 'utf8')).version;
+  if (!baseText) continue; // plugin is new on this branch: nothing to bump past
+  const current = JSON.parse(readFileSync(resolve(root, path), 'utf8')).version;
   const previous = JSON.parse(baseText).version;
   const [now, before] = [parse(current), parse(previous)];
   checked += 1;

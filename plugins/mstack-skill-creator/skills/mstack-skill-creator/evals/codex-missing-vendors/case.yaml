@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: codex-missing-vendors
+expected_outcome: |
+  In Codex with every helper except mstack-vendors, mstack-skill-creator stops before writing any file and prints
+  the install block naming mstack-vendors (for Claude Code, Codex, Antigravity and the Skills CLI) and mstack-setup.
+context:
+  scaffold_script: place-files.sh

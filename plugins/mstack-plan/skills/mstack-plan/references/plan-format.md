@@ -1,6 +1,6 @@
 # Plan format
 
-This file is the contract between `mstack-plan`, which writes a plan, and the agents that execute it: inline execution from `execute-plan.md`, `mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex, and `mstack-claude-pm-codex-dev` in Claude Code (Codex writes each phase, Claude reviews and commits it). All four plugins ship an identical copy. Change all four copies in the same change, and handle plans written by the previous version (see "Format changes").
+This file is the contract between `mstack-plan`, which writes a plan, and the agents that execute it: inline execution from `execute-plan.md`, and the six host-led workflows (`mstack-claude-led-review` and `mstack-claude-led-dev` in Claude Code, `mstack-codex-led-review` and `mstack-codex-led-dev` in Codex, and `mstack-antigravity-led-review` and `mstack-antigravity-led-dev` in Antigravity). All seven plugins ship an identical copy. Change all seven copies in the same change, and handle plans written by the previous version (see "Format changes").
 
 ## Folder layout
 
@@ -13,7 +13,7 @@ A plan folder is recognized by `plan.md`, `progress.md` and `execute-plan.md` si
   phases/PHASE-01-<slug>.md  one file per phase, holding its tasks
   progress.md                the only status record (one row per task)
   execute-plan.md            the hand-off prompt that starts execution
-  reviews/plan-review-<n>.md cross-vendor reviews of the plan and how each finding was handled
+  reviews/plan-review-<n>.md reviews of the plan and how each finding was handled
 ```
 
 Phase numbers start at 01 and use two digits. A slug is lowercase, hyphenated, and at most six words.
@@ -124,6 +124,7 @@ command or an observable result.
 - Skills: <skill> (<reason specific to this task>); <skill> (<reason>)
 - Read first: <path or source> (<reason>)
 - Tier: cheap | standard | most capable
+- Approved models: <model>[, <model>] (user, <yyyy-mm-dd>)
 - TDD: red-green | exempt (<reason>)
 - Done when: `<command>` exits 0 and <expected output>
 
@@ -148,6 +149,7 @@ Steps
 7. **TDD.** Code tasks are red-green. "exempt" is only for work with no behavior to test (documentation, configuration with no logic, research, a pure command run), and the reason says which.
 8. **Done when.** A command and its expected result, or an observable result with how to observe it. A task without one is not scoped yet.
 9. **Steps.** Each step is one action with a checkable result. Every command step has an `Expected:` line. Steps name signatures and exact values, not full code bodies, except where the exact text is the deliverable.
+10. **Approved models.** Optional, directly after Tier, at most once per task. Include it only when the user said yes to a flagged model for this task in a question of its own or named that model in the conversation. It covers only the models it names and only this task. A task without this line holds no approval, so an executing workflow asks before using a flagged model as its own rules say.
 
 ## progress.md
 
@@ -158,7 +160,8 @@ Plan: plan.md
 Spec: spec.md (sha256 <first 12 hex digits>)
 Plan status: Draft | Approved <yyyy-mm-dd>
 Plan review: <reviewer and model>, round <n>, <outcome>
-Executor: none | inline | mstack-codex-review-workflow | mstack-claude-review-workflow | mstack-claude-pm-codex-dev
+Written by: <vendor>[, <vendor>] | unknown
+Executor: none | inline | mstack-claude-led-review | mstack-claude-led-dev | mstack-codex-led-review | mstack-codex-led-dev | mstack-antigravity-led-review | mstack-antigravity-led-dev
 Branch: <working branch, once execution starts>
 
 | Task | Title | Phase | State | Owner | Note |
@@ -167,7 +170,7 @@ Branch: <working branch, once execution starts>
 
 ## Log
 - <yyyy-mm-dd hh:mm> 1.1 In progress. Owner: inline.
-- <yyyy-mm-dd hh:mm> 1.1 Closed. Evidence: `npm test -- token` exit 0, 4 passing. Commits: <a1b2c3d>..<e4f5a6b>.
+- <yyyy-mm-dd hh:mm> 1.1 Closed. Executed by: claude. Evidence: `npm test -- token` exit 0, 4 passing. Commits: <a1b2c3d>..<e4f5a6b>.
 - <yyyy-mm-dd hh:mm> Ruling: <what was decided>, because <why>. Cost if wrong: <impact>.
 ```
 
@@ -185,9 +188,9 @@ A dropped task needs the user's recorded decision in the log. A dropped or remov
 
 ### Who writes it
 
-1. `mstack-plan` creates it with every task Open and `Executor: none`.
+1. `mstack-plan` creates it with every task Open, `Executor: none`, and `Written by:` set to its own vendor (`claude`, `codex`, `antigravity` or `other`), or `unknown` when the session's vendor is not known (such as in Antigravity, where `mstack-plan` sends no `Leader model` line and does not ask for it). A session of another vendor that continues a Draft plan adds its own vendor to `Written by:`, unless the line holds `unknown` or the continuing session's vendor is unknown: then `Written by:` stays or becomes the bare value `unknown` while the continuing session is recorded in a log line.
 2. During execution, exactly one agent writes it: the inline executor, or the workflow coordinator. Lanes and subagents never edit it. They report, and the writer records.
-3. The writer updates it every time a task changes state, and appends one log line per change with the evidence.
+3. The writer updates it every time a task changes state, and appends one log line per change with the evidence; every Closed line records `Executed by: <vendor>[, <vendor>]` (the vendors whose models changed that task's files) before `Evidence:`, or records `Executed by: unknown` (or omits `Executed by:`, which means `unknown`) when the executing session's vendor is not known (such as inline execution in Antigravity).
 4. When the plan folder is inside the repository, the writer commits `progress.md` together with the work it records (inline) or at integration (workflow).
 5. A Closed log line names the commits that hold the work and, when they are not on the `Branch` line's branch yet, the branch they are on (a workflow lane branch before integration). The `Branch` line names the branch execution continues on: the inline branch, or the workflow's integration branch.
 
@@ -206,6 +209,8 @@ A dropped task needs the user's recorded decision in the log. A dropped or remov
 
 When a later version of this format changes what a field or a file means, the skill that reads a plan written by the earlier version says what it does with each old value. An old value is never consent to new, wider behavior. Ask the user once instead.
 
-A plan written before `mstack-claude-pm-codex-dev` was an executor value keeps the executor its `progress.md` records, and its `execute-plan.md` offers two ways to run; the new workflow runs such a plan only when the user asks for it.
+A progress file whose `Executor:` value, or a start file whose workflow names, sit outside the eight allowed executors belong to a plan made for a workflow mstack no longer ships: a workflow stops before any work, the plan is made again with `mstack-plan` in a new folder, and an old start file opened for inline execution behaves as written.
 
 A plan folder written before `mstack-receive-review` existed holds a copy of the review rules, `receiving-review.md`, and its `execute-plan.md` still points inline execution at that copy; the copy keeps working, with the older rules. A workflow that executes such a plan loads `mstack-receive-review` and ignores the copy.
+
+A plan written before the approval line existed holds no approval, and no old value counts as an approval. A progress file without a `Written by:` line, or a Closed log line without `Executed by:`, records its writers or executors as `unknown`; a reader passes that on as `Writers: unknown` and never replaces it with a guess from the Owner column or the host.

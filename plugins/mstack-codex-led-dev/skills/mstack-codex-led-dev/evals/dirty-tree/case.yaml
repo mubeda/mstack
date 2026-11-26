@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: dirty-tree
+expected_outcome: |
+  mathlib/README.md has uncommitted edits before start. Leader lists README.md, asks user whether to keep for first review or discard (never tells user to commit), starts no developer, leaves stash empty and README.md untouched.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-codex-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

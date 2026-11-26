@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: copy-two-rounds
+expected_outcome: |
+  A Codex leader with a claude developer: the pending plan change is committed first, the copy is made, the developer runs in it with only the two GIT_CONFIG_ variables and no added folder, its push fails, check, diff and apply bring both the committed and the new file into the checkout, the fix round resumes the kept session in the same copy and replaces round one with apply --previous, and the copy is removed only after the leader's commit.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log, act as a developer in the folder they are started in, and print a result in the real output
+  form. No developer model runs. The host is the `Host` line of the called message, so the case runs in
+  Claude Code whatever that line says. It shows that the text is followed, not what another client does.

@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: fallback-claude-code
+expected_outcome: |
+  Claude Code, writers claude, no other vendor: a fresh-context read-only subagent of the session reviews, the row and the hand-over say same-vendor review by claude, and nothing calls it cross-vendor.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in reviewers: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log and print a fixed answer in the real output form. No reviewer model runs. The host is the `Host` line of
+  the called message, so the case runs in Claude Code whatever that line says. It shows that the text is followed, not what another client does.

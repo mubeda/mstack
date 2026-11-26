@@ -1,0 +1,7 @@
+{
+  "name": "driftwright",
+  "version": "0.1.0",
+  "description": "Driftwright end-to-end test skills.",
+  "license": "MIT",
+  "author": { "name": "acme-tools" }
+}

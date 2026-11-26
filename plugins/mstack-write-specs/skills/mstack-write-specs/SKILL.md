@@ -1,26 +1,26 @@
 ---
 name: mstack-write-specs
-description: Use when the user wants to turn an idea, a feature request, a change, a bug class or a refactor into a written, agreed specification before building, such as "write a spec", "spec this out", "PRD", "requirements", "design doc", "let's plan this feature", "grill me on this", or when a request is too vague or too large to build directly. Works in Claude Code and Codex. Use it even when the user only says "I want to build X" and the decisions behind X are not settled yet.
+description: Use when the user wants to turn an idea, a feature request, a change, a bug class or a refactor into a written, agreed specification before building, such as "write a spec", "spec this out", "PRD", "requirements", "design doc", "let's plan this feature", "grill me on this", or when a request is too vague or too large to build directly. Works in Claude Code, Codex and Antigravity. Use it even when the user only says "I want to build X" and the decisions behind X are not settled yet.
 ---
 
 # mstack write specs
 
 Turn a request into a written specification the user has approved, with testable requirements. The method is an interview that settles every decision before anything is written, then a spec where every requirement has a scenario that can become a test. This skill writes specs. It never builds what the spec describes.
 
-## Using this skill in Claude Code and Codex
+## Using this skill in Claude Code, Codex and Antigravity
 
-This file is the same for both hosts. It never names a host tool outside the table below. Where it says "your question tool" or "your subagent tool", use the host's equivalent.
+This file is the same for every host. It never names a host tool outside the table below. Where it says "your question tool" or "your subagent tool", use the host's equivalent.
 
-| This file says | Claude Code | Codex |
-|---|---|---|
-| your question tool | `AskUserQuestion` for short choices; a numbered round in chat for longer ones | A numbered round in chat, then wait for the answer |
-| your subagent tool | `Agent` with a fresh context | A separate read-only `codex exec` run with the brief, or the session's agent tool if it has one |
-| a cheap subagent | `model` and `effort` set to `mstack-best-model-for`'s answer for the tier `cheap` | `-m` and `model_reasoning_effort` set to its answer for the tier `cheap` |
-| a standard subagent | `model` and `effort` set to its answer for the tier `standard` | `-m` and `model_reasoning_effort` set to its answer for the tier `standard` |
-| the skill folder | The base directory the host showed when it loaded this skill | The folder of the SKILL.md you loaded |
-| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/`, but only under a plugin that `claude plugin list` shows as installed, because the cache keeps leftover copies (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/`, but only under a plugin that Codex has enabled in its `config.toml` (`CODEX_HOME` replaces `~/.codex`) |
+| This file says | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| your question tool | `AskUserQuestion` for short choices; a numbered round in chat for longer ones | A numbered round in chat, then wait for the answer | `ask_question`, then wait for the reply |
+| your subagent tool | `Agent` with a fresh context | A separate read-only `codex exec` run with the brief, or the session's agent tool if it has one | `invoke_subagent` with the brief, on the subagent tier that the `antigravity` row of `mstack-best-model-for`'s answer for the subagent's tier (`cheap`, `standard` or `most capable`) names under "How to set" |
+| a cheap subagent | `model` and `effort` set to `mstack-best-model-for`'s answer for the tier `cheap` | `-m` and `model_reasoning_effort` set to its answer for the tier `cheap` | The tier of the `cheap` row |
+| a standard subagent | `model` and `effort` set to its answer for the tier `standard` | `-m` and `model_reasoning_effort` set to its answer for the tier `standard` | The tier of the `standard` row |
+| the skill folder | The base directory the host showed when it loaded this skill | The folder of the SKILL.md you loaded | The folder of the SKILL.md you read |
+| the user skill folders | `~/.claude/skills/`, `~/.agents/skills/` and the plugin cache `~/.claude/plugins/cache/`, but only under a plugin that `claude plugin list` shows as installed, because the cache keeps leftover copies (`CLAUDE_CONFIG_DIR` replaces `~/.claude`) | `~/.codex/skills/`, `~/.agents/skills/` and the plugin cache `~/.codex/plugins/cache/`, but only under a plugin that Codex has enabled in its `config.toml` (`CODEX_HOME` replaces `~/.codex`) | In the workspace `.agents/skills/` and `.agents/plugins/`; for the user `~/.gemini/config/skills/` and `~/.gemini/config/plugins/` |
 
-Before the first subagent of a run, load `mstack-best-model-for` in called mode once: say which skill is calling, and ask for this host's vendor (`claude` in Claude Code, `codex` in Codex) and the tiers `cheap`, `standard` and `most capable`. A subagent started without a model runs on the session's model, the most expensive choice, so set it every time. A lookup (what the code does today, which version is installed) is a cheap subagent. The independent read of Phase 6 is a standard subagent, or the `most capable` answer for a full spec that touches security, stored data or money, because that reader is the last check before approval.
+Before the first subagent of a run, load `mstack-best-model-for` in called mode once: say which skill is calling, and ask for this host's vendor (`claude` in Claude Code, `codex` in Codex, `antigravity` in Antigravity) and the tiers `cheap`, `standard` and `most capable`. A subagent started without a model runs on the session's model, the most expensive choice, so set it every time. A lookup (what the code does today, which version is installed) is a cheap subagent. The independent read of Phase 6 is a standard subagent, or the `most capable` answer for a full spec that touches security, stored data or money, because that reader is the last check before approval.
 
 Without a subagent tool, do the delegated step yourself and say that you did. Refer to the files below by their path inside the skill folder.
 
@@ -39,13 +39,14 @@ Without a subagent tool, do the delegated step yourself and say that you did. Re
 
 1. It is in this session's skill list (as `mstack-best-model-for` or `<plugin>:mstack-best-model-for`): continue.
 2. Its folder exists on disk (in the user skill folders the host table names) but the session has not loaded it: say that a new session is needed, and stop.
-3. Otherwise it is not installed. Print this once, then continue without subagents: do every delegated step yourself, one after another, start no subagent in this run, and tell the user so.
+3. Otherwise it is not installed. Print this block once, whole and unchanged, at the top of your next message to the user, then continue without subagents: do every delegated step yourself, one after another, start no subagent in this run, and tell the user so.
 
    ```text
    mstack-write-specs runs without subagents, because mstack-best-model-for is not installed. To install it:
    Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-best-model-for@mstack
    Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-best-model-for@mstack
-   Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex> -y
+   Antigravity: agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/mstack-best-model-for
+   Skills CLI:  npx skills add mubeda/mstack --skill mstack-best-model-for -g -a <claude-code|codex|antigravity> -y
    Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
    A new session picks it up.
    ```
@@ -62,13 +63,14 @@ Project: <path of the repository>
 Package: <name>                      (under each item about a package)
 ```
 
-Its result block ends with `Search: ran` or `Search: not run (<reason>)`. When search did not run, the fact stays open: look it up yourself if you can, or ask the user. When `mstack-research` is not in the skill list, print this once and look such facts up yourself, with the same care for the version in use:
+Its result block ends with `Search: ran` or `Search: not run (<reason>)`. In Antigravity it can also end `Search: ran, pages not opened (<reason>)`. Under any closing line, a claim whose opened field says `not opened` is still open and is never cited as confirmed; an opened claim keeps its address and date; a claim read from a local file keeps its file as its source. When search did not run, the fact stays open: look it up yourself if you can, or ask the user. When `mstack-research` is not in the skill list, print this once and look such facts up yourself, with the same care for the version in use:
 
 ```text
 mstack-write-specs looks up external facts itself, because mstack-research is not installed. To install it:
 Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install mstack-research@mstack
 Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add mstack-research@mstack
-Skills CLI:  npx skills add mubeda/mstack --skill mstack-research -g -a <claude-code|codex> -y
+Antigravity: agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/mstack-research
+Skills CLI:  npx skills add mubeda/mstack --skill mstack-research -g -a <claude-code|codex|antigravity> -y
 Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
 A new session picks it up.
 ```
@@ -84,7 +86,7 @@ Each phase ends at a gate. Do not start the next phase before the gate holds.
 | 4. Draft | Write the spec from `references/spec-template.md` at its final path (below) | The file exists |
 | 5. Quality check | Run `references/quality-check.md` and the lint in `references/requirements.md`. Fix failures, up to three passes | Every item passes, or the remaining failures are listed for the user |
 | 6. Independent read | A fresh reader with your subagent tool, as `references/quality-check.md` describes | The reader reports nothing important left, or the user answered its questions in one round |
-| 7. Approval | Show the path, a short summary, and every "agent's call". Ask for approval of this file | The user explicitly approves the written file. Set Status to Approved with the date |
+| 7. Approval | Show the path, a short summary, and every "agent's call". End that message with a direct question that asks the user to approve this file; a sentence that says approval is pending, or that the spec stays Draft, is not that question | The user explicitly approves the written file. Set Status to Approved with the date |
 | 8. Hand-off | Offer the next step (below) | The user names it. This skill ends without building |
 
 ### Sizes and modes

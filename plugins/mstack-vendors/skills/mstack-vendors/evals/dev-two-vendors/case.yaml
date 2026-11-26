@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: dev-two-vendors
+expected_outcome: |
+  A Claude leader reviews code a Codex developer wrote: only the leader's row, cross-vendor, Recommend the leader's review, and no warning about a missing reviewer.
+context:
+  scaffold_script: place-files.sh

@@ -3,6 +3,7 @@
 Plan: plan.md
 Spec: spec.md (sha256 4d2826447264)
 Plan status: Draft
+Written by: claude
 
 | Task | Title | Phase | State | Owner | Note |
 |---|---|---|---|---|---|

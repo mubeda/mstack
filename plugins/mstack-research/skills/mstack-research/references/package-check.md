@@ -2,6 +2,8 @@
 
 Read this when a question is about something a project depends on. The answer must hold for the version the project uses, which is often not the newest one. Do the first step before any search.
 
+Steps 2 to 5 open pages. A run that can open no page (in Antigravity, a session without a reader) still does step 1 and reads the package's own files in the project, and does only the searches of steps 2 to 5: what a search returns is a lead, each claim from it says `not opened` with `low` as the answer form gives it, and `Not found` names what stayed unread (the changelog, the change that closed an issue, an advisory's page).
+
 ## 1. Find the version in use
 
 Read the project's files with your file tools. Run no install and no command that changes the project.

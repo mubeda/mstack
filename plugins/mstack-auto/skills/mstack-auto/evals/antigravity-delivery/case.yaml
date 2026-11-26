@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: antigravity-delivery
+expected_outcome: |
+  In Antigravity the router chooses mstack-antigravity-led-review, announces it on the first line, and loads it with
+  the prompt unchanged. It does not say the skill is missing and does not name mstack-setup.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: agy-claude-leader
+expected_outcome: |
+  An Antigravity leader on a Claude model counts as vendor claude with one warning: claude is installed and signed in and still gets no reviewer row and no developer row, antigravity is never offered, and codex is.
+context:
+  scaffold_script: place-files.sh

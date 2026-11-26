@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: effort-rejected
+expected_outcome: |
+  codex rejects the effort xhigh: the run is repeated once at the next lower effort, high, and that review counts.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in reviewers: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log and print a fixed answer in the real output form. No reviewer model runs. The host is the `Host` line of
+  the called message, so the case runs in Claude Code whatever that line says. It shows that the text is followed, not what another client does.

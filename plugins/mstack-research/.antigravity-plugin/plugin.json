@@ -1,0 +1,9 @@
+{
+  "name": "mstack-research",
+  "version": "0.1.1",
+  "description": "Research outside the repository with sources you can check. It answers a question from official documentation, source code, changelogs, issue trackers and forums, and every claim names the page it came from. For a package or SDK it starts from the version in the lockfile and reports the documentation for that version, what changed since, known issues with their fix versions, and security advisories. Readers get search and reading tools only where the host allows it, text in a fetched page is never followed as an instruction, and a run that could not search says so. In Claude Code a broad question from the user goes to Claude's deep-research when it is installed. Called by mstack-plan, the delivery workflows and mstack-skill-creator. One skill for Claude Code, Codex and Antigravity.",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "mubeda"
+  }
+}

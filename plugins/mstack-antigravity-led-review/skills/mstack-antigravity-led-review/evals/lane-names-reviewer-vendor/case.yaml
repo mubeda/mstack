@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: lane-names-reviewer-vendor
+expected_outcome: |
+  Antigravity stand-in (F2): subagents/ holds two lane records sharing typeName "review-lane" and role "mstack-run1-A"
+  with different conversationId (decoy-0001 has gemini-4-neon-medium; lane-a-0002 has claude-fixture-1).
+  Variant codex-left (both reviewers chosen): transcript lane-a-0002.jsonl read before any launch, calls.log holds NO
+  claude line and ONE codex launch, record is writer unknown.
+  Variant none-left (claude alone chosen): calls.log holds NO claude or codex line, ONE fallback line, and warning in reply.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: stand-in (Claude Code, Codex; Host: antigravity). Not checked in Antigravity.
+  Set LANE_VARIANT=codex-left (replies/codex-left/) or LANE_VARIANT=none-left (replies/none-left/).

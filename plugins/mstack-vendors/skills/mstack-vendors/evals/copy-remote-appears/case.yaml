@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: copy-remote-appears
+expected_outcome: |
+  The developer adds a remote in the copy: check fails after the round, the steps stop and report it, and no patch is applied.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log, act as a developer in the folder they are started in, and print a result in the real output
+  form. No developer model runs. The host is the `Host` line of the called message, so the case runs in
+  Claude Code whatever that line says. It shows that the text is followed, not what another client does.

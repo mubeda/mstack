@@ -1,0 +1,14 @@
+schema_version: "1.1"
+name: antigravity-no-address
+expected_outcome: |
+  The candidate's source is a web address of no repository, so the first turn offers no plugin route for it (it may
+  say that none exists) and installs nothing. Second turn (reply.md): one skills-command install runs, global, by
+  symlink, for the agent antigravity only, and no `agy` command runs.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The prompt names Antigravity as the host, so in Claude Code or Codex this case is a fixture: it shows that the
+  text is followed, not what an Antigravity session does. `bin/npx` and `bin/agy` are stand-ins that log each call
+  to `calls.log` in the run folder and install nothing. The run's `PATH` holds no real `npx`, `agy`, `claude`, `codex`, `curl` or `gh`: only stand-ins, so a
+  command the session runs without the prefix installs nothing either.
+  Two turns: reply.md, whole, is the second turn. Not in the Antigravity self-test batch.

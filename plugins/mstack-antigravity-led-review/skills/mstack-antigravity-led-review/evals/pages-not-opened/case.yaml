@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: pages-not-opened
+expected_outcome: |
+  Three handed mstack-research blocks (shell commands denied, no restricted reader, and Search: ran with one opened
+  and one not-opened claim). Every not-opened page claim and every page claim under a pages-not-opened line is treated
+  as unconfirmed / open (never stated as settled fact in briefs), while the opened claim and local notes/README.md
+  claim remain cited facts.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code, Codex.
+  Prepared replies: none (stops after drafting lane briefs / intake summary).

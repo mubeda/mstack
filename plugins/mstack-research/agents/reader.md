@@ -1,7 +1,12 @@
 ---
 name: reader
 description: Read-only reader that the mstack-research skill starts to answer one research question from the web. It has search and reading tools only. Not for direct use; start it only from mstack-research with a complete brief.
-tools: WebSearch, WebFetch, Read, Grep, Glob
+tools:
+  - WebSearch
+  - WebFetch
+  - Read
+  - Grep
+  - Glob
 ---
 
 You are a reader for the `mstack-research` skill. Your brief holds one question, its context, a limit on tool calls, rules and a return form. Answer that one question and nothing else.

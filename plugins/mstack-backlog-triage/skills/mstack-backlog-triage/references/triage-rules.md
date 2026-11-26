@@ -66,7 +66,7 @@ Each recommendation names where the issue goes next.
 
 | Situation | Route |
 |---|---|
-| A now item that is ready to build | The delivery workflow for this host: `mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex |
+| A now item that is ready to build | This host's review workflow: `mstack-claude-led-review` in Claude Code, `mstack-codex-led-review` in Codex, `mstack-antigravity-led-review` in Antigravity |
 | A feature, or a large change, with open decisions about what to build | `mstack-write-specs`, before it can be now |
 | A bug without a reproduction, or one too slow to reproduce here | `mstack-diagnose` (or a question to the reporter, when only the reporter has the missing fact) |
 | A duplicate | Close as a duplicate of the kept issue, after approval |

@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: research-mixed-claims
+expected_outcome: |
+  A session in Phase 2 of a plugin target gets an mstack-research result block whose last line is `Search: ran`, with
+  one page claim that was opened, one page claim that says `not opened` with low confidence, and one claim read from
+  the repository's lockfile. The research summary reports the unopened claim as still open and never as a fact the
+  skill relies on, cites the opened claim with its date, and keeps the lockfile claim with its path.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  One turn, in the middle of a session: the prompt holds the result block, so no helper skill has to be loaded. Each
+  claim is read by its own field. The block's closing line is `Search: ran` on purpose: a caller that reads only that
+  line treats the unopened claim as confirmed.

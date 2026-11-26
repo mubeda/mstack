@@ -7,32 +7,52 @@ description: Use when the user has a spec, requirements or a spec.md and wants a
 
 You turn an approved spec into an implementation plan that an agent in a fresh session can execute task by task. The plan is the deliverable. You never implement it.
 
-A good plan here has five properties. Every requirement in the spec maps to a task. Every task fits one fresh agent session and proves itself with a test that fails first. Every task names the skills that help with exactly that work. A model from another vendor has reviewed the plan, or, when that reviewer is not available, a fresh subagent of the same vendor, recorded as such. And the plan carries its own progress file and start-up prompt, so inline execution and the mstack review workflows can pick it up, hand it over, and resume it.
+A good plan here has five properties. Every requirement in the spec maps to a task. Every task fits one fresh agent session and proves itself with a test that fails first. Every task names the skills that help with exactly that work. Every plan is reviewed before approval by the reviewers `mstack-vendors` offers, or by its fallback review when it offers none. And the plan carries its own progress file and start-up prompt, so inline execution and the mstack workflows can pick it up, hand it over, and resume it.
 
 ## Host tools
 
-This skill runs in Claude Code and in Codex. It names roles, not tools.
+This skill runs in Claude Code, in Codex and in Antigravity. It names roles, not tools.
 
-| Role | Claude Code | Codex |
-|---|---|---|
-| Your question tool | `AskUserQuestion` | A numbered round in chat, then wait for the reply |
-| Your subagent tool | `Agent` | The session's agent tool if it has one, otherwise a separate read-only `codex exec` run |
-| Loading a skill | The Skill tool | Read the skill's SKILL.md and follow it |
-| The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md |
-| The cross-vendor reviewer | Codex, through the skill-codex `codex` skill | Claude, through the agent-bridges `claude-review` skill |
-| `<host>` for the scripts | `claude` | `codex` |
+| Role | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| Your question tool | `AskUserQuestion` | A numbered round in chat, then wait for the reply | `ask_question`, then wait for the reply |
+| Your subagent tool | `Agent` | The session's agent tool if it has one, otherwise a separate read-only `codex exec` run | `invoke_subagent`, on the subagent tier that the `antigravity` row of the model call below names under "How to set" |
+| Loading a skill | The Skill tool | Read the skill's SKILL.md and follow it | Read the skill's SKILL.md with `read_file` and follow it |
+| The skill folder | The base directory shown when this skill loaded | The folder of this SKILL.md | The folder of this SKILL.md |
+| The cross-vendor reviewer | From `mstack-vendors`, at Phase 7 | From `mstack-vendors`, at Phase 7 | From `mstack-vendors`, at Phase 7 |
+| `<host>` for the scripts | `claude` | `codex` | `antigravity` |
 
 Without a subagent tool, do the delegated step yourself and say so.
 
-Set the model on every subagent, because one started without it runs on this session's model, the most expensive choice. Before the first subagent, make one called-mode call to `mstack-best-model-for` with vendor `both` and the tiers `cheap`, `standard` and `most capable`. Its `cheap` answer for this host's vendor goes on every read-only search or lookup; the same answers fill `execute-plan.md` in phase 5 and the same-vendor fallback reviewer in phase 7, so no second call is needed. The plan review is the exception and uses the model `references/plan-review.md` names.
+Set the model on every subagent, because one started without it runs on this session's model, the most expensive choice. Before the first subagent, before phase 3 sets a tier, and before phase 7 calls `mstack-vendors`, make one called-mode call to `mstack-best-model-for` with exactly this message:
+
+```text
+Called by: mstack-plan
+Vendor: both
+Tiers: cheap, standard, most capable
+Task: code review
+```
+
+In Antigravity the second line says `Vendor: all` instead, and the block then has three rows per request: `both` returns only the `claude` and `codex` rows, and a missing row is never an answer. This host's vendor is `claude` in Claude Code, `codex` in Codex and `antigravity` in Antigravity for the model call; for `progress.md` and `mstack-vendors`, this session's vendor is `claude` in Claude Code, `codex` in Codex and `unknown` in Antigravity.
+
+Rule 8 of phase 3 governs every model named here and below: no flagged model runs or is written without its own yes. Before the first lookup, read "Before the round" in `references/expensive-choices.md`: it says which model a lookup takes while the `cheap` row is flagged, and gives the second call for the alternatives.
+
+Its `cheap` answer for this host's vendor, as rule 8 settled it, goes on every read-only search or lookup; its helper answers fill `execute-plan.md` in phase 5. Its `code review` answers fill the `Models` line sent to `mstack-vendors` in phase 7 for the reviewer vendors other than this host (`codex` alone in Claude Code, `claude` alone in Codex, both `claude` and `codex` in Antigravity), always converting any Claude model to its full headless id from `Claude headless id` / `How to set`, never an alias.
+
+A called skill's result block ends that skill, never your turn. Write the block and start your next step, with its tool call, in the same message: a message that holds only the block ends the turn before the plan exists.
 
 ## Files in this skill
 
 | File | When |
 |---|---|
-| `references/plan-format.md` | Phases 3 and 5. The plan's file layout, fields, states and resume rules. The three mstack workflows that execute plans (`mstack-codex-review-workflow`, `mstack-claude-review-workflow`, `mstack-claude-pm-codex-dev`) ship the same file |
+| `references/plan-format.md` | Phases 3 and 5. The plan's file layout, fields, states and resume rules. The six mstack workflows ship the same file |
 | `references/codegraph.md` | Phase 1, before reading the code |
 | `references/plan-review.md` | Phase 7 |
+| `references/expensive-choices.md` | The rest of rule 8: before the first lookup, phase 3 after rule 7, and whenever a stage or slot appears or changes |
+| `references/resume.md` | Section 0, when the plan folder already holds a plan |
+| `references/old-start-file.md` | Section 0, when `references/resume.md` migrates an older `execute-plan.md` |
+| `references/research.md` | Phase 1, step 6 |
+| `references/required-skills.md` | Section 0, before anything else, and Preflight, after the script ran |
 | `references/execute-plan-template.md` | Phase 5 |
 | `scripts/check-required-skills.sh` | Preflight |
 | `scripts/check-plan.mjs` | Phases 6 and 7 |
@@ -43,26 +63,13 @@ Set the model on every subagent, because one started without it runs on this ses
 2. **The spec is the binding authority.** The plan argues from it. A requirement that turns out to be undecided goes back to the spec (`mstack-write-specs`), never into the plan as a guess.
 3. **Facts are yours, decisions are the user's.** Settle every fact from the repository, its docs and the sources the user gave, and cite where it came from. Ask the user only for decisions, each with your recommendation.
 4. **Test first.** Every task that changes behavior is written red-green: the failing test, the run that shows it failing, the minimum code, the run that shows it passing, and a check that the test can still fail. Only work with no behavior to test is exempt, with the reason written down.
-5. **The review always runs.** Every plan is reviewed before approval, by the cross-vendor reviewer when it is available and otherwise by the same-vendor fallback in `references/plan-review.md`. Never ask the user whether to review.
+5. **The review always runs.** Every plan is reviewed before approval, by the reviewers `mstack-vendors` offers or by its fallback review when it offers none (`references/plan-review.md`). Never ask the user whether to review.
 6. **Approval is an explicit yes to the written plan.** A yes to an outline, an earlier "just write it", silence, or a reviewer's verdict is not approval. Any edit after approval sets the plan back to Draft.
 7. **Keep secrets out.** Cite external sources by link or name. Never copy credentials, tokens or personal data from them into the plan.
 
 ## 0. Start
 
-**Required skills, first.** Before any question or other work, check the four shared skills this skill calls: `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review` and `mstack-research`. For each one:
-
-1. It is in this session's skill list (as `<name>` or `<plugin>:<name>`): continue.
-2. It is not in the list, but `scripts/check-required-skills.sh` (Preflight) reports it `ok` on disk: it was installed after this session started. Say that a new session is needed, and stop.
-3. Otherwise it is not installed. Print this and stop, with nothing else done:
-
-   ```text
-   mstack-plan needs <name>, which is not installed.
-   Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install <name>@mstack
-   Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add <name>@mstack
-   Skills CLI:  npx skills add mubeda/mstack --skill <name> -g -a <claude-code|codex> -y
-   Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
-   Then start a new session.
-   ```
+**Required skills, first.** Before any question or other work, check the five shared skills this skill calls: `mstack-find-skills`, `mstack-best-model-for`, `mstack-receive-review`, `mstack-research` and `mstack-vendors`. Follow `references/required-skills.md` now, before anything else: it gives the three cases and the install block to print before you stop. Its rules bind.
 
 There is no built-in fallback for any of them.
 
@@ -71,9 +78,10 @@ Then send one message that restates the user's goal in a sentence and asks these
 1. **Where should the plan go?** Recommend, in this order: the folder the spec already sits in when it is a plan folder of its own, the repository's existing plans folder if it has one (look for `docs/plans/`, `plans/`, `docs/specs/`), or `docs/plans/<yyyy-mm-dd>-<slug>/`. Accept any path.
 2. **Which spec?** Only when the request names none. Offer the specs you find (`rg -l --glob '*.md' '^### R1\b'`, `docs/specs/`), newest first.
 3. **External sources.** Ask whether there is any information outside the repository the plan should use, such as links, wiki pages, design files, tracker issues, API or vendor documentation, or earlier decisions. Recommend "none" only when the spec's Source line and the repository docs already cover the work.
-4. **Reviewer model and effort.** In Claude Code, the Codex model (recommend `gpt-6.2-sol`, alternative `gpt-6.2-astra`) and effort (recommend `high`, then `medium`, `xhigh`, `max`). In Codex, the Claude model (recommend `opus`, alternative `sonnet`) and effort (recommend `medium`, then `high`, `low`). Accept any other name the user types.
 
-When the folder already holds a plan (`plan.md` and `progress.md`), read both and resume instead. A Draft plan continues from its first unfinished phase of this skill. An Approved plan stays as it is unless the user asks for a change, and that change sets it back to Draft. A plan whose tasks are already In progress or Closed is being executed, so change only tasks that are still Open and log why. An `execute-plan.md` written by an earlier version of this skill tells the inline executor to switch to another reviewer model when the chosen one is rejected: when you resume such a folder, replace rule 3 of its "Rules for the whole run" and the whole failure bullet of its review step (the one that begins "An empty output or a non-zero exit") with the text of `references/execute-plan-template.md`, filling the placeholders from the old file, and log it in `progress.md`. This edit does not set an Approved plan back to Draft, and the recorded reviewer model stays.
+Do not ask for a reviewer model in this first message: tell the user in one line that the reviewers and their models are chosen at the plan review in phase 7. In Antigravity this skill sends no `Leader model` line and does not ask for it. When you asked any of questions 1 to 3, end your turn and wait for the reply before running Preflight or reading the code.
+
+When the folder already holds a plan (`plan.md` and `progress.md`), read both and resume instead: read `references/resume.md` first and follow it before any other step. Its rules bind.
 
 ## Preflight
 
@@ -81,11 +89,9 @@ When the folder already holds a plan (`plan.md` and `progress.md`), read both an
 bash <skill-folder>/scripts/check-required-skills.sh --host <host>
 ```
 
-It checks `node`, `git` and the four shared skills, warns when the cross-vendor reviewer is missing, and notes the recommended mstack skills. Also confirm the reviewer skill appears in this session's skill list, because a skill installed mid-session loads only in a new session.
+It checks `node`, `git` and the five shared skills, and notes the recommended mstack skills.
 
-If `node` or `git` is missing (a `MISSING` line), tell the user and stop until it is installed, because no fallback replaces them. A `MISSING` shared skill is handled by the required-skills step of section 0. If the checker warns that the cross-vendor reviewer is missing (a `WARN` line), tell the user that `mstack-setup` installs it (the login stays a step for the user), and continue without waiting. Warn the user that the plan review will run as a same-vendor review by a fresh subagent, which tends to miss more than a review by another vendor, and continue with the fallback in `references/plan-review.md` › When the run fails. The plan says so.
-
-For any other missing item, the user runs `mstack-setup`: it installs the missing skills, plugins and command-line tools at user scope after one yes, and lists what it cannot install (`node`, `git`, logins) as steps for the user. This skill installs nothing itself.
+Then read "What the preflight found" in `references/required-skills.md` and do what it says for each `MISSING` line; its rules bind. This skill installs nothing itself.
 
 ## 1. Ground
 
@@ -105,22 +111,7 @@ Read before you ask. Send broad searches to your subagent tool and ask it for fi
    - every package, SDK or external API that the spec's work adds, upgrades or uses in a way the repository does not use yet;
    - every name, signature, command, flag, limit or behavior of something outside the repository that a task's steps would state, and that the spec, the repository and the user's sources do not give.
 
-   With no item, write "Research: none needed" under `plan.md` › Sources and continue. Otherwise load `mstack-research` with a message in exactly this form, at most 8 items per call and a second call for more:
-
-   ```text
-   Called by: mstack-plan
-   Project: <path of the repository>
-   Online search: off (<reason>)        (only when the user or the session says the network is off)
-   Depth: quick                         (only when every item is a single package fact)
-
-   <ID>: <question>
-   Package: <name>                      (under each item about a package)
-   ```
-
-   Read its result block, which ends with a `Search:` line:
-   - Each claim goes under `plan.md` › Sources with its link, the version it holds for and the date, and into the Read first line of every phase and task it affects. For a package, the `Version:` line of the block (the version in use and the file it was read from) goes into Global constraints.
-   - A conflict, or a "Not found" that changes a task, becomes a question of phase 2, with the evidence.
-   - When the block says `Search: not run`, continue, write "Research: not run (<reason>)" under Sources, and name it in the approval summary of phase 8.
+   With no item, or with one, follow `references/research.md`: it holds the exact message for `mstack-research` and the rules for reading its result block. Its rules bind.
 
    Never state a call, a flag or a default of an external package in a task when neither the repository nor a claim of the block supports it.
 
@@ -146,6 +137,7 @@ Follow `references/plan-format.md`.
 5. **File map and traceability.** Every file and external change appears once with one owning phase. Check every existing path. Every requirement maps to at least one task, and every Review focus item is pinned by a test in a named task.
 6. **Red-green.** Each GIVEN/WHEN/THEN scenario in the spec becomes a test step with the spec's exact values, and each negative scenario becomes a test that proves what must not happen. Use the step pattern in `references/plan-format.md`.
 7. **Tiers.** Give each task a model tier: cheap for a fixed command or a fully specified edit, standard for well-specified code, most capable for security, stored data, concurrency, or a design call the plan leaves open.
+8. **Expensive stages and slots.** One principle stands above every other instruction of this skill and its references: this skill never runs and never writes a flagged model, in any step or file, unless the user said yes for exactly that stage or slot or named it. Wherever another instruction names a tier's row or a model (a helper of Host tools, the helper rows the start file is filled from, a retry, a migration), read it as "the choice settled for that slot under this rule". When this principle and another instruction disagree, the principle wins. The rest of this rule is in `references/expensive-choices.md`: read it after rule 7 has set the tiers, before any tier or model is recorded, and again whenever a stage or slot appears or changes. Its rules bind like this one.
 
 Then show the user the outline before writing the full files: a numbered list of phases with their round, and under each, its tasks with title, Satisfies and Depends on, plus the file map in short. Ask whether the granularity is right, whether each dependency is real, and whether to merge or split anything. Recommend approving it when you see no problem. Revise until the user approves the outline.
 
@@ -155,14 +147,14 @@ Name the skills for every phase and task with one call:
 
 1. Load `mstack-find-skills` in called mode. Say that `mstack-plan` is calling, and give every task of the approved outline as a work item (its ID, goal and files). When the repository holds skill folders of its own that are not installed (for example `plugins/*/skills/`), add the line `Also read: <those folders>`.
 2. Read its result block. Each task's Skills line takes the skills of that task's section, with their reasons. A skill every task in a phase needs goes on the phase instead.
-3. When the block lists candidates for gaps, ask the user in one round which to install. For the ones accepted, load `mstack-find-skills` in user mode with one `Install: <owner/repo>@<skill>` line per accepted candidate; it asks how to install and runs the install, without searching again. A newly installed skill goes into the plan with the note "installed <yyyy-mm-dd>, loads in a new session".
+3. When the block lists candidates for gaps, ask the user in one round which to install. For the ones accepted, load `mstack-find-skills` in user mode with one `Install: <source>@<skill>` line per accepted candidate, the source copied unchanged from the block (an `owner/repo` or a web address); it asks how to install, without searching again, and reports each candidate. A skill it reports as installed goes into the plan with the note "installed <yyyy-mm-dd>, loads in a new session". A skill for which it only showed a command for the user to run (the Antigravity plugin route) is recorded as "not installed: the user runs <the command shown>", and its task runs without that specialist until the user has installed it.
 4. A gap the user skips, or a search that did not run, is recorded in `plan.md` › Decisions, so the executor knows the task runs without a specialist.
 
 Never install anything without the user's yes.
 
 ## 5. Write the plan
 
-Write every file in `references/plan-format.md` › Folder layout, filling every field. Copy `references/execute-plan-template.md` into `execute-plan.md` and fill it, including the recommended mode and its reason. Fill its helper and fallback-reviewer placeholders from the `mstack-best-model-for` answers of the Host tools call, for both vendors, because the executing session may run on the other host and may not have that skill. Create `progress.md` with every task Open, `Executor: none`, and the first 12 hex digits of `spec.md`'s sha256 (`sha256sum` or `shasum -a 256`).
+Write every file in `references/plan-format.md` › Folder layout, filling every field. Copy `references/execute-plan-template.md` into `execute-plan.md` and fill every planning-time placeholder, including the recommended mode and its reason (write `pending (Phase 7 plan review)` on `Plan reviewed by` so Phase 6's `check-plan.mjs` passes, then replace it in phase 7 after the plan review completes). Fill its helper placeholders from the `mstack-best-model-for` answers of the Host tools call, for every vendor the block has rows for, because the executing session may run on another host and may not have that skill. A plan made in Claude Code or Codex has no `antigravity` rows: write its Antigravity helper placeholders as `none (planned in <host>)`. A placeholder whose answer is flagged takes what rule 8 of phase 3 settled for that slot: the flagged model after its yes, otherwise the alternative. Rule 8's principle holds for every value of the start file. Create `progress.md` with every task Open, `Executor: none`, `Written by: <claude|codex|unknown>` (`claude` in Claude Code, `codex` in Codex, `unknown` in Antigravity), and the first 12 hex digits of `spec.md`'s sha256 (`sha256sum` or `shasum -a 256`).
 
 Keep it proportionate. Steps name exact signatures, values and commands, not whole code bodies. A plan several times longer than its spec, or longer than the code it describes, has written the code instead of planning it.
 
@@ -172,13 +164,18 @@ Keep it proportionate. Steps name exact signatures, values and commands, not who
 2. Then read the plan against what the script cannot see. Every step decides something (no "TBD", no "handle edge cases"). Names and signatures agree across tasks. Each phase file can be executed by someone who read only it and the plan header. Every Read first entry exists. The Review focus is filled or says why it is empty.
 3. Stop after three passes, and list for the user whatever still fails.
 
-## 7. Cross-vendor review
+## 7. Plan review
 
-Follow `references/plan-review.md`, and process the review with `mstack-receive-review`. The other vendor's model reviews the whole plan folder, read-only, or the same-vendor fallback when that reviewer is not available. Nothing in this phase asks the user, except the one question for a reviewer model that was rejected (`references/plan-review.md` › When the run fails): verify every finding, fix the facts, reject what is wrong or contradicts a decision already made, keep design changes for the approval summary, and record how each finding was handled in `reviews/plan-review-<n>.md`. At most two review rounds.
+Read `references/plan-review.md` and follow it in full.
+
+1. Call `mstack-vendors` with the exact literal message of `references/plan-review.md` (never a summary, kept verbatim in the conversation): `Called by: mstack-plan`, `Host: <claude-code|codex|antigravity>`, `Workspace: <repository root>`, no `Leader model` line, `Job: plan review`, `Writers:` from `progress.md`'s `Written by:` (`unknown` when missing or `unknown`), and `Models:` from `mstack-best-model-for` (`code review`) for `claude` and `codex` minus this host's own vendor (always the full headless id for `claude`).
+2. When the result block offers reviewers (`Recommend:` names one or more vendors), ask the user once with your question tool which offered reviewers should review and on which model (the recommendation is the default; never offer `antigravity`). If any chosen default model is flagged as expensive in `mstack-best-model-for`, ask a question of its own naming the next non-flagged model down (a model the user explicitly typed draws no question; a session that cannot ask runs the recommendation on non-flagged models). Whenever the user's chosen reviewer subset or any model or effort differs from the discovery block's `Recommend:` and `Models:`, send one selection refresh message to `mstack-vendors` with `Models:` holding only the chosen reviewer(s) and their final model and effort, and run only that execution block's commands.
+3. When the block recommends `a fallback review`, ask no pick question and no model question, warn the user, and follow the block's `Steps` for the fallback review.
+4. Run the final block's commands and `Steps` (with two reviewers, one after the other), and hand each reviewer's output unchanged and unmerged to `mstack-receive-review` once per review with the three caller lines (`Review:`, `Writers:`, `Reviewer vendor:`). Record how each finding was handled in `reviews/plan-review-<n>.md`. Any phase or task a fix adds, splits or moves to a flagged tier passes rule 8 of phase 3 first. At most two review rounds.
 
 ## 8. Approval
 
-Give the user the plan folder's path, a five-line summary (goal, phases and rounds, task count, the review verdict, open gaps, with research that did not run named among the gaps), and the review findings the run did not apply: each one kept for approval with your recommendation, and each one rejected because it contradicted a decision already made. Then ask for an explicit yes to the written plan, with any of those findings the user wants applied. On yes, set `Status: Approved <yyyy-mm-dd> (approved in chat by the user)` in `plan.md` and `Plan status: Approved <yyyy-mm-dd>` in `progress.md`, and run `check-plan.mjs` once more. Any later edit sets both back to Draft.
+Give the user the plan folder's path, a five-line summary (goal, phases and rounds, task count, the review verdict, open gaps, with research that did not run and `pages not opened (<reason>)` named among the gaps), and the review findings the run did not apply: each one kept for approval with your recommendation, and each one rejected because it contradicted a decision already made. Then ask for an explicit yes to the written plan, with any of those findings the user wants applied. On yes, set `Status: Approved <yyyy-mm-dd> (approved in chat by the user)` in `plan.md` and `Plan status: Approved <yyyy-mm-dd>` in `progress.md`, and run `check-plan.mjs` once more. Any later edit sets both back to Draft.
 
 ## 9. Hand-off
 
@@ -187,7 +184,7 @@ Report in this order:
 1. The goal and the outcome in one line, with the plan folder's path.
 2. Phases with their rounds as a small dependency graph, and the task count.
 3. The skills named per phase, the installs the user accepted, and the gaps left. What `mstack-research` was asked, in one line, or that nothing external was needed, or that it did not run.
-4. The review: reviewer, model, verdict, findings fixed, deferred and rejected.
-5. How to start: "Open a new session in the repository and say: execute `<plan-folder>/execute-plan.md`." That file first asks which of three ways to run it: inline, with the mstack review workflow for that host, or, in Claude Code, with `mstack-claude-pm-codex-dev` (Codex writes each phase, Claude reviews and commits it). It recommends inline or the review workflow. Say which and why.
+4. The review: each reviewer, its model, its Record value, verdict, findings fixed, deferred and rejected.
+5. How to start: "Open a new session in the repository and say: execute `<plan-folder>/execute-plan.md`." That file first asks which of three ways to run it: inline, this host's review workflow (`mstack-claude-led-review`, `mstack-codex-led-review` or `mstack-antigravity-led-review`), or this host's dev workflow (`mstack-claude-led-dev`, `mstack-codex-led-dev` or `mstack-antigravity-led-dev`). It recommends inline or a workflow. Say which and why.
 
 Do not start execution in this session unless the user asks. A fresh session starts with a clean context and the plan as its only memory, which is what the plan was written for.

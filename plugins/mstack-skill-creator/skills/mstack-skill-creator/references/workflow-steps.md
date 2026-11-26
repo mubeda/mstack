@@ -6,37 +6,40 @@ Read this in Phase 0 (the required shared skills and the optional steps), Phase 
 
 | Step | mstack skill |
 |---|---|
-| Research on the web (Claude Code and Codex) | `mstack-research`; in OpenCode and Cursor the built-in step below |
+| Research on the web (Claude Code, Codex and Antigravity) | `mstack-research`; in OpenCode and Cursor the built-in step below |
 | A written spec | `mstack-write-specs` |
 | A step-by-step plan | `mstack-plan` |
-| Building with reviews | `mstack-codex-review-workflow` in Claude Code, `mstack-claude-review-workflow` in Codex |
+| Building with reviews | `mstack-claude-led-review` and `mstack-claude-led-dev` in Claude Code, `mstack-codex-led-review` and `mstack-codex-led-dev` in Codex, `mstack-antigravity-led-review` and `mstack-antigravity-led-dev` in Antigravity |
+| The reviewers and their commands (Claude Code, Codex, Antigravity) | `mstack-vendors` |
+| Processing review findings (Claude Code, Codex, Antigravity) | `mstack-receive-review` |
 | An interrupted session | `mstack-handoff` |
 | A shipped script that fails | `mstack-diagnose` |
 | A skill idea taken from an issue tracker | `mstack-backlog-triage` |
-| The existing-skill check and the public search (Claude Code and Codex) | `mstack-find-skills` |
-| The model and effort of test and review subagents (Claude Code and Codex) | `mstack-best-model-for` |
-| Installing a missing skill or tool (Claude Code and Codex) | `mstack-setup` |
+| The existing-skill check and the public search (Claude Code, Codex and Antigravity) | `mstack-find-skills` |
+| The model and effort of test and review subagents (Claude Code, Codex and Antigravity) | `mstack-best-model-for` |
+| Installing a missing skill or tool (Claude Code, Codex and Antigravity) | `mstack-setup` |
 
 Use the mstack skill when it is installed and the "mstack skills supported here" section of the host file lists it. Otherwise use its built-in fallback below, and say so in the report. Check what is installed by the session's skill list, then the skill folders in the host file.
 
 ## Required shared skills
 
-In Claude Code and Codex, `mstack-find-skills`, `mstack-best-model-for` and `mstack-research` are required. For each one: when it is in the session's skill list, continue. When its folder exists on disk (the skill folders in the host file) but the session has not loaded it, say that a new session is needed, and stop. Otherwise print this and stop, with nothing written:
+In Claude Code, Codex and Antigravity, `mstack-find-skills`, `mstack-best-model-for`, `mstack-research`, `mstack-vendors` and `mstack-receive-review` are required. For each one: when it is in the session's skill list, continue. When its folder exists in one of the skill folders the host file lists but the session has not loaded it, say that a new session is needed, and stop. Only those install folders count: a source checkout of the skill elsewhere on disk is not an install. Otherwise print this block, once per missing skill with its name in place of `<name>`, and stop. Print every line of it in every host and run none of its commands:
 
 ```text
 mstack-skill-creator needs <name>, which is not installed.
 Claude Code: claude plugin marketplace add mubeda/mstack, then claude plugin install <name>@mstack
 Codex:       codex plugin marketplace add mubeda/mstack, then codex plugin add <name>@mstack
-Skills CLI:  npx skills add mubeda/mstack --skill <name> -g -a <claude-code|codex> -y
+Antigravity: agy plugin install https://github.com/mubeda/mstack/tree/main/plugins/<name>
+Skills CLI:  npx skills add mubeda/mstack --skill <name> -g -a <claude-code|codex|antigravity> -y
 Or install mstack-setup the same way and run it: it installs everything the mstack skills need.
 Then start a new session.
 ```
 
-There is no built-in fallback for them in Claude Code and Codex. In OpenCode and Cursor they are not required.
+Stopping means that you write no file and take no further step of any phase. There is no built-in fallback for these five in Claude Code, Codex and Antigravity. When the user said to continue without asking, stop all the same: that sentence answers the setup questions, and it is not a yes to working without the skills this run depends on. In OpenCode and Cursor they are not required.
 
 ## When a skill is missing
 
-In Claude Code and Codex, a step's skill that is supported here but not installed is installed with `mstack-setup`: name it, use the step's built-in fallback below, and go on. This skill installs nothing itself there.
+This part is about the other skills of the table, never about the five required ones above. In Claude Code, Codex and Antigravity, a step's skill that is supported here but not installed is installed with `mstack-setup`: name it, use the step's built-in fallback below, and go on. This skill installs nothing itself there.
 
 ### OpenCode and Cursor
 
@@ -55,7 +58,7 @@ A skill installed during a session usually loads only in a new one. When the use
 
 ## Built-in fallbacks
 
-- Research, in OpenCode and Cursor only. Search for existing skills and documentation on the subject, read the two or three best primary sources, and note the facts the skill will rely on with their links and the date. In Claude Code and Codex there is no fallback: load `mstack-research` with a message in this form, and read its result block, which ends with `Search: ran` or `Search: not run (<reason>)`. When search did not run, report research as not run and continue.
+- Research, in OpenCode and Cursor only. Search for existing skills and documentation on the subject, read the two or three best primary sources, and note the facts the skill will rely on with their links and the date. In Claude Code, Codex and Antigravity there is no fallback: load `mstack-research` with a message in this form, and read its result block, which ends with `Search: ran`, `Search: ran, pages not opened (<reason>)` or `Search: not run (<reason>)`. When search did not run, report research as not run and continue. Read every claim by its own fields, under either `Search: ran` line: a claim that says `not opened` stays open, so list it as still open, never cite it as confirmed and build no rule of the skill on it. A claim that says `opened <date>` is cited with its source and that date written out (for example "opened 2026-11-23"), never as "opened" alone. A claim read from a local file keeps its file path as the source.
 
   ```text
   Called by: mstack-skill-creator
@@ -73,13 +76,13 @@ A skill installed during a session usually loads only in a new one. When the use
 
 ## Optional steps for a local target
 
-At the start, in one question, offer the steps a small local skill may skip: web research, a written spec and plan, a cross-vendor review, and the benchmark and review page. Recommend skipping all four for a skill the user can describe in a few sentences. Run only the ones the user accepts, and do not ask again unless the user brings one up.
+At the start, in one question, offer the steps a small local skill may skip: web research, a written spec and plan, a cross-vendor review, and the benchmark and review page. Recommend skipping them all for a skill the user can describe in a few sentences. Run only the ones the user accepts, and do not ask again unless the user brings one up.
 
 The required steps are never optional: the interview, the existing-skill check, writing the skill, the static check, and one comparison test.
 
 ## Existing-skill check
 
-The built-in check, for OpenCode and Cursor. In Claude Code and Codex, Phase 1 calls `mstack-find-skills` instead. Before writing, look for a skill that already does the job.
+The built-in check, for OpenCode and Cursor. In Claude Code, Codex and Antigravity, Phase 1 calls `mstack-find-skills` instead. Before writing, look for a skill that already does the job.
 
 1. Read the skill folders the host file lists, at project and user level, the session's skill list, and every `SKILL.md` anywhere in the target repository (outside `.git`), for a local target as well as a plugin target.
 2. Compare each one's description with the purpose agreed in the interview.
@@ -89,7 +92,7 @@ The built-in check, for OpenCode and Cursor. In Claude Code and Codex, Phase 1 c
 
 ## Public search
 
-The built-in search, for OpenCode and Cursor; in Claude Code and Codex, `mstack-find-skills` runs it. Offer it in the same question as the optional steps. Only after a yes, run:
+The built-in search, for OpenCode and Cursor; in Claude Code, Codex and Antigravity, `mstack-find-skills` runs it. Offer it in the same question as the optional steps. Only after a yes, run:
 
 ```bash
 npx --yes skills find "<two or three words for the job>"

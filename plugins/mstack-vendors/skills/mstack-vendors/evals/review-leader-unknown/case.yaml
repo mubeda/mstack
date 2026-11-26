@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: review-leader-unknown
+expected_outcome: |
+  No Leader model and writers unknown: claude and codex are both offered, each recorded writer unknown, not cross-vendor.
+context:
+  scaffold_script: place-files.sh

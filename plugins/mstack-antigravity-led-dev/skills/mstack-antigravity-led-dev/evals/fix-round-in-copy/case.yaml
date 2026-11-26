@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: fix-round-in-copy
+expected_outcome: |
+  Claude is the only available developer (codex not installed). Round 1 creates sub_helper.py and buggy neg; round 2 resumes same session_id in same copy (listing contains round-1-only sub_helper.py); both rounds reach checkout; progress.md untouched until bookkeeping commit after phase commit; copy removed after commit.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-antigravity-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

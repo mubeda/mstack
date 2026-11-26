@@ -1,0 +1,19 @@
+{
+  "name": "mstack-codex-led-review",
+  "version": "0.1.0",
+  "description": "Codex coordinator workflow for delivering a plan folder, a list of issues, or one larger task in a repository: Codex leads and its writer lanes edit in isolated worktrees (or one branch in Single mode), tracks each item as Open, In progress or Closed, gets read-only review from the other installed vendor that mstack-vendors offers (claude, or a fallback review), integrates, and delivers one pull request with serialized CI. Runs in Codex only.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": ["workflow", "multi-agent", "worktrees", "code-review", "codex"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Codex-Led Review Workflow",
+    "shortDescription": "Deliver issues, a plan or a task with Codex lanes and review through mstack-vendors.",
+    "longDescription": "Codex leads and its writer lanes implement in isolated git worktrees (or one branch in Single mode), keeping an Open, In progress, Closed status table, getting read-only review from the other installed vendor offered by mstack-vendors (claude, or a fallback review), integrating accepted lanes, and delivering one pull request with serialized CI. Runs in Codex only.",
+    "developerName": "mubeda",
+    "category": "Workflow",
+    "capabilities": ["Read", "Write"]
+  }
+}

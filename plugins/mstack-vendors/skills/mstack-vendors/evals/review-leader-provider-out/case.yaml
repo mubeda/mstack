@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: review-leader-provider-out
+expected_outcome: |
+  A leader on a Claude model with writers antigravity: codex is the only reviewer offered, and claude has no row although it is installed and signed in.
+context:
+  scaffold_script: place-files.sh

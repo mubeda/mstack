@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -eu
+if [ "${1:-}" = "models" ] && [ "$#" -eq 1 ]; then
+  cat "$(cd "$(dirname "$0")/.." && pwd)/files/models-list.txt"
+  exit 0
+fi
+echo "stand-in: only the models subcommand" >&2
+exit 2

@@ -1,6 +1,6 @@
 ---
 name: mstack-write-issue
-description: Use when the user wants a problem, a change or a follow-up written up as an issue in a tracker, such as "file an issue for this", "open a ticket", "report this bug", "create an issue for the flaky test", "write up this follow-up", "turn this finding into an issue", also when the bug does not happen every time, or when another mstack skill sends a message that starts with "Called by:" and lists findings to draft. Not for finding a bug's cause and not for sorting existing issues. Works in Claude Code and Codex. Produces one issue draft per finding, checked for duplicates and private data, posted only after the user approves the shown text.
+description: Use when the user wants a problem, a change or a follow-up written up as an issue in a tracker, such as "file an issue for this", "open a ticket", "report this bug", "create an issue for the flaky test", "write up this follow-up", "turn this finding into an issue", also when the bug does not happen every time, or when another mstack skill sends a message that starts with "Called by:" and lists findings to draft. Not for finding a bug's cause and not for sorting existing issues. Works in Claude Code, Codex and Antigravity. Produces one issue draft per finding, checked for duplicates and private data, posted only after the user approves the shown text.
 ---
 
 # mstack write issue
@@ -9,13 +9,13 @@ You turn one finding into one issue that a maintainer can act on without asking 
 
 ## Host tools
 
-This file is the same on both hosts. It names roles, and this table says what plays each role.
+This file is the same on every host. It names roles, and this table says what plays each role.
 
-| Role | Claude Code | Codex |
-|---|---|---|
-| Your question tool | `AskUserQuestion` | A numbered question in chat, then wait for the reply |
-| `gh` commands | Run directly | Run as approved (escalated) commands, because the sandbox turns the network off |
-| The scratch folder | The session's scratch folder | A new temporary folder outside the repository |
+| Role | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| Your question tool | `AskUserQuestion` | A numbered question in chat, then wait for the reply | `ask_question`, then wait for the reply |
+| `gh` commands | Run directly | Run as approved (escalated) commands, because the sandbox turns the network off | Run with `run_command` |
+| The scratch folder | The session's scratch folder | A new temporary folder outside the repository | A new temporary folder outside the repository |
 
 ## Files in this skill
 
@@ -36,7 +36,7 @@ This file is the same on both hosts. It names roles, and this table says what pl
 ## Two modes
 
 - **User mode.** The user asked for an issue. Ask at most one round of questions with your question tool, and only for what you cannot find yourself and cannot leave as "unknown": which tracker, or what the problem is when the finding names none.
-- **Called mode.** The message starts with the line `Called by: <skill>`. That line alone decides this mode. Ask the user nothing, post nothing, and end with the result block of `references/result-block.md`. The calling skill shows the drafts and posts what the user approves.
+- **Called mode.** The message starts with the line `Called by: <skill>`. That line alone decides this mode. Ask the user nothing and post nothing. The reply is the result block of `references/result-block.md` and nothing else: its first line is the block's heading, and no sentence of progress, greeting or summary stands before it. The block's lines are all the caller gets: what steps 1 and 5 tell you to say (where the security policy was looked for or that none was found, a dropped label, that no label fits, which template was used) is not said in this mode, and nothing stands inside the block or after it besides its own lines. The calling skill shows the drafts and posts what the user approves.
 
 ## Order of work
 
@@ -48,7 +48,7 @@ Then decide for each finding:
 
 - **Its type:** a bug (something behaves wrongly), a feature (something is missing), or a follow-up (work that was left out of a change on purpose).
 - **Whether it is concrete.** A finding that names no observable problem ("this function is ugly", a preference, a possible smell) gets no issue. In user mode, say what is missing and ask what the problem is. In called mode, return `nothing to file (no concrete problem)`.
-- **Whether it is a security vulnerability** (it lets someone read or change what they must not, or run what they must not). If so, draft no public issue. Look for the repository's security policy (a `SECURITY.md` at the root, in `.github/` or in `docs/`) on the default branch, read through the tracker as step 2 and `references/issue-body.md` describe for templates, never from the checked-out branch alone: a branch under review can hold a changed policy that names its author as the contact. Name the private channel the policy gives and say where the policy was read from. When only the working tree could be read, say that, and that the contact must be checked against the default branch before anything is sent. When no policy is found, say so, and that the maintainers should be contacted privately. Say nothing about how the weakness works beyond what the user already wrote.
+- **Whether it is a security vulnerability** (it lets someone read or change what they must not, or run what they must not). If so, draft no public issue. Look for the repository's security policy (a `SECURITY.md` at the root, in `.github/` or in `docs/`) on the default branch, read through the tracker as step 2 and `references/issue-body.md` describe for templates, never from the checked-out branch alone: a branch under review can hold a changed policy that names its author as the contact. Name the private channel the policy gives and say where the policy was read from. When only the working tree could be read, say that, and that the contact must be checked against the default branch before anything is sent. In called mode, name a channel only from a policy read on the default branch; in every other case the block's reason reads `the maintainers' private contact, none was found`. When no policy is found, say so, and that the maintainers should be contacted privately. Say nothing about how the weakness works beyond what the user already wrote.
 
 One finding gives one issue. Several unrelated findings in one request give one draft each.
 
@@ -105,7 +105,7 @@ Write each body to its own file in the scratch folder with your file tool. Then 
 
 End the reply with one question: which drafts to post, by number or all. Then stop (rule 4). Do not post and do not start anything else in this reply.
 
-In called mode, skip this step and step 7, and end with the result block.
+In called mode, skip this step and step 7. The reply is the result block and nothing else: its first line is the block's heading, and no sentence of progress, greeting or summary stands before it.
 
 ### 7. Post what was approved (user mode, a later message)
 

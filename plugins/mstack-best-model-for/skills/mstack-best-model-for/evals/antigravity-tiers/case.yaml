@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: antigravity-tiers
+expected_outcome: |
+  A called-mode answer with three antigravity rows: gemini-3.8-flash-medium, gemini-4-hydrogen-medium and gemini-4-neon-high, each with its subagent tier, Expensive no, the ten-column header, and no question to the user.
+context:
+  scaffold_script: place-files.sh

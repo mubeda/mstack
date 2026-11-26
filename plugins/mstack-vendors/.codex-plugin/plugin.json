@@ -1,0 +1,28 @@
+{
+  "name": "mstack-vendors",
+  "version": "0.1.0",
+  "description": "Find out which other vendor's model can review code, review a plan or develop from this session: per job, which of Claude and Codex is eligible and available, how each review is recorded, the command and steps to call it, and what to install or sign in. Answers a person, and is the interface, a fixed message and a result block, called by the six mstack workflows, mstack-plan, the start file's inline execution and mstack-skill-creator. One skill for Claude Code, Codex and Antigravity.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "review",
+    "developer",
+    "vendor",
+    "codex",
+    "claude"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Vendors",
+    "shortDescription": "See which other vendor can review or develop from this session, and how to call it.",
+    "longDescription": "Answers, per job (code review, plan review, developer), which of Claude and Codex may and can be called from Claude Code, Codex or Antigravity, how each review is recorded, the filled command and steps for each, and what to install or sign in when a client is missing. Called by the six mstack workflows, mstack-plan, the start file's inline execution and mstack-skill-creator with a fixed message and a result block.",
+    "developerName": "mubeda",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ]
+  }
+}

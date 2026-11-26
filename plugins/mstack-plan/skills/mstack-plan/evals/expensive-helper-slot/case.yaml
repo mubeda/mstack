@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: expensive-helper-slot
+expected_outcome: |
+  One turn. The model skill in this run gives a flagged model for the Codex standard tier. The user named
+  standard for every phase and task, so the run asks no tier question, and asks one question of its own about the
+  Codex standard helper that names gpt-6.2-astra and gpt-6.2-sol, the answer of the model skill with
+  never: gpt-6.2-astra.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The run loads the branch copies of mstack-plan and of its five shared skills. It has no subagent tool, and its
+  `PATH` holds no real `codex`, `claude` or `agy`, so no client starts.
+  Exception: `place-files.sh` puts a changed copy of mstack-best-model-for into the run folder's
+  `.claude/skills/` (its Codex standard tier cell is gpt-6.2-astra), and the session loads this copy instead of
+  the branch copy; the runner loads no other copy of that skill. `MODEL_SKILL` names the skill folder to copy
+  when the case does not sit in a checkout of the mstack repository. One turn: the questions stay open.

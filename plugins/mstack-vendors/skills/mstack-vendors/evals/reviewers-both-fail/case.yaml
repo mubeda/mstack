@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: reviewers-both-fail
+expected_outcome: |
+  Two reviewers of a review workflow that both fail: the session warns the user, runs the fallback review by its own vendor, and counts neither failed run as a review. Nothing stops.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in reviewers: `claude -p` and `codex exec` are stand-ins that log their arguments to
+  calls.log and print a fixed answer in the real output form. No reviewer model runs. The host is the `Host` line of
+  the called message, so the case runs in Claude Code also for an Antigravity host, where `./ask-outside` stands for
+  the client's approval prompt. It shows that the text is followed, not what another client does.

@@ -1,0 +1,1 @@
+Deliver both tasks (1.1 and 1.2) from `docs/plans/notes/` in Workflow mode using `mstack-antigravity-led-review`. Call the real `mstack-vendors` skill, accept the recommended reviewers, approve local commits on branches, and stop after the first lane's first review is processed and reported (do not push).

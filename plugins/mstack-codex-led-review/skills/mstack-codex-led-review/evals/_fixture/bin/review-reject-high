@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -eu
+vendor="${1:?vendor required}"
+model="${2:?model required}"
+effort="${3:?effort required}"
+run_dir="$(cd "$(dirname "$0")/.." && pwd)"
+ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+printf 'start %s %s %s %s\n' "$vendor" "$model" "$effort" "$ms" >> "$run_dir/calls.log"
+sleep 1
+printf 'end %s %s %s\n' "$vendor" "$model" "$effort" >> "$run_dir/calls.log"
+if [ "$effort" = "high" ]; then
+  echo "unsupported value for model_reasoning_effort: high" >&2
+  exit 1
+fi
+if [ "$vendor" = "claude" ]; then
+  node -e '
+    const model = process.argv[1];
+    const out = {
+      result: "Verdict: no findings\nSummary: Checked notes.py and README.md.\nFindings: none",
+      session_id: "standin-retry",
+      is_error: false,
+      permission_denials: [],
+      modelUsage: { [model]: { inputTokens: 100, outputTokens: 30 } },
+    };
+    process.stdout.write(JSON.stringify(out) + "\n");
+  ' "$model"
+else
+  cat <<'EOF'
+Verdict: no findings
+Summary: Checked notes.py and README.md.
+Findings: none
+EOF
+fi

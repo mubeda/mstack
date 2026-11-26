@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: reviewer-need-one-channel
+expected_outcome: |
+  One turn, called mode, Antigravity host. A made-up caller sends `Needs: reviewer` on a machine whose codex client is signed in, which has no claude client and whose code index is not connected; the run outside the sandbox is approved. The result block shows codex-cli and codex-login as ok and blocking, says the codex channel is ready, names mstack-vendors as what answers whether codex can review a given piece of work, shows both claude rows as optional and not blocking, and its Blocking rows line says none. Nothing is asked and calls.log holds no install call.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The prompt names Antigravity as the host, so in Claude Code or Codex this case is a fixture. An Antigravity host has
+  two other vendors, so the case tells "one ready channel is enough" from "every channel must be ready".
+  `./ask-outside` stands for the client's approval prompt: it logs the request to `calls.log`, prints "approved" and
+  runs the command. The caller `example-review-workflow` does not exist.

@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: record-writers-unknown
+expected_outcome: |
+  The caller names no writers. The log records the review as writer unknown, never as cross-vendor, and asks the user nothing.
+context:
+  scaffold_script: place-files.sh
+needs:
+  skills: [mstack-receive-review]

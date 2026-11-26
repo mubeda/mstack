@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: one-of-two-fails
+expected_outcome: |
+  Antigravity stand-in with two sub-variants (ONE_FAIL_VARIANT=empty using review-empty, and ONE_FAIL_VARIANT=wrong-model
+  using review-wrong-model). In both, the claude run fails with no retry, codex still runs and counts as the review,
+  the report names the failed claude run and its reason, and nothing calls the failed claude run clean.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: stand-in (Claude Code, Codex; Host: antigravity).
+  Sub-variants: ONE_FAIL_VARIANT=empty (default) or ONE_FAIL_VARIANT=wrong-model.
+  Prepared replies: replies/01.md ("gemini-4-neon-medium"), replies/02.md ("Yes.").

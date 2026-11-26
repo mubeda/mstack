@@ -1,0 +1,17 @@
+schema_version: "1.1"
+name: research-pages-not-opened
+expected_outcome: |
+  A session in the interview gets an mstack-research result block whose last line is `Search: ran`, with one claim
+  read from the lockfile, one claim from an opened page and one claim about a page that says `not opened` with low
+  confidence. The list of facts treats the unopened claim as still open and never as a fact the spec can cite, cites
+  the opened claim with its address and date, and keeps the lockfile as the source of the pinned version.
+  Two more blocks end with `Search: ran, pages not opened (no restricted reader)` and `Search: ran, pages not
+  opened (shell commands denied)`; each holds one claim read from a local file, which is kept with its file, and
+  one page claim, which stays open.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  One turn, in the middle of a session: the blocks are in three files, so no helper skill is loaded and no network
+  is needed. The first block's closing line is `Search: ran` on purpose: a caller that reads only that line
+  treats its unopened claim as confirmed. A caller that throws a whole block away under a `pages not opened` line
+  loses the file claim of the second or third block and fails.

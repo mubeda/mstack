@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: agy-no-leader-model
+expected_outcome: |
+  An Antigravity host and no Leader model line: Leader unknown with a warning that asks for the full model id, and the leader's own review is recorded reviewer unknown, never cross-vendor.
+context:
+  scaffold_script: place-files.sh

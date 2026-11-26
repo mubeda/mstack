@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: missing-mstack-vendors
+expected_outcome: |
+  In Claude Code with every helper except mstack-vendors loaded (absence verified first), mstack-plan stops before any
+  question with the install block naming mstack-vendors for Claude Code, Codex, Antigravity and the skills CLI, plus
+  mstack-setup, and writes no file.
+context:
+  scaffold_script: place-files.sh

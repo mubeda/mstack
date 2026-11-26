@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: record-table
+expected_outcome: |
+  Six code review groups, one per kind of Writers line: an empty line, "claude, unknown", "openai" and "unknown" give every review row writer unknown; "other" gives claude and codex cross-vendor; "codex" gives exactly one reviewer row, claude, cross-vendor.
+context:
+  scaffold_script: place-files.sh

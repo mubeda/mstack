@@ -1,8 +1,8 @@
 schema_version: "1.1"
 name: missing-model-skill
 expected_outcome: |
-  mstack-best-model-for is not installed: the run names the missing skill, gives the plugin commands for both hosts
-  and the skills CLI command, names mstack-setup, and then starts the brainstorm itself, with no subagent.
+  mstack-best-model-for is not installed: the run names the missing skill, gives the plugin commands for all three
+  hosts and the skills CLI command, names mstack-setup, and then starts the brainstorm itself, with no subagent.
 context:
   scaffold_script: place-files.sh
 needs:

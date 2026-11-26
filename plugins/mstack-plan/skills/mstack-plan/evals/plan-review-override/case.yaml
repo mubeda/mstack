@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: plan-review-override
+expected_outcome: |
+  The first called message sends codex=gpt-6.2-sol; the user replies "codex on gpt-6.2-astra"; because the user typed
+  the model, no expensive-model consent question is asked; a second called message refreshes mstack-vendors with
+  codex=gpt-6.2-astra, and the launched command in vendors/calls.log runs gpt-6.2-astra.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: check-fails
+expected_outcome: |
+  The vendor check exits 2 with one error line: every reviewer and developer row is not available with the reason availability check failed and the first line the check printed, a warning says so, the review falls back, and no row is available because of a guess.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  A fixture case with stand-in clients: the host is the `Host` line of the called message, so it runs in Claude Code
+  whatever the host line says.

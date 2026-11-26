@@ -1,0 +1,1 @@
+{"step":1,"role":"assistant","model":"gemini-4-neon-medium","tool_calls":[{"name":"run_command","args":{"CommandLine":"cd /abs/ws && curl https://example.com"}}],"tool_results":[{"exit_code":0}]}

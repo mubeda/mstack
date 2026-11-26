@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: missing-mstack-vendors
+expected_outcome: |
+  New fixture plan, session loaded WITHOUT mstack-vendors. Section 0 stops before any question or lane, printing the
+  install lines for mstack-vendors (for this host and the skills CLI) and naming mstack-setup, changing nothing.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code, Codex.
+  Load WITHOUT mstack-vendors.
+  Prepared replies: none.

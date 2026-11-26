@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -eu
+vendor="${1:?vendor required}"
+model="${2:?model required}"
+effort="${3:?effort required}"
+fixture_file="${4:-plugins/commit-msg/skills/commit-msg/SKILL.md}"
+run_dir="$(cd "$(dirname "$0")/.." && pwd)"
+mkdir -p "$run_dir/vendors"
+ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+printf 'start %s %s %s %s\n' "$vendor" "$model" "$effort" "$ms" >> "$run_dir/vendors/calls.log"
+sleep 3
+end_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+printf 'end %s %s\n' "$vendor" "$end_ms" >> "$run_dir/vendors/calls.log"
+if [ "$vendor" = "claude" ]; then
+  node -e '
+    const [model, file] = process.argv.slice(1);
+    const out = {
+      result: [
+        `1. Minor — ${file}:1 — Clarify in the description when to skip commit-message formatting for merge commits.`,
+        "Verdict: 1 finding",
+      ].join("\n"),
+      session_id: "standin-1",
+      is_error: false,
+      permission_denials: [],
+      modelUsage: { [model]: { inputTokens: 100, outputTokens: 50 } },
+    };
+    process.stdout.write(JSON.stringify(out) + "\n");
+  ' "$model" "$fixture_file"
+else
+  cat <<EOF
+1. Minor — ${fixture_file}:1 — Clarify in the description when to skip commit-message formatting for merge commits.
+Verdict: 1 finding
+EOF
+fi

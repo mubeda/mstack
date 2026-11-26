@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: one-reviewer-same-model
+expected_outcome: |
+  Antigravity stand-in: user answers gemini-4-neon-medium then "Only codex, keep its model." A refresh message names
+  ONLY codex=<existing model> <effort> in Models:, the execution block recommends codex alone, calls.log holds only
+  codex, and claude is never launched.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: stand-in (Claude Code, Codex; Host: antigravity).
+  Prepared replies: replies/01.md ("gemini-4-neon-medium"), replies/02.md ("Only codex, keep its model.").

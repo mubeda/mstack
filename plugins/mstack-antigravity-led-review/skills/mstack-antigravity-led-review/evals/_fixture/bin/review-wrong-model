@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -eu
+vendor="${1:?vendor required}"
+model="${2:?model required}"
+effort="${3:?effort required}"
+run_dir="$(cd "$(dirname "$0")/.." && pwd)"
+ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+printf 'start %s %s %s %s\n' "$vendor" "$model" "$effort" "$ms" >> "$run_dir/calls.log"
+sleep 1
+printf 'end %s %s %s\n' "$vendor" "$model" "$effort" >> "$run_dir/calls.log"
+node -e '
+  const out = {
+    result: "Verdict: no findings\nSummary: Looks fine.\nFindings: none",
+    session_id: "standin-wrong",
+    is_error: false,
+    permission_denials: [],
+    modelUsage: { "claude-unexpected-other-model": { inputTokens: 100, outputTokens: 20 } },
+  };
+  process.stdout.write(JSON.stringify(out) + "\n");
+'

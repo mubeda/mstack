@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: missing-writers
+expected_outcome: |
+  A dev-workflow code review without a Writers line: Writers unknown, every review row writer unknown, a warning that names the Writers line, no question, and claude still recommended beside the leader's review.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: effort-gaps
+expected_outcome: |
+  models/result.md lists ONLY low and high (no medium, with defaultEffort=low). Selection message lists only low and high; cheap phase 1 runs low, phase 2 round 1 runs low, phase 2 fix round skips medium and runs high; zero requests or sent messages name medium.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-codex-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

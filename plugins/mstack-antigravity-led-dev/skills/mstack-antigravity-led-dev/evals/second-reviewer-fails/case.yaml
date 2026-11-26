@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: second-reviewer-fails
+expected_outcome: |
+  F3 / R11: second reviewer claude fails (VARIANT=fail exits 1; VARIANT=wrong-model returns wrong modelUsage key). Exactly one claude start in calls.log (no retry), leader review stands, phase record and final report name failed claude run and do not count it, no fallback review starts, Phase 1 commits.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-antigravity-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

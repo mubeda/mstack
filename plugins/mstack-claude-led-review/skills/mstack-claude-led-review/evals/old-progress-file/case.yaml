@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: old-progress-file
+expected_outcome: |
+  The workflow sees a removed workflow name in progress.md (Executor/log or Owner cell only) and stops in section 0
+  before any skill check or question, printing the exact R4 stop message naming the replacement and this host's two
+  workflows, with no install lines, no vendors/sent-*.txt, and notes/ unchanged.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: Claude Code, Codex.
+  Variant OLD_PROGRESS_VARIANT=owner-only puts the old name ONLY in a task row's Owner cell (Executor: none, clean execute-plan.md).
+  Prepared replies: none.

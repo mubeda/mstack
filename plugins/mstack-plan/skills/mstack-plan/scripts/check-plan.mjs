@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Lint an mstack-plan folder against references/plan-format.md.
+// Lint an mstack-plan folder against references/plan-format.md: structure, task fields (including optional
+// Approved models lines), writer/executor records, valid Executor values, start-file workflows and placeholders.
 //   node check-plan.mjs <plan-folder>
 // Prints one line per problem and exits 1 when there is any, 0 when the plan passes.
 import { createHash } from 'node:crypto';
@@ -36,7 +37,35 @@ for (const h of ['Goal', 'Global constraints', 'Review focus', 'Out of scope', '
   'Phases', 'File map', 'Traceability', 'End-to-end verification', 'Decisions']) {
   if (!new RegExp(`^## ${h}\\s*$`, 'm').test(plan)) fail(`plan.md: missing section "## ${h}"`);
 }
-const STATUS = '(Draft|Approved \\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01]))(?![\\w-])';
+const DATE = '\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])';
+const STATUS = `(Draft|Approved ${DATE})(?![\\w-])`;
+const APPROVAL_SHAPE = new RegExp(`^- Approved models: [^\\s,()<>]+(, [^\\s,()<>]+)* \\(user, (${DATE})\\)$`);
+const isValidDate = (str) => {
+  const m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return false;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return d.getUTCFullYear() === +m[1] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3];
+};
+const hasToken = (text, name) => new RegExp(`(?<![\\w-])${name.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}(?![\\w-])`).test(text);
+const VENDORS = ['claude', 'codex', 'antigravity', 'other'];
+const SIX_WORKFLOWS = [
+  'mstack-claude-led-review',
+  'mstack-codex-led-review',
+  'mstack-antigravity-led-review',
+  'mstack-claude-led-dev',
+  'mstack-codex-led-dev',
+  'mstack-antigravity-led-dev',
+];
+const EXECUTORS = [
+  'none',
+  'inline',
+  ...SIX_WORKFLOWS,
+];
+const validVendors = (value) => {
+  if (value === 'unknown') return true;
+  const items = value.split(',').map((s) => s.trim());
+  return items.length > 0 && items.every((v) => VENDORS.includes(v)) && new Set(items).size === items.length;
+};
 const planStatus = plan.match(new RegExp(`^Status: ${STATUS}`, 'm'))?.[1];
 if (!planStatus) fail('plan.md: Status line must be "Draft" or "Approved <yyyy-mm-dd>"');
 
@@ -88,6 +117,30 @@ for (const file of phaseFiles) {
     }
     const tier = field(block, 'Tier') ?? '';
     if (tier && !/^(cheap|standard|most capable)$/.test(tier)) fail(`${at}: Tier must be cheap, standard or most capable`);
+    const blockLines = block.split(/\r?\n/);
+    const tierIndex = blockLines.findIndex((l) => /^- Tier:[ \t]*/.test(l));
+    const approvalIndexes = [];
+    let fenceChar = null;
+    let fenceLen = 0;
+    for (let i = 0; i < blockLines.length; i++) {
+      const fence = blockLines[i].match(/^([`~]{3,})(.*)$/);
+      if (fence) {
+        if (!fenceChar) { fenceChar = fence[1][0]; fenceLen = fence[1].length; continue; }
+        if (fence[1][0] === fenceChar && fence[1].length >= fenceLen && !fence[2].trim()) { fenceChar = null; fenceLen = 0; continue; }
+      }
+      if (fenceChar) continue;
+      if (/^-\s*approved models?\b/i.test(blockLines[i])) approvalIndexes.push(i);
+    }
+    if (approvalIndexes.length > 1) fail(`${at}: more than one Approved models line`);
+    for (const idx of approvalIndexes) {
+      const m = blockLines[idx].match(APPROVAL_SHAPE);
+      if (!m || !isValidDate(m[2])) {
+        fail(`${at}: Approved models line must be "- Approved models: <model>[, <model>] (user, <yyyy-mm-dd>)"`);
+      }
+    }
+    if (approvalIndexes.length >= 1 && tierIndex >= 0 && approvalIndexes[0] !== tierIndex + 1) {
+      fail(`${at}: Approved models line must come directly after the Tier line`);
+    }
     const sat = field(block, 'Satisfies') ?? '';
     tasks.set(id, { at, deps: (field(block, 'Depends on') ?? '').match(/\b\d+\.\d+\b/g) ?? [], reqs: sat.match(/\bR\d+\b/g) ?? [], support: /support/i.test(sat) });
   }
@@ -134,9 +187,45 @@ const rows = [...progress.matchAll(/^\|\s*(\d+\.\d+)\s*\|[^|]*\|[^|]*\|\s*([^|]*
 const progressStatus = progress.match(new RegExp(`^Plan status: ${STATUS}`, 'm'))?.[1];
 if (!progressStatus) fail('progress.md: Plan status line must be "Draft" or "Approved <yyyy-mm-dd>"');
 else if (planStatus && progressStatus !== planStatus) fail(`progress.md: Plan status "${progressStatus}" differs from plan.md Status "${planStatus}"; the executor reads progress.md`);
-const executor = progress.match(/^Executor:[ \t]*(.*)$/m)?.[1].trim();
-if (executor !== undefined && !['none', 'inline', 'mstack-codex-review-workflow', 'mstack-claude-review-workflow', 'mstack-claude-pm-codex-dev'].includes(executor)) {
-  fail(`progress.md: Executor "${executor}" must be none, inline, mstack-codex-review-workflow, mstack-claude-review-workflow or mstack-claude-pm-codex-dev`);
+const executorLines = [...progress.matchAll(/^Executor:[ \t]*(.*)$/gm)];
+if (executorLines.length > 1) fail('progress.md: more than one Executor line');
+for (const m of executorLines) {
+  const value = m[1].trim();
+  if (!EXECUTORS.includes(value)) {
+    fail(`progress.md: Executor "${value}" must be ${EXECUTORS.slice(0, -1).join(', ')} or ${EXECUTORS.at(-1)}`);
+  }
+}
+const MSTACK_TOKEN = /(?<![A-Za-z0-9-])mstack-[a-z0-9-]+(?![A-Za-z0-9-])/g;
+const WORKFLOW_LIKE = /-(?:workflow|review|dev)(?:-|$)/;
+const ALLOWED_WORKFLOW_LIKE = new Set([...SIX_WORKFLOWS, 'mstack-receive-review']);
+const unknownWorkflows = (text) => [...new Set([...text.matchAll(MSTACK_TOKEN)].map((m) => m[0]).filter((tok) => WORKFLOW_LIKE.test(tok) && !ALLOWED_WORKFLOW_LIKE.has(tok)))];
+const badProgressWorkflows = unknownWorkflows(progress);
+if (badProgressWorkflows.length) {
+  fail(`progress.md: unknown workflow (${badProgressWorkflows.join(', ')}); allowed workflows are ${SIX_WORKFLOWS.join(', ')}`);
+}
+const progressHeader = progress.split(/^## /m)[0];
+const writtenByLines = [...progressHeader.matchAll(/^Written by:[ \t]*(.*)$/gm)];
+if (writtenByLines.length > 1) fail('progress.md: more than one Written by line');
+for (const m of writtenByLines) {
+  const value = m[1].trim();
+  if (!validVendors(value)) {
+    fail(`progress.md: Written by "${value}" must be unknown or a comma-separated list of ${VENDORS.join(', ')}, each once`);
+  }
+}
+const logSection = progress.split(/^## Log\s*$/m)[1]?.split(/^## /m)[0] ?? '';
+for (const line of logSection.split(/\r?\n/)) {
+  if (!/^\s*-\s/.test(line)) continue;
+  const beforeEvidence = prose(line).split(/\bEvidence:/)[0];
+  const matches = [...beforeEvidence.matchAll(/\bExecuted by:[ \t]*([^\n]*?)(?:\.(?:\s|$)|$)/g)];
+  if (!matches.length) continue;
+  const lineStart = line.trim().slice(0, 60);
+  if (matches.length > 1) fail(`progress.md: log line "${lineStart}": more than one Executed by field`);
+  for (const m of matches) {
+    const value = m[1].trim();
+    if (!validVendors(value)) {
+      fail(`progress.md: log line "${lineStart}": Executed by "${value}" must be unknown or a comma-separated list of ${VENDORS.join(', ')}, each once`);
+    }
+  }
 }
 const seenRows = new Set();
 for (const [id, st, rest] of rows) {
@@ -145,18 +234,31 @@ for (const [id, st, rest] of rows) {
   // A removed task keeps its row, marked "removed", so its ID is never reused.
   if (!tasks.has(id) && !/\bremoved\b/i.test(rest)) fail(`progress.md: row ${id} has no task in the phase files and is not marked removed`);
   if (!['Open', 'In progress', 'Closed'].includes(st)) fail(`progress.md: task ${id} has state "${st}", not Open, In progress or Closed`);
+  const owner = (rest.split('|')[0] ?? '').trim();
+  const badOwner = unknownWorkflows(owner);
+  if (badOwner.length) fail(`progress.md: task ${id} Owner names unknown workflow (${badOwner.join(', ')})`);
 }
 for (const id of tasks.keys()) if (!rows.some(([r]) => r === id)) fail(`progress.md: no row for task ${id}`);
 
 // execute-plan.md offers both modes.
-for (const word of ['Recommended mode', 'Inline', 'mstack-codex-review-workflow', 'mstack-claude-review-workflow']) {
+for (const word of ['Recommended mode', 'Inline']) {
   if (!execute.includes(word)) fail(`execute-plan.md: does not mention "${word}"`);
+}
+const hasSix = SIX_WORKFLOWS.every((name) => hasToken(execute, name));
+if (!hasSix) {
+  fail(`execute-plan.md: does not name the workflows (${SIX_WORKFLOWS.join(', ')})`);
+}
+const badExecute = unknownWorkflows(execute);
+if (badExecute.length) {
+  fail(`execute-plan.md: unknown workflow (${badExecute.join(', ')}); allowed workflows are ${SIX_WORKFLOWS.join(', ')}`);
 }
 
 // Template placeholders left behind.
 for (const [name, text] of [['plan.md', plan], ['progress.md', progress], ['execute-plan.md', execute], ...phaseFiles.map((f) => [`phases/${f}`, readFileSync(join(phaseDir, f), 'utf8')])]) {
   // <model>, <effort>, <branch> and similar are filled by the executing session, so only planning-time placeholders count.
-  const left = [...new Set(prose(text).match(/<(title|path|command|reason|plan title|slug|yyyy-mm-dd|placeholder|base|review model|review effort|reviewer and model|Claude Code \| Codex|Codex \| Claude|Inline \| Workflow|one sentence from the plan|(?:cheap|standard) helper: (?:claude|codex)|fallback reviewer: (?:claude|codex)|path of the plan folder[^>]*)>/g) ?? [])];
+  // The host-choice labels and the helper and reviewer slots exist only in the start file; a plan may quote them elsewhere.
+  const startOnly = name === 'execute-plan.md' ? '|Claude Code \\| Codex(?: \\| Antigravity)?|Codex \\| Claude(?: \\| a same-vendor subagent)?|(?:cheap|standard) helper: (?:claude|codex|antigravity)|fallback reviewer: (?:claude|codex|antigravity)' : '';
+  const left = [...new Set(prose(text).match(new RegExp(`<(title|path|command|reason|plan title|slug|yyyy-mm-dd|placeholder|base|review model|review effort|reviewer and model|Inline \\| Workflow|one sentence from the plan|path of the plan folder[^>]*${startOnly})>`, 'g')) ?? [])];
   if (left.length) fail(`${name}: unfilled placeholder${left.length > 1 ? 's' : ''} ${left.join(', ')}`);
 }
 

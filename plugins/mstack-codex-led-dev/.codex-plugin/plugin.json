@@ -1,0 +1,19 @@
+{
+  "name": "mstack-codex-led-dev",
+  "version": "0.1.0",
+  "description": "Codex coordinator workflow where another installed vendor offered by mstack-vendors (claude) writes each phase of a plan folder, a list of issues, or one larger task while Codex briefs it, runs validation, reviews every phase, processes findings with mstack-receive-review, and commits only the exact accepted tree. Runs in Codex only.",
+  "author": {
+    "name": "mubeda"
+  },
+  "license": "Apache-2.0",
+  "keywords": ["workflow", "multi-agent", "developer", "code-review", "codex"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "mstack Codex-Led Dev Workflow",
+    "shortDescription": "Have another installed vendor write each phase while Codex reviews and commits it.",
+    "longDescription": "Codex leads while another installed vendor offered by mstack-vendors (claude) writes each phase of a plan folder, a list of issues, or one larger task in an isolated copy. Codex validates, reviews every phase, processes findings with mstack-receive-review, commits only the exact accepted tree, and delivers one pull request with serialized CI. Runs in Codex only.",
+    "developerName": "mubeda",
+    "category": "Workflow",
+    "capabilities": ["Read", "Write"]
+  }
+}

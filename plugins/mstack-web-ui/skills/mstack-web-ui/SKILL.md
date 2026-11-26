@@ -1,6 +1,6 @@
 ---
 name: mstack-web-ui
-description: Use when the user asks to build, change, restyle, polish or review a web interface, such as a page, a landing page, a screen, a dashboard, a settings view, a component, a form or a layout, or to animate one or add motion or an effect to it, in any wording ("build me a page for", "add a screen", "make this look better", "let these items fade in", "add a marquee", "this UI feels off", "review this UI", "is this accessible"). Works in Claude Code and Codex, with any web stack, and adds React rules when the project uses React. Not for native apps, for images, logos or slides, or for server code.
+description: Use when the user asks to build, change, restyle, polish or review a web interface, such as a page, a landing page, a screen, a dashboard, a settings view, a component, a form or a layout, or to animate one or add motion or an effect to it, in any wording ("build me a page for", "add a screen", "make this look better", "let these items fade in", "add a marquee", "this UI feels off", "review this UI", "is this accessible"). Works in Claude Code, Codex and Antigravity, with any web stack, and adds React rules when the project uses React. Not for native apps, for images, logos or slides, or for server code.
 ---
 
 # mstack web UI
@@ -17,11 +17,11 @@ You build a web interface, or you review one. What you build works with a keyboa
 
 ## Host tools
 
-| Role | Claude Code | Codex |
-|---|---|---|
-| Your question tool | `AskUserQuestion` | A numbered question in chat, then wait |
-| The browser tool | Whichever browser or screenshot tool this session lists, or none | The same |
-| A fresh reviewer | `Agent`, given only the screenshots and the request | A separate read-only run, given the same |
+| Role | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| Your question tool | `AskUserQuestion` | A numbered question in chat, then wait | `ask_question`, then wait for the reply |
+| The browser tool | Whichever browser or screenshot tool this session lists, or none | The same | The same |
+| A fresh reviewer | `Agent`, given only the screenshots and the request | A separate read-only run, given the same | `invoke_subagent` on the tier `flash`, given only the screenshots and the request |
 
 ## The parts
 

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: developer-none
+expected_outcome: |
+  Only the leader's vendor is on the machine: Recommend no developer here, the Steps line names a review workflow as the way to go on, and no developer command is given. The skill does not fail.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: third-vendor-yes
+expected_outcome: |
+  User picks codex developer and approves claude second reviewer. calls.log has one claude start and no codex line, claude review starts before or alongside leader validation with no background job left behind, no question offers codex as reviewer, both reviews reach mstack-receive-review unmerged.
+context:
+  scaffold_script: place-files.sh
+  working_folder: mathlib
+needs:
+  skills: [mstack-antigravity-led-dev, mstack-find-skills, mstack-best-model-for, mstack-receive-review, mstack-research, mstack-vendors]
+  tools: [node, git, python3]

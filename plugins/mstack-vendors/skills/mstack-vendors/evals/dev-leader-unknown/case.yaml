@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: dev-leader-unknown
+expected_outcome: |
+  Leader unknown and writers codex: codex has no row, the claude row is cross-vendor, the leader's row is reviewer unknown, and claude joins the leader's review.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: antigravity-effort-steps
+expected_outcome: |
+  A called-mode answer with two antigravity rows: gemini-4-neon-medium capped yes, and gemini-4-hydrogen-medium whose Next step names gemini-4-hydrogen-high and then gemini-4-neon-medium, in that order, and no question to the user.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: expensive-ask-per-stage
+expected_outcome: |
+  One turn, no answer. Phases 1 and 2 and their tasks would get the tier most capable, whose Codex model is flagged
+  as expensive. The run asks one question per phase and per task, each with the flagged model and the alternative,
+  ends its turn there, and writes no plan file that records the flagged tier or names the flagged model.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The run loads the branch copies of mstack-plan and of its five shared skills. It has no subagent tool, and its
+  `PATH` holds no real `codex`, `claude` or `agy`, so no client starts.
+  A session without a question tool asks in its reply. One turn: the questions stay open.

@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: one-reviewer-other-model
+expected_outcome: |
+  Antigravity stand-in: user answers gemini-4-neon-medium then "Only codex, on gpt-6.2-astra." A refresh message names
+  ONLY codex=gpt-6.2-astra in Models:, every calls.log line is codex gpt-6.2-astra, no claude launch occurs, and no
+  expensive-model question is asked (user typed the model).
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: stand-in (Claude Code, Codex; Host: antigravity).
+  Prepared replies: replies/01.md ("gemini-4-neon-medium"), replies/02.md ("Only codex, on gpt-6.2-astra.").

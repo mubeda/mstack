@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: antigravity-task-rows
+expected_outcome: |
+  A called-mode answer with nine antigravity rows, one per task row of the table, each naming the Gemini id the table gives for that task, and no question to the user.
+context:
+  scaffold_script: place-files.sh

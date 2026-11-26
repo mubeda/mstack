@@ -6,26 +6,26 @@ Read this for the inventory and the scoring, before any online search.
 
 Build one list of `{name, description, where}`. Read each SKILL.md's frontmatter from disk, because the session's own skill list can cut descriptions short.
 
-| Order | Claude Code | Codex |
-|---|---|---|
-| 1. Loaded now | The skills in this session's skill list (plugin skills show as `<plugin>:<skill>`) | The skills in this session's skill list |
-| 2. Project | `./.claude/skills/*/SKILL.md`, `./.agents/skills/*/SKILL.md` | `./.agents/skills/*/SKILL.md`, `./.codex/skills/*/SKILL.md` |
-| 3. User | `~/.claude/skills/*/SKILL.md`, `~/.agents/skills/*/SKILL.md` | `~/.codex/skills/*/SKILL.md`, `~/.agents/skills/*/SKILL.md` |
-| 4. Plugins | `~/.claude/plugins/cache/*/*/*/skills/*/SKILL.md` | `~/.codex/plugins/cache/*/*/*/skills/*/SKILL.md` |
-| 5. Also read | `<folder>/**/SKILL.md` for each folder in the caller's `Also read` line | same |
+| Order | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| 1. Loaded now | The skills in this session's skill list (plugin skills show as `<plugin>:<skill>`) | The skills in this session's skill list | The skills in this session's skill list |
+| 2. Project | `./.claude/skills/*/SKILL.md`, `./.agents/skills/*/SKILL.md` | `./.agents/skills/*/SKILL.md`, `./.codex/skills/*/SKILL.md` | `./.agents/skills/*/SKILL.md`, `./.agents/plugins/*/skills/*/SKILL.md` |
+| 3. User | `~/.claude/skills/*/SKILL.md`, `~/.agents/skills/*/SKILL.md` | `~/.codex/skills/*/SKILL.md`, `~/.agents/skills/*/SKILL.md` | `~/.gemini/config/skills/*/SKILL.md` |
+| 4. Plugins | `~/.claude/plugins/cache/*/*/*/skills/*/SKILL.md` | `~/.codex/plugins/cache/*/*/*/skills/*/SKILL.md` | `~/.gemini/config/plugins/*/skills/*/SKILL.md` |
+| 5. Also read | `<folder>/**/SKILL.md` for each folder in the caller's `Also read` line | same | same |
 
 The project row's paths are relative to the root of the repository the work items' files are in (`git -C <a file's folder> rev-parse --show-toplevel`), and also to the current folder when that differs. When the same name appears twice, keep the first by this order. Mark every skill from rows 2 to 4 that is not in row 1 as "loads in a new session", and every skill from row 5 as "repository, not installed". When `CLAUDE_CONFIG_DIR` or `CODEX_HOME` is set, it replaces `~/.claude` or `~/.codex` in these paths. On Windows, `~` is the folder in `USERPROFILE`. `npx skills ls -g --json` also lists user-level skills with the agents that read them, when the `skills` command is available; its `agents` field holds display names such as `Claude Code` and `Codex`.
 
-## 2. Prefer the mstack and agent-bridges skills
+## 2. Prefer the mstack skills
 
-When a skill from the mstack marketplace or from the agent-bridges marketplace fits the work, list it before any other skill for the same job. These skills share one plan format and one set of conventions.
+When a skill from the mstack marketplace fits the work, list it before any other skill for the same job. These skills share one plan format and one set of conventions.
 
 | Work in the item | Skill |
 |---|---|
 | A bug, regression, flaky test, crash, hang, leak or performance problem | `mstack-diagnose` |
 | An idea whose goal or reason is not settled yet | `mstack-brainstorm` |
 | A requirement that turns out to be undecided | `mstack-write-specs` |
-| Execution of a plan | `mstack-codex-review-workflow` (Claude Code) or `mstack-claude-review-workflow` (Codex); in Claude Code, `mstack-claude-pm-codex-dev` when Codex is to write the code |
+| Execution of a plan | This host's review workflow (`mstack-claude-led-review` in Claude Code, `mstack-codex-led-review` in Codex, `mstack-antigravity-led-review` in Antigravity), or this host's dev workflow (`mstack-claude-led-dev`, `mstack-codex-led-dev`, `mstack-antigravity-led-dev`) when another vendor is to write the code |
 | Choosing a model or effort | `mstack-best-model-for` |
 | Acting on review feedback (reviewer output, review bots, pull-request comments) | `mstack-receive-review` |
 | Owning a long-running goal across sessions (a release, a backlog, a multi-step project) | `mstack-chief-of-staff` |
@@ -39,7 +39,7 @@ When a skill from the mstack marketplace or from the agent-bridges marketplace f
 | One epic detailed for developers by a product person | `mstack-epic` |
 | Customer feedback (tickets, interviews, surveys) to turn into evidence with counts and quotes | `mstack-evidence` |
 | Meeting notes or a transcript to turn into decisions, action items and open points | `mstack-decisions` |
-| A second opinion from another model on a design or diff | the agent-bridges `claude`, `cursor` or `opencode` review skills, whichever is installed and is not the current host's vendor |
+| Which other vendor can review or write code from this session, and what to install or sign in for it | `mstack-vendors` |
 
 ## 3. Score each skill against each work item
 

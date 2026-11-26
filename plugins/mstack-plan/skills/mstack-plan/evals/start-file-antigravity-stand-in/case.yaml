@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: start-file-antigravity-stand-in
+expected_outcome: |
+  Stand-in twin of start-file-antigravity (not checked in Antigravity). Question 1 offers inline,
+  mstack-antigravity-led-review and mstack-antigravity-led-dev, no workflow of another host, and asks no question
+  about the model the session runs on.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Stand-in case run in Claude Code or Codex with Host: antigravity; not checked in Antigravity.

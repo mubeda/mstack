@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: review-no-reviewer
+expected_outcome: |
+  Stand-in case (not checked in Antigravity). With Leader: unknown, Writers: unknown, both claude and codex
+  not available and fallback row unknown (Record: writer unknown), Recommend: a fallback review:
+  no pick question and no model question; fresh read-only review runs as Steps say; warning shown;
+  report records the review as writer unknown (never cross-vendor); sent-*.txt holds Host: antigravity,
+  Writers: unknown and no Leader model line; calls.log does not exist.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Stand-in case run in Claude Code or Codex with Host: antigravity; not checked in Antigravity.

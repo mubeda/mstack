@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: review-from-vendors
+expected_outcome: |
+  At Phase 8 in Claude Code, mstack-skill-creator sends Called by: mstack-skill-creator, Host: claude-code,
+  Job: code review, Workflow: review, Writers: claude and no Leader model line; asks one question offering codex
+  with its model (never antigravity); after "Yes.", runs codex via the block's command (one start codex line in
+  vendors/calls.log); hands the findings to mstack-receive-review and lists each finding with its outcome in the report.
+context:
+  scaffold_script: place-files.sh

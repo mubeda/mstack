@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -eu
+vendor="${1:?vendor required}"
+model="${2:?model required}"
+effort="${3:?effort required}"
+fixture_file="${4:-phases/PHASE-01-greet.md}"
+run_dir="$(cd "$(dirname "$0")/.." && pwd)"
+mkdir -p "$run_dir/vendors"
+ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+printf 'start %s %s %s %s\n' "$vendor" "$model" "$effort" "$ms" >> "$run_dir/vendors/calls.log"
+sleep 3
+end_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+printf 'end %s %s\n' "$vendor" "$end_ms" >> "$run_dir/vendors/calls.log"
+if [ "$vendor" = "claude" ]; then
+  node -e '
+    const [model, file] = process.argv.slice(1);
+    const out = {
+      result: [
+        "Verdict: Approve with changes",
+        "Coverage: R1 -> 1.1, R2 -> 1.2",
+        "Findings:",
+        "| # | Severity | Location | Issue | Evidence | Fix |",
+        "|---|---|---|---|---|---|",
+        `| 1 | Minor | ${file}:1 | Clarify empty-string handling in the step note | ${file} | Note whitespace handling as a Minor follow-up |`,
+        "What the plan got right: Clear red-green steps and traceable requirements.",
+        "Open questions: none",
+      ].join("\n"),
+      session_id: "standin-1",
+      is_error: false,
+      permission_denials: [],
+      modelUsage: { [model]: { inputTokens: 100, outputTokens: 50 } },
+    };
+    process.stdout.write(JSON.stringify(out) + "\n");
+  ' "$model" "$fixture_file"
+else
+  cat <<EOF
+Verdict: Approve with changes
+Coverage: R1 -> 1.1, R2 -> 1.2
+Findings:
+| # | Severity | Location | Issue | Evidence | Fix |
+|---|---|---|---|---|---|
+| 1 | Minor | ${fixture_file}:1 | Clarify the exact ValueError message checked in the empty-name test | ${fixture_file} | Note the message check as a Minor follow-up |
+What the plan got right: Small vertical tasks with red-green verification.
+Open questions: none
+EOF
+fi

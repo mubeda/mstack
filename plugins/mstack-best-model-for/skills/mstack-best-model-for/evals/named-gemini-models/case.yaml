@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: named-gemini-models
+expected_outcome: |
+  A user-mode answer with one row per named model, gemini-4-carbon-high and gemini-4-argon-high, each with how to set it and Expensive yes, no other model in their place, and no question to the user.
+context:
+  scaffold_script: place-files.sh

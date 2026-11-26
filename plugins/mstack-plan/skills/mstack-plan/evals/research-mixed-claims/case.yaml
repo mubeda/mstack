@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: research-mixed-claims
+expected_outcome: |
+  The research block ends with "Search: ran" and holds one claim from an opened page and one claim marked "not
+  opened". The plan uses the opened claim as a source, lists the other under Sources marked not opened and states it
+  as a fact in no step and no Global constraint, and keeps shop/docs/deploy.md as the source of the claim read from
+  that file.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  The research block is fixed text in the prompt, so the case needs no network and no run of mstack-research. The
+  prompt approves a one-phase outline and stops after the plan files are written, so a run stays short. The run
+  loads the branch copies of mstack-plan and of its five shared skills.

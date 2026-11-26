@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: gemini-lanes
+expected_outcome: |
+  Antigravity stand-in (Workflow mode): lane A transcript holds a gemini- model id not in agy models listing
+  (gemini-4-prism-pro). Session reads lane A transcript by conversationId before the first start line in calls.log,
+  launches both claude and codex sequentially, records codex as cross-vendor, and sends NO Writers: unknown message
+  for lane A.
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: stand-in (Claude Code, Codex; Host: antigravity). Not checked in Antigravity.
+  Prepared replies: replies/01.md ("gemini-4-neon-medium"), replies/02.md ("Yes.").

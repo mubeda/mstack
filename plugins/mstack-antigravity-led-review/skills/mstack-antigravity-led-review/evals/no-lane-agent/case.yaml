@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: no-lane-agent
+expected_outcome: |
+  Antigravity stand-in (twin of skills-cli-install): session lists NO agent review-lane while user asks for Workflow mode
+  on two independent items (1.1 and 1.2). Reply prints exact line "Lanes need the plugin install of
+  mstack-antigravity-led-review; running the items one after another.", starts no subagent, commits both items one after
+  another, and selection message Writers: holds leader's vendor alone (antigravity).
+context:
+  scaffold_script: place-files.sh
+notes: |
+  Clients: stand-in (Claude Code, Codex; Host: antigravity). Not checked in Antigravity.
+  Prepared replies: replies/01.md ("gemini-4-neon-medium"), replies/02.md ("Yes.").
