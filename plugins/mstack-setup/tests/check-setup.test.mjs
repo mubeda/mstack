@@ -245,7 +245,7 @@ for (const host of ['claude', 'codex']) {
     const r = run(machine(), ['--host', host]);
     assert.equal(r.json.items.find((i) => i.id === 'mstack-explain-me-better')?.tier, 'optional', r.out);
   });
-  for (const skill of ['mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-resolve-merge-conflicts']) {
+  for (const skill of ['mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-resolve-merge-conflicts', 'mstack-sharpen-prompt']) {
     test(`${host}: ${skill} is an optional row`, () => {
       const r = run(machine(), ['--host', host]);
       assert.equal(r.json.items.find((i) => i.id === skill)?.tier, 'optional', r.out);
@@ -350,7 +350,7 @@ test('the vendor rows are optional, and block nothing for a caller that sends no
 const MSTACK_ALL = ['mstack-find-skills', 'mstack-best-model-for', 'mstack-receive-review', 'mstack-research', 'mstack-setup', 'mstack-vendors',
   'mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator',
   'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions',
-  'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-resolve-merge-conflicts', 'mstack-antigravity-led-review', 'mstack-antigravity-led-dev'];
+  'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-resolve-merge-conflicts', 'mstack-sharpen-prompt', 'mstack-antigravity-led-review', 'mstack-antigravity-led-dev'];
 const agy = (m) => {
   m.file('.gemini/config/skills/.keep').file('.gemini/config/plugins/.keep');
   writeFileSync(join(m.bin, 'agy'), `#!/bin/sh\necho "$@" >> "${m.root}/agy-calls.log"\n`); chmodSync(join(m.bin, 'agy'), 0o755);
@@ -467,17 +467,19 @@ test('needs: a value with no name in it is a usage error, on every host', () => 
   }
 });
 
-test('antigravity: the 26 mstack rows keep today\'s tiers', () => {
+test('antigravity: the 27 mstack rows keep today\'s tiers', () => {
   const r = run(machine(), ANTI);
   const mstackRows = r.json.items.filter((i) => i.id.startsWith('mstack-'));
-  assert.equal(new Set(mstackRows.map((i) => i.id)).size, 26, r.out);
-  assert.equal(mstackRows.length, 26, r.out);
+  assert.equal(new Set(mstackRows.map((i) => i.id)).size, 27, r.out);
+  assert.equal(mstackRows.length, 27, r.out);
   for (const id of MSTACK_ALL) assert.equal(item(r, id)?.tier, MSTACK_ALL.indexOf(id) < 6 ? 'mandatory' : 'optional', id);
   for (const host of ['claude', 'codex', 'antigravity']) {
     const hr = run(machine(), ['--host', host]);
-    const rows = hr.json.items.filter((i) => i.id === 'mstack-resolve-merge-conflicts');
-    assert.equal(rows.length, 1, `${host}: ${hr.out}`);
-    assert.deepEqual([rows[0].tier, rows[0].blocking], ['optional', false], `${host}: ${hr.out}`);
+    for (const id of ['mstack-resolve-merge-conflicts', 'mstack-sharpen-prompt']) {
+      const rows = hr.json.items.filter((i) => i.id === id);
+      assert.equal(rows.length, 1, `${host}/${id}: ${hr.out}`);
+      assert.deepEqual([rows[0].tier, rows[0].blocking], ['optional', false], `${host}/${id}: ${hr.out}`);
+    }
   }
 });
 

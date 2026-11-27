@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: reframe-only-no-repo
+expected_outcome: |
+  The session leaves work/ completely unchanged and makes zero network calls. It disambiguates plausible problem
+  classes with observable distinguishing signs, supplies impact-ranked domain vocabulary and cross-field analogies
+  with explicit break points, surfaces unmentioned concerns, produces one self-contained prompt with zero URLs and
+  zero hollow bracket placeholders (instructing the target AI to ask for sample tickets/policies on the next turn),
+  and (with the skill) announces Mode: reframe and follows the output contract.
+context:
+  scaffold_script: place-files.sh

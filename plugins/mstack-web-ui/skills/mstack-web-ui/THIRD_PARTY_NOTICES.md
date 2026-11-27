@@ -18,6 +18,7 @@ This skill takes ideas from the open-source projects below. Nothing of their tex
 | https://github.com/magicuidesign/magicui | `b0b2e49` | MIT | Which decorative effects users ask for, and that motion should be few and intentional |
 | https://github.com/DavidHDev/react-bits | `d01aa91` | MIT with the Commons Clause License Condition v1.0 | Which decorative effects users ask for. Ideas only: no code and no text was taken |
 | https://github.com/juliangarnier/anime | `01b81be` | MIT | That what a library starts is grouped and reverted together, and that it can read a media query |
+| https://github.com/GoogleChrome/modern-web-guidance | `2b4aa13` | Apache-2.0 (no `NOTICE` file) | Read from a local clone on 2026-11-27. Baseline Widely Available and fallback policy; modern HTML/CSS platform features (`:has()`, container queries, subgrid, Anchor Positioning, `@starting-style`, `interpolate-size`, View Transitions, scroll-driven animations, `light-dark()`, `color-mix()`, `contrast-color()`, `font-size-adjust`, `field-sizing`, `<search>`, `:user-invalid`, `hidden="until-found"`, `commandfor`, `<dialog closedby>`, customizable `<select>`, `moveBefore()`, Web Components); CWV/INP task slicing and Speculation Rules; modern JS and `Temporal`; client web security, Passkeys and privacy; PWA install/origin migration; Browser Built-in AI; WebMCP; Emscripten WebAssembly; Chrome Extensions Manifest V3 and Web Store rules. Rewritten in this skill's own words; nothing copied verbatim |
 
 The rules of choice in `references/components.md` that are marked as defaults of this skill come from no source. Facts about native elements and about the animation libraries named in `references/motion.md` were checked on 2026-11-18 against MDN and against the documentation of anime.js, Motion and GSAP; nothing was adapted from those pages.
 
@@ -66,6 +67,10 @@ SOFTWARE.
 ## MIT with the Commons Clause
 
 DavidHDev/react-bits is licensed under "MIT + Commons Clause License Condition v1.0", Copyright (c) 2026 David Haz. That license does not allow selling the software itself. This skill holds none of it: only the idea named in the table.
+
+## Apache-2.0-licensed components
+
+GoogleChrome/modern-web-guidance is licensed under the Apache License, Version 2.0 (no `NOTICE` file present at commit `2b4aa13`). The full text of the Apache License, Version 2.0 is shipped alongside this file in `LICENSE`.
 
 ## W3C documents
 

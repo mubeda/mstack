@@ -211,7 +211,7 @@ const workflows = {
   codex: ['mstack-codex-led-review', 'mstack-codex-led-dev'],
   antigravity: ['mstack-antigravity-led-review', 'mstack-antigravity-led-dev'],
 }[host];
-for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', 'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-resolve-merge-conflicts']) {
+for (const s of ['mstack-plan', 'mstack-write-specs', 'mstack-brainstorm', 'mstack-diagnose', 'mstack-backlog-triage', 'mstack-handoff', 'mstack-skill-creator', 'mstack-chief-of-staff', 'mstack-explain-me-better', 'mstack-product-plan', 'mstack-epic', 'mstack-evidence', 'mstack-decisions', 'mstack-auto', 'mstack-write-issue', 'mstack-anonymize', 'mstack-web-ui', 'mstack-resolve-merge-conflicts', 'mstack-sharpen-prompt']) {
   add(s, 'optional', hasSkill(s), 'mstack skill');
 }
 for (const w of workflows) add(w, 'optional', hasSkill(w), 'mstack workflow');

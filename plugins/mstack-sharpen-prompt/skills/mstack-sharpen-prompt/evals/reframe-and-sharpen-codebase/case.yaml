@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: reframe-and-sharpen-codebase
+expected_outcome: |
+  The session reads work/worker.js, work/package.json, and work/worker.log without modifying, creating, or deleting
+  any file in work/ and without making network calls. It grounds the rewrite in the real defects (destructive pre-ack
+  dequeue, overlapping setInterval races, swallowed errors, 401 failure), preserves diagnostic facts while omitting the
+  synthetic Authorization token value from work/worker.log, supplies concrete domain framing and an objective node --test
+  verification check, avoids hollow bracket placeholders and external URLs, and (with the skill) follows the Mode: both,
+  single non-colliding fenced prompt, and verbatim one-line offer contract.
+context:
+  scaffold_script: place-files.sh

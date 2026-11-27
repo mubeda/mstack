@@ -1,6 +1,6 @@
 {
   "name": "mstack-auto",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A router for the mstack skills. Give it any prompt and it starts the one mstack skill that fits, after one line that says which skill and why. It picks the earliest missing step of a chain (brainstorm, spec, plan, delivery), asks one question on a real tie, names a fitting skill that is missing or runs only on another host, and hands a job no mstack skill covers to mstack-find-skills. It starts only when asked and never does the job itself. One skill for Claude Code, Codex and Antigravity.",
   "license": "Apache-2.0",
   "author": {

@@ -4,7 +4,11 @@ Read this when the work adds or moves a view, a list or a control. The values ar
 
 ## Layout
 
-- **Flow first.** Use grid for the page and flexbox inside components. Let the browser lay things out; do not measure boxes in script to position them.
+- **Flow first.** Use grid (and `subgrid` to align nested card or form tracks) for the page and flexbox inside components. Let the browser lay things out; do not measure boxes in script to position them.
+- **Cascade and state in CSS.** Group base, token and component styles with `@layer` (and `@scope` when scoping component trees) instead of escalating specificity. Use `:has()` to style containers from child state or content instead of toggling classes in script (never nest `:has()` or put pseudo-elements inside it).
+- **Container queries.** Use size container queries (`container-type: inline-size` and `@container`) for reusable components that adapt to their slot rather than the viewport, and style container queries (`@container style(...)` with fallbacks) for token-driven variants.
+- **Anchored overlays.** Position popovers, tooltips and dropdowns relative to their trigger with CSS Anchor Positioning (`anchor-name`, `position-anchor`, `position-try-fallbacks`), with a fallback positioning strategy where unsupported (`platform.md`).
+- **Clipping and sizing.** Prefer `overflow: clip` over `overflow: hidden` when you want to clip paint without creating a scroll container (which breaks `position: sticky`). Use `field-sizing: content` (with min/max bounds and a sensible default size fallback) for inputs and textareas that grow with user input.
 - **Things that must shrink, and things that must not.** A flex or grid child that holds text gets `min-width: 0` (in a grid, a track of `minmax(0, 1fr)`), or long text pushes its neighbors out. An avatar, an icon or a button that must keep its size gets `flex-shrink: 0`.
 - **A capped container.** The content has a maximum width and is centered. On a very wide screen the margins grow, and the text lines and the number of columns do not.
 - **Spacing comes from the scale** (`visual.md`, surfaces). A heading sits closer to what it heads than to what comes before it: about twice the space above as below.

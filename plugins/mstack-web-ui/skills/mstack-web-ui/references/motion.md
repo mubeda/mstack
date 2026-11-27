@@ -29,7 +29,8 @@ Name the purpose before you write it. When the only purpose is that it looks goo
 
 ## 3. What may move
 
-- Animate `transform` and `opacity`. Colors may change too. Never animate `width`, `height`, `top`, `left`, `margin` or `padding`: they make the browser lay the page out again on every frame.
+- Animate `transform` (or individual `translate`, `scale`, `rotate` properties) and `opacity`. Colors may change too. Avoid animating layout properties (`width`, `height`, `top`, `left`, `margin`, `padding`): they force layout on every frame. One narrow exception is an occasional user-triggered disclosure or accordion expanding to an intrinsic size (`auto`), which may use `interpolate-size: allow-keywords` or `calc-size()` (falling back to an instant open/close where unsupported, and turning off size movement under `prefers-reduced-motion: reduce`).
+- For entry and exit transitions (including top-layer `<dialog>` and `[popover]`), use `@starting-style` with `transition-behavior: allow-discrete` so opening and closing animate cleanly without script timers.
 - Name the properties in the transition. Do not transition every property.
 - Nothing appears from nothing. Something that enters starts at about 95% of its size with an opacity of 0, not at zero size. For content the page shows when it loads, that start is the first keyframe of the animation and never the base style, so the content is visible without it (`floor.md`, motion).
 - A menu or popover grows from the control that opened it: set `transform-origin` to that side. A dialog in the middle of the screen keeps the center.
@@ -48,7 +49,7 @@ Name the purpose before you write it. When the only purpose is that it looks goo
 - Changes in the interface stay under 300 ms. Dialogs, drawers, sheets and toasts are the larger surfaces that may take more, as the table says.
 - **Leaving is quicker and quieter than entering:** about two thirds of the entering time, with a small movement, because the user's attention is already elsewhere.
 - **Curves.** Entering and leaving use an ease-out curve, which starts fast and so feels like an answer. Something moving across the screen uses ease-in-out. Constant motion, such as a progress bar, is linear. Avoid ease-in for interface changes: it starts slowly and feels late.
-- The built-in curves are mild. A stronger ease-out that reads as decided is `cubic-bezier(0.23, 1, 0.32, 1)`. Use the project's curve tokens when it has them.
+- The built-in curves are mild. A stronger ease-out that reads as decided is `cubic-bezier(0.23, 1, 0.32, 1)`. For physics-based springs or bounce on dragged elements, use CSS `linear()` easing instead of a JS animation loop. Use the project's curve tokens when it has them.
 - No bounce or overshoot on a change of state. A spring with a little bounce belongs to something the user dragged and let go.
 - Match the motion to the product: a tool for work is crisp, a playful product may be softer.
 
@@ -62,7 +63,9 @@ Name the purpose before you write it. When the only purpose is that it looks goo
 ## 6. Several things at once
 
 - **One entrance per view at most,** and only for a view that is not seen all day. Content is visible without it: an entrance starts from a visible page, never from hidden content that waits for a script.
-- **Stagger.** When a group enters, each item follows the one before by 30 to 80 ms, and larger blocks by up to 100 ms. The whole sequence stays under half a second and never blocks input.
+- **Stagger.** When a group enters, each item follows the one before by 30 to 80 ms, and larger blocks by up to 100 ms (CSS `sibling-index()` and `sibling-count()` can compute delays without inline styles, with a fallback where unsupported). The whole sequence stays under half a second and never blocks input.
+- **View transitions.** For smooth DOM reorders, filter changes or navigation transitions, prefer the View Transitions API (`document.startViewTransition()` for same-document updates, `@view-transition { navigation: auto; }` for cross-document transitions, `view-transition-class` for groups), feature-detected with immediate DOM updates as fallback and simplified under reduced motion.
+- **Scroll-driven effects.** When scroll-linked progress bars, sticky-header state changes or entry/exit reveals are appropriate, prefer CSS scroll-driven animations (`animation-timeline: scroll()` or `view()`) over scroll event listeners, treated as progressive enhancement and turned off under reduced motion.
 - **Direction means something.** What moves forward comes from the right and leaves the way it came; going back mirrors it.
 - **What leaves gives up its space at once,** so its neighbors close the gap while it fades, instead of jumping at the end.
 - No parallax, no custom cursor and no scroll-jacking. No loop that never stops either, with two exceptions: a loading indicator, and an effect the user asked for (section 11).

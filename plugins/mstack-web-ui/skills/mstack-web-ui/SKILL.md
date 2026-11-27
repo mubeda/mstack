@@ -1,6 +1,6 @@
 ---
 name: mstack-web-ui
-description: Use when the user asks to build, change, restyle, polish or review a web interface, such as a page, a landing page, a screen, a dashboard, a settings view, a component, a form or a layout, or to animate one or add motion or an effect to it, in any wording ("build me a page for", "add a screen", "make this look better", "let these items fade in", "add a marquee", "this UI feels off", "review this UI", "is this accessible"). Works in Claude Code, Codex and Antigravity, with any web stack, and adds React rules when the project uses React. Not for native apps, for images, logos or slides, or for server code.
+description: Use when the user asks to build, change, restyle, polish, modernize or review a web interface, web platform feature or Chrome extension, such as a page, a landing page, a screen, a dashboard, a settings view, a component, a form, a layout, motion or an effect, modern HTML/CSS/JS with Baseline fallbacks, client web security, Passkeys, PWA install, browser Built-in AI, WebMCP, WebAssembly or a Manifest V3 Chrome extension, in any wording ("build me a page for", "add a screen", "make this look better", "let these items fade in", "add a marquee", "this UI feels off", "review this UI", "is this accessible", "add anchor positioning", "sanitize HTML", "add WebMCP", "build a Chrome extension"). Works in Claude Code, Codex and Antigravity, with any web stack, and adds React rules when the project uses React. Not for native mobile/desktop apps, for images, logos or slides, or for server-only code.
 ---
 
 # mstack web UI
@@ -33,9 +33,10 @@ You build a web interface, or you review one. What you build works with a keyboa
 | `references/layout.md` | Layout, responsive rules, phone fixes, states of a control and of a data view | The work adds or moves a view, a list or a control |
 | `references/motion.md` | Whether to animate, durations, curves, reduced motion, an effect on request, an installed animation library | The work has motion, you consider adding some, or the user asks for an effect |
 | `references/copy.md` | Buttons, errors, labels, numbers and dates | The work writes words a user reads |
-| `references/performance.md` | Images, fonts, layout shift, long lists | The work adds images, fonts or long lists |
-| `references/components.md` | Which component fits a job, native elements first, the roles and keys of 23 components | The work adds or changes something that shows and hides content, lies over the page, lets the user choose, reports something or moves the user around |
-| `references/react.md` | Component structure, rendering, loading, by React version | The project uses React |
+| `references/performance.md` | Images, fonts, layout shift, long lists, INP, loading priority, navigation | The work adds images, fonts or long lists, optimizes interaction latency (INP) or main-thread work, or tunes loading and navigation |
+| `references/components.md` | Which component fits a job, native elements first, the roles and keys of 23 components, Web Components | The work adds or changes something that shows and hides content, lies over the page, lets the user choose, reports something, moves the user around or uses a custom element |
+| `references/platform.md` | Baseline browser-support and fallbacks, modern JS and Temporal, web security, Passkeys, privacy, PWA, Built-in AI, WebMCP, WebAssembly, Chrome Extensions MV3 | The work uses modern web platform APIs, Newly Available CSS/HTML needing fallbacks, client security/auth, PWA install, Built-in AI, WebMCP, Wasm or a Chrome extension |
+| `references/react.md` | Component structure, rendering, loading, framework adaptation for modern HTML/CSS, by React version | The project uses React |
 | `references/review.md` | The review's output and its severities | A review |
 
 Read `references/floor.md` always. Read no part the work does not touch: a static form needs neither the motion part nor the React part.
@@ -54,14 +55,14 @@ Read `references/floor.md` always. Read no part the work does not touch: a stati
 1. **Ask once at most about the direction.** Only for a new page with no design system and no stated direction, and only when the answers would change the result: one round of at most three questions (who it is for, the tone, what is fixed, such as a brand color). When the request says enough, or nobody can answer, ask nothing and state your assumptions in one line. The question before a dependency is added (rule 4) is a separate one and is not counted here; when nobody can answer it, leave the dependency out and name what was left out in the `Built:` line.
 2. **State the direction first** for a new page with no design system. After you read the parts and before your first call that creates or changes a file, send a message that begins with the line `Direction:` and gives, in at most six lines, the typefaces, the colors with one accent and the layout idea (`references/direction.md`). Send it also when nobody will answer in between: reading the parts and then writing the file with no message in between breaks this step. In an existing project the direction is the project's; the message says which tokens and components you will use.
 3. **Build**, once the direction stands in your reply, with the project's stack and styling system. Use its components before you write a new one. In a project that has color tokens, the colors of what you build come from them or are derived from them, also the backdrop of a dialog, an overlay and a shadow. A literal color value belongs in the token definitions only, where you change it when the user asks for another color. Every control gets its states and every data view its four states (`references/layout.md`).
-4. **Check the floor** (`references/floor.md`) against what you wrote, point by point.
-5. **Look at it.** When the session has a browser tool: open the result at a phone width (390 px) and a desktop width (1280 px), in both themes when the project has two, and go through the main path with the keyboard only. Fix what you see. When the session has none, do not pretend: the report says so and names what the user should look at.
+4. **Check the floor** (`references/floor.md`) point by point whenever the change has a visible UI surface. For non-UI platform or extension code (such as a background service worker, manifest or security module), check `references/platform.md` and note in the report that there is no visible UI surface.
+5. **Look at it.** When the change has a visible UI surface and the session has a browser tool: open the result at a phone width (390 px) and a desktop width (1280 px), in both themes when the project has two, and go through the main path with the keyboard only. Fix what you see. When the session has none, do not pretend: the report says so and names what the user should look at.
 6. **Report** (below).
 
 ## A review
 
-1. Read the files of the screens you were asked about. When the session has a browser tool, look at them as in step 5 of a build.
-2. Check the floor for every screen you reviewed, then the classes the screens touch.
+1. Read the files of the screens, components, manifests, workers or platform modules you were asked about. When the change has a visible UI surface and the session has a browser tool, look at it as in step 5 of a build.
+2. Check the floor for every visible UI surface you reviewed, then every class the requested files touch (including `references/platform.md` for non-UI manifests, workers or security modules).
 3. Return the output of `references/review.md`: the table of classes, at most 15 findings, the dropped ones. Change no file.
 
 ## The report of a build

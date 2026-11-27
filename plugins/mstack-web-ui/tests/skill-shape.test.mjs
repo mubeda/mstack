@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const skill = resolve(here, '../skills/mstack-web-ui');
 const root = resolve(here, '../../..');
-const PARTS = ['floor', 'direction', 'visual', 'layout', 'motion', 'copy', 'performance', 'react', 'review', 'components'];
+const PARTS = ['floor', 'direction', 'visual', 'layout', 'motion', 'copy', 'performance', 'react', 'review', 'components', 'platform'];
 // The components of the part on component choice: each is the bold start of exactly one entry there.
 const COMPONENTS = ['Disclosure', 'Accordion', 'Tabs', 'Dialog', 'Alert dialog', 'Popover', 'Tooltip', 'Drawer',
   'Radio group', 'Checkbox', 'Switch', 'Select', 'Combobox', 'Listbox', 'Slider', 'Alert', 'Status message',
@@ -17,7 +17,7 @@ const COMPONENTS = ['Disclosure', 'Accordion', 'Tabs', 'Dialog', 'Alert dialog',
 const SOURCES = ['Nutlope/hallmark', 'emilkowalski/skills', 'jakubkrehel/make-interfaces-feel-better',
   'nextlevelbuilder/ui-ux-pro-max-skill', 'Leonxlnx/taste-skill', 'vercel-labs/web-interface-guidelines',
   'vercel-labs/agent-skills', 'benjitaylor/skills', 'w3c/aria-practices', 'w3c/wcag', 'inbn/component-gallery',
-  'magicuidesign/magicui', 'DavidHDev/react-bits', 'juliangarnier/anime'];
+  'magicuidesign/magicui', 'DavidHDev/react-bits', 'juliangarnier/anime', 'GoogleChrome/modern-web-guidance'];
 
 const read = (rel) => readFileSync(join(skill, rel), 'utf8');
 const lines = (rel) => read(rel).replace(/\n$/, '').split('\n').length;
@@ -39,7 +39,7 @@ test('(a) SKILL.md has at most 150 lines', () => {
   assert.ok(lines('SKILL.md') <= 150, `${lines('SKILL.md')} lines`);
 });
 
-test('(b) each of the ten parts exists and has at most 200 lines', () => {
+test('(b) each of the eleven parts exists and has at most 200 lines', () => {
   for (const p of PARTS) {
     const rel = `references/${p}.md`;
     assert.ok(existsSync(join(skill, rel)), `${rel} is missing`);
@@ -70,7 +70,7 @@ test('(f) the rules name no address to fetch anything from', () => {
   assert.deepEqual(ruleText().match(/https?:\/\/\S+/g) ?? [], []);
 });
 
-test('(g) the notices name all fourteen sources', () => {
+test('(g) the notices name all fifteen sources', () => {
   const notices = read('THIRD_PARTY_NOTICES.md');
   for (const s of SOURCES) assert.ok(notices.includes(s), `${s} is not named`);
 });
@@ -123,4 +123,26 @@ test('(k) the motion part has its sections on a requested effect and on an anima
   // In the section on the report, with or without backticks.
   const report = read('SKILL.md').split(/^## /m).find((s) => s.startsWith('The report of a build')) ?? '';
   assert.match(report, /Add the line `?Effects:`?/, 'the report section does not tell to add the Effects line');
+});
+
+test('(m) the platform part covers Baseline fallbacks, JS, security, PWA, Built-in AI, WebMCP, Wasm, and Chrome Extensions MV3, and review.md lists it', () => {
+  const plat = read('references/platform.md');
+  for (const needle of ['Baseline', 'structuredClone', 'setHTML', 'Trusted Types', 'Passkey', 'navigator.install', 'LanguageModel', 'WebMCP', 'WebAssembly', 'Manifest V3']) {
+    assert.ok(plat.includes(needle), `references/platform.md missing "${needle}"`);
+  }
+  // Baseline Newly Available / limited features must require feature detection and a fallback.
+  assert.match(plat, /Newly Available[^\n]*feature detection[^\n]*fallback/i, 'references/platform.md must require feature detection and fallback for Newly Available features');
+  // Deprecated window.ai.* must appear only as prohibited, never recommended.
+  assert.match(plat, /never[^\n]*`?window\.ai(?:\.\*)?`?/i, 'references/platform.md must prohibit window.ai');
+  // postMessage sender authorization must not equate isSameSite() with origin validation.
+  assert.doesNotMatch(plat, /isSameOrigin\(\)\s*\/\s*isSameSite\(\)/, 'references/platform.md must not equate isSameSite() with origin validation');
+  // WebMCP must prefer document.modelContext (with navigator.modelContext only as legacy fallback).
+  assert.match(plat, /document\.modelContext/, 'references/platform.md must feature-detect document.modelContext for WebMCP');
+  // Built-in AI cancellation must cover create() as well as generation/streaming, not exclude create().
+  assert.doesNotMatch(plat, /\(not `?create\(\)`?\)/i, 'references/platform.md must allow AbortController cancellation during create()');
+  // Built-in AI iframe delegation must cover API-specific tokens (not only language-model).
+  assert.match(plat, /summarizer/i, 'references/platform.md must name API-specific Built-in AI permission tokens');
+  // PWA manifest recipe must include explicit id for navigator.install().
+  assert.match(plat, /manifest[^\n]*`id`/i, 'references/platform.md must require an explicit manifest id for navigator.install()');
+  assert.ok(read('references/review.md').includes('platform.md'), 'references/review.md does not reference platform.md');
 });

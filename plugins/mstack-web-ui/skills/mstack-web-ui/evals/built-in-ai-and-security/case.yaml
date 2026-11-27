@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: built-in-ai-and-security
+expected_outcome: |
+  The session writes work/reader.html using the global Summarizer interface (never window.ai.*), checking
+  availability(), canceling with AbortController on summarize/streaming, calling destroy(), rendering AI
+  output via textContent with a graceful non-AI fallback, and previewing untrusted HTML via setHTML() /
+  safe fallback rather than raw innerHTML.
+notes: |
+  Compares upgraded mstack-web-ui (with references/platform.md) against the pre-upgrade 0.2.2 snapshot.
+context:
+  scaffold_script: place-files.sh
