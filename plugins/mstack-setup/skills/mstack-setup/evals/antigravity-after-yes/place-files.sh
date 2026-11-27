@@ -18,7 +18,7 @@ CG="#!/bin/sh
 echo \"codegraph \$*\" >> \"$L\"
 case \"\$*\" in *--print-config*) echo \"# Add to $A/mcp_config.json\" ;; *install*--target=antigravity*) printf '{\"mcpServers\":{\"codegraph\":{\"command\":\"codegraph\",\"args\":[\"serve\",\"--mcp\"]}}}\n' > \"$A/mcp_config.json\" ;; esac
 exit 0"
-for s in mstack-best-model-for mstack-receive-review mstack-setup mstack-write-specs mstack-brainstorm mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-chief-of-staff mstack-explain-me-better mstack-product-plan mstack-epic mstack-evidence mstack-decisions mstack-auto mstack-write-issue mstack-anonymize mstack-web-ui mstack-resolve-merge-conflicts mstack-vendors mstack-antigravity-led-review mstack-antigravity-led-dev; do plugin "$s"; done
+for s in mstack-best-model-for mstack-receive-review mstack-setup mstack-write-specs mstack-brainstorm mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-chief-of-staff mstack-explain-me-better mstack-product-plan mstack-epic mstack-evidence mstack-decisions mstack-auto mstack-write-issue mstack-anonymize mstack-web-ui mstack-resolve-merge-conflicts mstack-sharpen-prompt mstack-vendors mstack-antigravity-led-review mstack-antigravity-led-dev; do plugin "$s"; done
 # archify is missing on purpose: in Antigravity its skills command is a step for the user, which the skill never runs.
 echo "{}" > "$A/mcp_config.json"
 stub npx; stub gh; stub python3

@@ -14,11 +14,11 @@ Contrast and target sizes are in `floor.md` and are not repeated here.
 - **A scale.** Sizes come from one scale, for example a ratio of 1.25 from 16px, with one size per kind of element across the page.
 - **Wrapping.** `text-wrap: balance` on headings and other short blocks. It works only on blocks of a few lines (six in Chromium), so it is no use on long text. `text-wrap: pretty` on paragraphs, captions and list items. On text of ten lines or more, use neither.
 - **Numbers.** `font-variant-numeric: tabular-nums` where digits change or are compared: counters, timers, prices that update, number columns. Not on phone numbers, postal codes or version numbers. In some faces this changes the look of the digit 1, so look at it.
-- **Details.** Curly quotes, a real ellipsis character, and a non-breaking space between a number and its unit.
+- **Details.** Curly quotes, a real ellipsis character, and a non-breaking space between a number and its unit. Use `font-size-adjust` so fallback and mixed fonts keep matching x-height without layout shift, and `text-box` / `text-box-trim` (with progressive enhancement) when optical cap-height alignment matters in buttons or badges.
 
 ## Color
 
-- **Layers.** A background, a text color, a few neutral steps between them, and one accent. Define every color once as a token (a custom property on `:root`) and use only the tokens, so a theme can change them in one place.
+- **Layers.** A background, a text color, a few neutral steps between them, and one accent. Define every color once as a token (a custom property on `:root`) and use only the tokens, so a theme can change them in one place. Derive tints and shades with `color-mix()`, and use `contrast-color()` (with a static fallback where unsupported) when text sits on dynamic colors.
 - **Neutrals.** Tint the greys slightly toward the page's main hue instead of using pure grey, and avoid pure black and pure white as surfaces: a slight tint reads as chosen, and pure black on pure white is harsh at text sizes.
 - **The accent is a signal, not a fill.** It marks the main action, the current item, a link, the focus mark. As a default it covers under 5% of a screen. When the direction calls for a page that is mostly one color, say so in the direction: then that color is the surface, and the accent is still one small signal.
 - **One main action per view.** Exactly one filled button in the accent marks the main action. Every secondary action shares one quieter style.
@@ -35,7 +35,9 @@ Dark mode is a second rendering of the same system, derived token by token. Inve
 - **Shadows mostly go.** On a dark ground a drop shadow reads as a glow. Show an edge with a hairline ring instead.
 - **The accent** loses some saturation and gains some lightness, because a saturated color glares on dark. The hue stays the same in both themes.
 - Re-check every pair of `floor.md`'s contrast list in the dark theme. Hairlines are the first to disappear.
-- Set `color-scheme` on the root for each theme, so scrollbars and native controls follow, and give a native `<select>` its own background and text color.
+- Set `color-scheme` on the root (and on any component that pins its own scheme) so scrollbars and native controls follow, pair it with `light-dark()` tokens to express both themes in one declaration, and give a native `<select>` its own background and text color.
+- Style custom scrollbars with standard `scrollbar-color` and `scrollbar-width`, adapting contrast under `@media (prefers-contrast: more)`.
+- Prefer CSS `mask-image` / `mask-*` for shaped cutouts, image fades and textured overlays over extra wrapper markup or raster masks.
 - Follow the system setting by default (`prefers-color-scheme`), and let an explicit choice of the user override it.
 - Do not invert or darken photographs with a filter.
 

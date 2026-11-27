@@ -27,9 +27,12 @@ Go through the nine groups in order after you wrote the code, and again when you
 - Every control has a name a screen reader can read. A button that shows only an icon gets an `aria-label`. A decorative icon beside visible text is hidden with `aria-hidden="true"`.
 - A control that has a state says it: `aria-expanded` on what opens a menu, `aria-pressed` on a toggle, `aria-current="page"` on the current link.
 - Every image that carries meaning has an `alt` that says what it shows. A decorative image has `alt=""`.
-- Use the element that already means the thing (`<button>`, `<a>`, `<label>`, `<table>`, `<nav>`, `<main>`) before any ARIA role.
-- Headings go down one level at a time, with one `<h1>` per page.
-- `<html lang>` names the language the page is written in.
+- Use the element that already means the thing (`<button>`, `<a>`, `<label>`, `<table>`, `<nav>`, `<main>`, `<search>` for search and filter forms) before any ARIA role. Do not use more than one `banner`, `main` or `contentinfo` landmark per page; never set `aria-hidden="true"` on a focusable element or its ancestor, and never place `role="presentation"` or `role="none"` on a focusable element itself (non-focusable presentational wrappers whose interactive descendants retain their roles are allowed).
+- Headings go down one level at a time, with one `<h1>` per page (a modal dialog may carry its own `<h1>`).
+- `<html lang>` names the language the page is written in, and `lang` marks any inline passage in another language.
+- Scrollable code blocks (`<pre><code>`) get `tabindex="0"`, `role="region"` and an accessible name so keyboard users can scroll them.
+- CSS generated content that conveys meaning supplies alternative text (`content: "…" / "label"`), and decorative generated content hides itself (`content: "…" / ""`), with fallbacks where unsupported.
+- Inside Shadow DOM, ARIA `id` references (`aria-labelledby`, `aria-describedby`, `aria-controls`) cannot cross a shadow boundary: keep the reference and its target in the same tree.
 - A routine update the user did not cause by moving the focus and need not answer (a toast, a saved line, a new count, a validation message) is announced through a polite live region. An urgent one (a failed save, a lost connection) is an alert and is announced at once. Neither takes the focus. A message the user must answer is different: it takes the focus, as an alert dialog (`components.md`).
 
 ## 4. Contrast and color
@@ -45,7 +48,8 @@ Go through the nine groups in order after you wrote the code, and again when you
 - Use the right field: `type="email"`, `type="tel"`, `type="url"`, `inputmode="numeric"` for a count, and `autocomplete` with the right value, so the phone shows the right keyboard and the browser can fill the field.
 - Never block paste, and never switch off a password manager on a sign-in field.
 - Mark a required field with a word or a sign and with the `required` attribute, not with color.
-- Validate when the user leaves a field or on submit, not on every key. After a field was marked wrong, re-check it while the user types, so the error goes as soon as it is fixed.
+- Validate when the user leaves a field or on submit, not on every key: prefer `:user-invalid` and `:user-valid` so errors appear only after interaction. After a field was marked wrong, re-check it while the user types, so the error goes as soon as it is fixed.
+- Give secondary buttons inside a form explicit `type="button"` so they do not submit it, group related controls with `<fieldset>` and a first-child `<legend>`, and never auto-submit a form on `<select>`, radio or checkbox change alone.
 - An error stands next to its field, says the cause and what to type, is tied to the field with `aria-describedby`, and the field gets `aria-invalid="true"`.
 - After a failed submit, move the focus to the first field that failed, or to a summary that links to each failed field. Keep everything the user typed.
 - The submit button stays enabled until the request starts. While the request runs, it shows that, keeps its width and cannot be pressed twice.
@@ -56,7 +60,8 @@ Go through the nine groups in order after you wrote the code, and again when you
 
 - Nothing scrolls sideways at a width of 320 px. Fix the content that overflows; do not hide the overflow.
 - Never switch off zoom: no `user-scalable=no` and no `maximum-scale=1` in the viewport tag.
-- The page still works when the user sets the text to twice its size: boxes grow with their text, nothing is cut.
+- The page still works when the user sets the text to twice its size or raises the operating system text scale: use relative units (`rem`, `env(preferred-text-scale)` where supported) so boxes grow with their text and nothing is cut.
+- For collapsed content that users should still reach with browser find-in-page, prefer `hidden="until-found"` (handling `beforematch` to update open state) over `display: none`.
 - Text in a field is at least 16px, or a phone enlarges the whole page on focus.
 
 ## 7. Targets
@@ -82,7 +87,8 @@ Go through the nine groups in order after you wrote the code, and again when you
 
 ## 9. Motion
 
-- Everything that moves has a rule under `@media (prefers-reduced-motion: reduce)` that removes the movement. A fade may stay. Motion that a script drives is switched off by the script, on the same setting, because a CSS rule cannot stop it.
+- Everything that moves has a rule under `@media (prefers-reduced-motion: reduce)` that removes the movement while keeping the element visible in its final state. A fade may stay. Motion that a script drives is switched off by the script, on the same setting, because a CSS rule cannot stop it.
+- Nothing flashes more than three times in any one-second period (WCAG 2.3.1), regardless of the user's motion preference: never place flashing content inside `prefers-reduced-motion: no-preference` either.
 - No rule animates every property at once: write the properties out, never `transition: all`.
 - Content that the page shows when it loads is never hidden first so that a script can reveal it: an entrance effect starts from visible content, so a script that fails leaves the page readable. This is not about what opens on the user's action (a closed dialog, a menu, an inactive tab panel), and it does not ask an app that renders in the browser to be rebuilt.
 

@@ -4,8 +4,8 @@ Read this when the job is a review. A review judges what is there and changes no
 
 ## What you look at
 
-1. The files of the screens you were asked about, and the tokens and components they use.
-2. When the session has a browser tool: the screens at a phone width and a desktop width, in both themes when there are two, and the main path with the keyboard only (`SKILL.md`, a build, step 5).
+1. The files of the screens, components, manifests, workers or platform modules you were asked about, and the tokens and components they use.
+2. When the change has a visible UI surface and the session has a browser tool: the screens at a phone width and a desktop width, in both themes when there are two, and the main path with the keyboard only (`SKILL.md`, a build, step 5).
 3. Say what you could not look at. A review from code alone cannot judge how a page looks or moves, and must say so.
 
 ## The classes
@@ -21,9 +21,10 @@ Go through them in this order. The floor comes first because its faults lock peo
 | Motion | `motion.md` |
 | Words | `copy.md` |
 | Speed | `performance.md` |
+| Web platform and security | `platform.md` |
 | React, when the project uses it | `react.md` |
 
-Read a part only for a class the screens touch.
+Read a part only for a class the requested files touch (for non-UI targets such as a background service worker or manifest, mark UI-only classes "not reviewed: no visible UI surface").
 
 A component without the roles or keys of its kind, and an effect that cannot be paused or ignores reduced motion, are findings of the floor. A component that works but is the wrong one for its job belongs to "States and real content". An effect that breaks another condition of `motion.md`, section 11, belongs to "Motion".
 

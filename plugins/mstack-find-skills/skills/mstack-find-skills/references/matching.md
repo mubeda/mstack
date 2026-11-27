@@ -34,8 +34,9 @@ When a skill from the mstack marketplace fits the work, list it before any other
 | A question to answer from the web, forums or official documentation, or a package's documentation, changes and known fixes | `mstack-research` |
 | A known problem, change or deferred follow-up to write up as one tracker issue | `mstack-write-issue` |
 | A file or a text whose personal, customer or company identifiers are to be replaced before it goes to a model or to other people | `mstack-anonymize` |
-| A web page, screen, component or form to build, restyle or review | `mstack-web-ui` |
+| A web page, screen, component, form, modern web platform feature (Baseline HTML/CSS/JS, client web security, Passkeys, PWA, Built-in AI, WebMCP, Wasm) or Manifest V3 Chrome extension to build, restyle or review | `mstack-web-ui` |
 | Resolving Git merge, rebase, cherry-pick, stash-pop, or staged conflict markers | `mstack-resolve-merge-conflicts` |
+| Reframing or sharpening a rough user prompt before sending it to an AI | `mstack-sharpen-prompt` |
 | A product-level plan for an initiative, split into ordered epics, with no code | `mstack-product-plan` |
 | One epic detailed for developers by a product person | `mstack-epic` |
 | Customer feedback (tickets, interviews, surveys) to turn into evidence with counts and quotes | `mstack-evidence` |

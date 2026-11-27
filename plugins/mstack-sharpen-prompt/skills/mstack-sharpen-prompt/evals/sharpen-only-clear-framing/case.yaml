@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: sharpen-only-clear-framing
+expected_outcome: |
+  The session reads work/parser.js and work/package.json without modifying, creating, or deleting any file in work/
+  and without making network calls. It keeps scope tight to unit tests for parseConfig(text), grounds the prompt in
+  real edge cases visible in parser.js, names node --test as the objective check, separates empirically observed
+  behavior from parser contract decisions for the user, avoids URLs and hollow placeholders, and (with the skill)
+  selects Mode: sharpen without unneeded reframe glossary bloat and follows the output contract.
+context:
+  scaffold_script: place-files.sh

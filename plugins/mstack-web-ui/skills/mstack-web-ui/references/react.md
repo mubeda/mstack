@@ -14,6 +14,7 @@ Follow the project's own patterns first: its state library, its data fetching, i
 - **One place knows how state is kept.** A provider owns the state and how it is stored. The parts below it use an interface of state and actions, so the storage can change without touching them.
 - **Lift state into that provider** when siblings need it, instead of threading it through props or syncing two copies.
 - **Never define a component inside another component.** It is a new component type on every render, so React throws the old one away: fields lose focus on every key, animations restart, state is lost. Define it outside and pass props.
+- **Modern HTML and CSS in React:** Do not drop newly shipped HTML attributes (`popover="hint"`, `commandfor`, `interestfor`, `closedby`, `switch`, `toolname`) because TypeScript types lag—pass them via typed spread or attribute props rather than mutating `@types/react`. Guard `window` and `HTMLElement` in SSR, generate per-instance IDs and `anchor-name` tokens with `useId()` (React 18 and later; on older or unknown versions use the project's stable ID helper or accept an ID prop), keep `:root` and `@starting-style` rules top-level and unscoped, and call imperative DOM APIs like `showModal()` or `moveBefore()` via refs on nodes React does not reconcile internally.
 - **React 19:** `ref` is an ordinary prop, so a new component needs no `forwardRef`. Read a context with `use()` where that fits the project's style.
 
 ## Rendering

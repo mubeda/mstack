@@ -9,9 +9,10 @@ The duty itself is in `floor.md`: every control works with the keys of its kind,
 1. **The project's own component.** When the project has a dialog, a select or tabs, use them, also where a rule below would choose differently.
 2. **The element the browser already has.** It brings its keys and its screen-reader behavior with it:
    - `<details>` with `<summary>` for a simple show and hide. Several that share a `name` open one at a time.
-   - `<dialog>` opened with `showModal()` for a modal: the page behind it cannot be used, and Escape closes it unless the page prevents that. Opened with `show()` it is not modal.
-   - `<select>`, and native checkboxes and radio buttons styled with `accent-color`, for a plain choice.
-   - The `popover` attribute for a small overlay. In its default mode it closes on Escape and on a click outside, and opening another popover of that mode closes it, unless that one is nested inside it. With `popover="manual"` it does neither: the page opens and closes it. A popover is never modal: the page behind it stays usable.
+   - `<dialog>` opened with `showModal()` for a modal: the page behind it cannot be used, and Escape closes it unless the page prevents that. Add `closedby="any"` when light dismiss on outside click is desired (with a backdrop click listener fallback where unsupported). Opened with `show()` it is not modal.
+   - `<select>` (enhanced with `appearance: base-select` when rich option markup is needed, falling back cleanly to the native picker), and native checkboxes, `<input type="checkbox" switch>` (with checkbox/`role="switch"` fallback) and radio buttons styled with `accent-color`, for a plain choice.
+   - The `popover` attribute: pair `popover="auto"` or `popover="manual"` (and `<dialog>`) with declarative Invoker commands (`commandfor` and `command`, with a click listener fallback where unsupported) for activation-triggered overlays without boilerplate script; pair `popover="hint"` hover/focus previews with `interestfor` (with a hover/focus/Escape fallback where unsupported, keeping explicit click/tap activation when the control also needs it).
+   - When reordering live DOM elements that hold state (media, iframes, focus, animations), prefer `parent.moveBefore(node, ref)` with feature detection (`'moveBefore' in Element.prototype`). Where live state must survive (such as an iframe with unsaved form input), keep the element mounted or defer/avoid the move on unsupported browsers; fall back to `insertBefore` only when resetting state is acceptable or the app restores it.
 3. **A hand-built one**, only when it keeps the keyboard and screen-reader behavior of the native one. The entries below say what that is.
 
 ## Where a rule of choice comes from
@@ -63,6 +64,13 @@ Rules of choice here are defaults of this skill, except where W3C is named.
 - **Pagination.** Links to the pages of a long list, in a `<nav>` with a name; the current one has `aria-current="page"`. Each page has its own address, so it can be shared and the Back button works. Prefer it to endless loading when users look for one item or need the footer.
 - **Carousel.** Several slides in one place, one in view. A region or group with a name, slides that are groups with names, and buttons for the previous and the next one. One that turns by itself is moving content: `floor.md`, images and media, applies. It also stops when the keyboard focus enters it and starts again only when the user asks, and it stops while the pointer is over it. Prefer a plain row or grid when all items matter, because most users see only the first slide.
 - **Tree view.** A hierarchy the user opens and closes, such as folders. Roles `tree`, `treeitem` and `group`, with `aria-expanded` on a parent; Up and Down move, Right opens or enters, Left closes or leaves, Home and End go to the first and the last item, Enter activates the item in focus. It is costly to build right and unfamiliar on the web: for site navigation, nested lists with disclosures do the job.
+
+## Web Components
+
+Default to the project's framework components or native HTML elements before authoring a custom element. Use a custom element when a widget must work across frameworks or inside static HTML islands:
+
+- Give every custom element a kebab-case tag name containing a hyphen, call `super()` first in its constructor before reading or writing `this`, and hide unupgraded content safely with `:defined` where needed.
+- Use `attachShadow({ mode: 'open' })` (or Declarative Shadow DOM `shadowrootmode="open"` for SSR without FOUC), keep semantic HTML inside shadow templates, expose styling hooks with CSS custom properties and `::part()`/`exportparts`, and use `ElementInternals` for form-associated custom elements and default ARIA roles.
 
 ## In a review
 

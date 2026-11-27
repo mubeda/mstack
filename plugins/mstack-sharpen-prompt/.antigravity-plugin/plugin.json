@@ -1,0 +1,9 @@
+{
+  "name": "mstack-sharpen-prompt",
+  "version": "0.1.0",
+  "description": "Reframes and sharpens rough user prompts before sending them to an AI. Reads real workspace files when present, automatically selects reframe (problem-class disambiguation, impact-ranked domain vocabulary, cross-field analogies with break points, unmentioned concerns), sharpen (practitioner craft, rawer source inputs, named methods, objective external checks, empirical prototyping vs user-judgment split), or both together, and returns concise analysis plus one ready-to-send prompt in a single fenced block without executing the task. 100% offline with zero scripts, zero URLs and nothing to install. One skill for Claude Code, Codex and Antigravity.",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "mubeda"
+  }
+}

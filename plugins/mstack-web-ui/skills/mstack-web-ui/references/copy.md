@@ -42,7 +42,7 @@ Read this when the work writes words a user reads: buttons, labels, headings, er
 ## Numbers, dates, plurals
 
 - Use numerals for counts: "8 projects", not "eight projects".
-- Format numbers, amounts and dates with the platform (`Intl.NumberFormat`, `Intl.DateTimeFormat`) in the user's locale. Never build them by hand.
+- Format numbers, amounts, dates and durations with the platform (`Intl.NumberFormat`, `Intl.DateTimeFormat`, `Intl.DurationFormat` with fallback where unsupported) in the user's locale. Never build them by hand.
 - Plurals come from the platform too (`Intl.PluralRules`): "1 member", "2 members", and a wording for zero.
 - A relative time ("3 hours ago") turns into a date after about a week, when "340 days ago" stops being readable.
 - Keep a number and its unit together with a non-breaking space.

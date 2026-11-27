@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Daily-driver agent skills for Claude Code, Codex CLI and Antigravity, packaged as independently installable plugins.",
-    "version": "0.16.0"
+    "version": "0.17.0"
   },
   "plugins": [
     {
@@ -91,7 +91,7 @@
     {
       "name": "mstack-skill-creator",
       "description": "Create or improve agent skills (SKILL.md folders) that Claude Code, Codex, Antigravity, OpenCode and Cursor all load: an interview, a check for an existing skill, writing by portable rules, a static check, a comparison test against a baseline, and for an mstack-style repository the full plugin packaging and the cross-vendor review that mstack-vendors offers. Uses the other mstack skills when they are installed. Never commits or publishes on its own.",
-      "version": "0.3.12",
+      "version": "0.3.13",
       "author": {
         "name": "mubeda"
       },
@@ -121,7 +121,7 @@
     {
       "name": "mstack-find-skills",
       "description": "Find the skills that fit a job: the installed skills scored per task, then vetted public candidates from skills.sh for the gaps only (audits, installs, license and the skill's own text), installed only after the user's yes. Called by the other mstack skills for their tasks. One skill for Claude Code, Codex and Antigravity.",
-      "version": "0.2.12",
+      "version": "0.2.13",
       "author": {
         "name": "mubeda"
       },
@@ -131,7 +131,7 @@
     {
       "name": "mstack-setup",
       "description": "Check and install what the mstack skills need, at user scope, on Linux, macOS and Windows: a status script for the host, then one list of install commands (codegraph, ponytail, the other vendors' clients, the mstack skills) that runs only after one yes, and a final check. One skill for Claude Code, Codex and Antigravity.",
-      "version": "0.2.13",
+      "version": "0.2.14",
       "author": {
         "name": "mubeda"
       },
@@ -211,7 +211,7 @@
     {
       "name": "mstack-auto",
       "description": "A router for the mstack skills. Give it any prompt and it starts the one mstack skill that fits, after one line that says which skill and why. It picks the earliest missing step of a chain (brainstorm, spec, plan, delivery), asks one question on a real tie, names a fitting skill that is missing or runs only on another host, and hands a job no mstack skill covers to mstack-find-skills. It starts only when asked and never does the job itself. One skill for Claude Code, Codex and Antigravity.",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "author": {
         "name": "mubeda"
       },
@@ -250,8 +250,8 @@
     },
     {
       "name": "mstack-web-ui",
-      "description": "Builds and reviews web interfaces. Every page, screen, component or form it builds meets a floor: it works with a keyboard and on a phone, every control has a readable name and its states, every data view handles no data, loading, an error and long content, and motion is used with restraint. A new page with no design system gets a direction that is chosen and stated, not the default look, and nothing in it is invented. In an existing project the design system, components and stack win over every default of the skill. A React project also gets rules for component structure, rendering and loading, matched to the installed React version. A review returns ranked findings with file and line and changes nothing. Text only: no script, no data and nothing to install. One skill for Claude Code, Codex and Antigravity.",
-      "version": "0.2.2",
+      "description": "Builds and reviews web interfaces, modern web platform features and Manifest V3 Chrome extensions. Every page, screen, component or form it builds meets a floor: it works with a keyboard and on a phone, every control has a readable name and its states, every data view handles no data, loading, an error and long content, and motion is used with restraint. A new page with no design system gets a direction that is chosen and stated, not the default look, and nothing in it is invented. In an existing project the design system, components and stack win over every default of the skill. Covers modern HTML/CSS/JS with Baseline Widely Available and fallback rules, Web Components, CWV performance, client web security and Passkeys, privacy, PWA install, browser Built-in AI, WebMCP, WebAssembly, Chrome Extensions MV3, and React rules matched to the installed React version. A review returns ranked findings with file and line and changes nothing. Text only: no script, no data and nothing to install. One skill for Claude Code, Codex and Antigravity.",
+      "version": "0.3.0",
       "author": {
         "name": "mubeda"
       },
@@ -267,6 +267,16 @@
       },
       "source": "./plugins/mstack-resolve-merge-conflicts",
       "category": "development"
+    },
+    {
+      "name": "mstack-sharpen-prompt",
+      "description": "Reframes and sharpens rough user prompts before sending them to an AI. Reads real workspace files when present, automatically selects reframe (problem-class disambiguation, impact-ranked domain vocabulary, cross-field analogies with break points, unmentioned concerns), sharpen (practitioner craft, rawer source inputs, named methods, objective external checks, empirical prototyping vs user-judgment split), or both together, and returns concise analysis plus one ready-to-send prompt in a single fenced block without executing the task. 100% offline with zero scripts, zero URLs and nothing to install. One skill for Claude Code, Codex and Antigravity.",
+      "version": "0.1.0",
+      "author": {
+        "name": "mubeda"
+      },
+      "source": "./plugins/mstack-sharpen-prompt",
+      "category": "productivity"
     }
   ]
 }

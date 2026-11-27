@@ -17,7 +17,7 @@ skill() { mkdir -p "$H/$1"; printf -- "---\nname: x\ndescription: Use when testi
 C=.claude/plugins/cache
 
 skill "$C/ponytail/ponytail/5.3.3/skills/ponytail"
-for s in mstack-best-model-for mstack-receive-review mstack-research mstack-setup mstack-vendors mstack-plan mstack-write-specs mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-resolve-merge-conflicts mstack-claude-led-review mstack-claude-led-dev; do skill "$C/mstack/$s/0.1.0/skills/$s"; done
+for s in mstack-best-model-for mstack-receive-review mstack-research mstack-setup mstack-vendors mstack-plan mstack-write-specs mstack-diagnose mstack-backlog-triage mstack-handoff mstack-skill-creator mstack-resolve-merge-conflicts mstack-sharpen-prompt mstack-claude-led-review mstack-claude-led-dev; do skill "$C/mstack/$s/0.1.0/skills/$s"; done
 skill "$C/ui-ux-pro-max-skill/ui-ux-pro-max/1.0.0/skills/ui-ux-pro-max"
 skill ".agents/skills/archify"
 

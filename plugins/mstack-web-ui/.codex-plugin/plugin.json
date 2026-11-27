@@ -1,7 +1,7 @@
 {
   "name": "mstack-web-ui",
-  "version": "0.2.2",
-  "description": "Builds and reviews web interfaces. Every page, screen, component or form it builds meets a floor: it works with a keyboard and on a phone, every control has a readable name and its states, every data view handles no data, loading, an error and long content, and motion is used with restraint. A new page with no design system gets a direction that is chosen and stated, not the default look, and nothing in it is invented. In an existing project the design system, components and stack win over every default of the skill. A React project also gets rules for component structure, rendering and loading, matched to the installed React version. A review returns ranked findings with file and line and changes nothing. Text only: no script, no data and nothing to install. One skill for Claude Code, Codex and Antigravity.",
+  "version": "0.3.0",
+  "description": "Builds and reviews web interfaces, modern web platform features and Manifest V3 Chrome extensions. Every page, screen, component or form it builds meets a floor: it works with a keyboard and on a phone, every control has a readable name and its states, every data view handles no data, loading, an error and long content, and motion is used with restraint. A new page with no design system gets a direction that is chosen and stated, not the default look, and nothing in it is invented. In an existing project the design system, components and stack win over every default of the skill. Covers modern HTML/CSS/JS with Baseline Widely Available and fallback rules, Web Components, CWV performance, client web security and Passkeys, privacy, PWA install, browser Built-in AI, WebMCP, WebAssembly, Chrome Extensions MV3, and React rules matched to the installed React version. A review returns ranked findings with file and line and changes nothing. Text only: no script, no data and nothing to install. One skill for Claude Code, Codex and Antigravity.",
   "author": {
     "name": "mubeda"
   },
@@ -16,8 +16,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "mstack Web UI",
-    "shortDescription": "Web interfaces built and reviewed against a floor of accessibility, states and restraint.",
-    "longDescription": "Builds and reviews web pages, screens, components and forms. What it builds works with a keyboard and on a phone, has its states and holds with real content. A new page gets a stated direction, an existing project keeps its design system, and a React project gets rules matched to its React version. A review returns ranked findings and changes nothing.",
+    "shortDescription": "Web interfaces, modern web platform APIs and Chrome MV3 extensions built and reviewed against a clear floor.",
+    "longDescription": "Builds and reviews web pages, screens, components, forms, modern web platform features and Manifest V3 Chrome extensions. Covers accessibility, states, real content, modern HTML/CSS/JS with Baseline fallbacks, CWV performance, client web security and Passkeys, PWA, Built-in AI, WebMCP, WebAssembly, and React rules matched to the installed version. A review returns ranked findings and changes nothing.",
     "developerName": "mubeda",
     "category": "Productivity",
     "capabilities": [
